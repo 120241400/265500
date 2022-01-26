@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>忘情自动切换解析</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="keywords" content="解析,vip在线解析,易搜电影搜索,影视搜索,全能影视搜索,最新影视资源大全">
+<meta name="description" content="忘情影视是一款全能影视搜索引擎,为网友提供免费在线影视播放，给您全新的“悦享品质”在线观看体验。">
+<style>
+	.divcss5{ position:absolute;  width:99%; height: 99%;} 
+</style>
+<body style="background:#000000">
+</head>
+<body>
+<div class="divcss5">
+	<iframe src="" id="player" width="100%" height="100%" allowfullscreen="true" frameborder="no" allowtransparency="true" scrolling="no"></iframe>
+</div>
+<script type="text/javascript">
+ function GetQueryString(name)
+   {
+        var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if(r!=null)return  decodeURIComponent(r[2]); return null;
+ 
+   }
+
+
+var url = GetQueryString("url");
+console.log(url);
+if(url.indexOf("share") != -1 ){document.getElementById("player").src=url;}else if(url.indexOf("m3u8") != -1 ){document.getElementById("player").src="http://zhizunwangqing.gitee.io/wangqing/gongnengye/bofangqi/dplayer/dplayer-wutishi.html?url="+url;}else if(url.indexOf("iqiyi.com") != -1 ){document.getElementById("player").src="https://jx.parwix.com:4433/player/?url=https://v.qq.com/x/cover/m441e3rjq9kwpsc/s0026bky36e.html"+url;}else if(url.indexOf("le.com") != -1 ){document.getElementById("player").src="https://jx.aidouer.net/?url="+url;}else if(url.indexOf("youku.com") != -1 ){document.getElementById("player").src="http://okjx.cc?url="+url;}else if(url.indexOf("qq.com") != -1 ){document.getElementById("player").src="https://jxqd.hao7di.com/m3u8.php?url="+url;}else if(url.indexOf("mgtv.com") != -1 ){document.getElementById("player").src="https://jx.parwix.com:4433/player/?url="+url;}
+//else if(url.indexOf("donggou") != -1 ){document.getElementById("player").src="ali.html?url="+url+".mp4";}
+	</script>
+</body>
+</html>

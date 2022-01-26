@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>忘情豆瓣搜索</title>
+    <meta name="description" content="7080视搜索是一款全能影视搜索引擎，帮你找到最新影视资源，一站拥有无尽影视资源，下载最新影视资源，下载全集版影视资源。" />
+    <meta name="keywords" content="影视搜索，电影下载，最新视频" />
+    <meta name="referrer" content="never" />
+<link rel="shortcut icon" href="https://demosc.chinaz.net/Files/pic/iconsico/5897/s13.ico" />
+    <link href="https://cdnjs.loli.net/ajax/libs/font-awesome/5.8.0/css/all.min.css?https://cdn.jsdelivr.net/gh/sysh8888/sysh8888.github.io/v/css/all.min.css" rel="stylesheet">
+    <link href="https://zhizunwangqing.gitee.io/zaluan/888/douban/suoxiaostyle.css?https://cdn.jsdelivr.net/gh/sysh8888/sysh8888.github.io/v/css/style.css" rel="stylesheet">
+    <script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.3.1/jquery.min.js"></script>
+    <script src="http://120241400.com/7080/douban.js"></script>
+    
+</head>
+<body>
+<div id="header">
+    <div class="logo"><a href="//120241400.com/">忘情影视</a> </div>
+</div>
+<ul class="bar">
+    <li><a id="backTopBtn" href="" title="回顶部"><i class="fas fa-chevron-up"></i></a></li>
+</ul>
+<div id="content">
+    <div class="search">
+       <form action="./so.html" method="GET">
+        <input type="hidden" name="" value="">
+        <input type="text" name="wd" id="wd" placeholder="输入关键词搜索" value="" autocomplete="off">
+        <button id="submit"><i class="fas fa-search"></i></button>
+       </form>
+    </div>
+    <div class="bd">
+        <div id="title"><b>热门推荐</b></div>
+        <div id="loading">
+            <div class="k-ball7a" ></div>
+            <div class="k-ball7b" ></div>
+            <div class="k-ball7c" ></div>
+            <div class="k-ball7d" ></div>
+        </div> 
+        <ul id="list">
+
+        </ul>
+        <!-- <div id="more"><a href="/">更多影视 >></a></div> -->
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){ 
+
+    $.ajax({
+ async: true,
+ type: "GET",
+ dataType: 'jsonp',
+ jsonp: 'callback',
+ jsonpCallback: 'callbackfunction',
+ url:'https://5020.work/json/2.php?url=https://movie.douban.com/j/search_subjects?type=tv&tag=%E5%9B%BD%E4%BA%A7%E5%89%A7&sort=recommend&page_limit=100&page_start=0',
+ data: "",
+ timeout: 3000,
+ contentType: "application/json;utf-8",
+ success: function(data) {
+    var Node = $("#loading");  
+                     Node.hide();
+console.log(data);
+var timu="";
+for (var i=0;i<40;i++)
+{ timu+='<li><a href="so.html?wd='+data.subjects[i].title+'" target="_blank"><img  src="'+data.subjects[i].cover+'"  width="80" height="105"><em><b></b></em><span>'+data.subjects[i].title+'</span></a></li>';}
+document.getElementById("list").innerHTML =timu;
+ }
+ });
+
+
+
+    });
+    $(".bd #nav").on("click","li",function(){
+        $(".bd #nav li").removeClass("on");
+        $(this).addClass("on");
+    });
+    $('#backTopBtn').click(function () {
+    $('html, body').animate({scrollTop: 0}, 700);
+    });
+</script>
+<div id="foot">
+   版权声明:本网站为非赢利性站点<br>
+本网站所有内容均来源于互联网相关站点自动搜索采集信息，<br>
+版权归原作者所有<br>    © 2020 BY <a href="/">忘情影视搜索</a> . All rights.<a href="http://beian.miit.gov.cn/" target="_black">beian</a><br>
+
+</div>
+</div>
+</body>
+</html>

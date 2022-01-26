@@ -1,0 +1,287 @@
+﻿<!doctype html>
+<html class="no-js">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="never">
+<title> 一个简单的影视搜索- 7080.wang</title>
+<meta name="description" content="7080影视搜" />
+<meta name="keywords" content="7080影视搜" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+<link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/sysh8888/sysh8888.github.io/img/favicon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" sizes="192x192" href="https://cdn.jsdelivr.net/gh/sysh8888/sysh8888.github.io/img/app-icon72x72@2x.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Amaze UI" />
+<link rel="apple-touch-icon-precomposed" href="https://cdn.jsdelivr.net/gh/sysh8888/sysh8888.github.io/img/app-icon72x72@2x.png">
+<meta name="msapplication-TileImage" content="https://cdn.jsdelivr.net/gh/sysh8888/sysh8888.github.io/img/app-icon72x72@2x.png">
+<link rel="stylesheet" href="https://lib.baomitu.com/amazeui/2.7.2/css/amazeui.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sysh8888/sysh8888.github.io/css/app.css">
+<!--[if (gte IE 9)|!(IE)]>
+    <!--<script src="https://cdn.jsdelivr.net/gh/27K8/52v/assets/js/jquery.min.js"></script>-->
+<script src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js"></script>
+<script src="http://7080.wang/v/css/zy.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sysh8888/sysh8888.github.io/js/gg.js"></script>
+<script src="http://7080.wang/js/so.js"></script>
+<!--<![endif]-->
+<!--[if lte IE 8 ]>
+    <script src="https://libs.baidu.com/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/modernizr/2.8.3/modernizr.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/27K8/52v/assets/js/amazeui.ie8polyfill.min.js"></script>
+    <![endif]-->
+<style>
+.video-score {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    font-size: 16px;
+    color: #f72;
+}
+.video-score:first-letter {
+    font-size: 20px;
+}
+/* 封面左侧边距 */
+.am-list-news-default .am-list .am-list-item-thumb-left .am-list-thumb {
+    padding-left: 10px;
+}
+/* 图片尺寸，居中 */
+.am-list-news-default .am-list .am-list-thumb img {
+    max-width: 200px;
+    margin: 0 auto;
+}
+/* 文字右侧边距 */
+.am-list-news-default .am-list .am-list-item-text {
+    -webkit-line-clamp: 10; 
+    max-height: none; 
+    line-height: 1.6em;
+    margin-right: 10px;
+}
+/* 电影标题 */
+.am-list-item-hd a {
+    font-size: 150%;
+}
+@media only screen and (max-width: 640px) {
+    /* 小屏图片展示完全 */
+    .am-list-news-default .am-list-item-thumb-left .am-list-thumb {
+        max-height: none;
+    }
+    /* 右侧描述 */
+    .am-list-news-default .am-list .am-list-item-text {
+        -webkit-line-clamp: 3; 
+        max-height: 3.9em; 
+        line-height: 1.3em;
+    }
+    /* 电影标题 */
+    .am-list-item-hd a {
+        font-size: 100%;
+    }
+}
+
+/* 按钮 */
+.am-list .am-list-item-desced .am-btn, .am-list .am-list-item-thumbed .am-btn {
+    margin-top: 10px;
+    padding: .5em 1em;
+}
+/* 加载 */
+  #loading{position:.5;width:60px;height:60px;z-index:999;margin:80px auto}.k-ball7a{border:0;margin:0;width:16px;height:16px;position:absolute;border-radius:50%;animation:k-loadingO 2s ease infinite;background:#19a68c;animation-delay:-1.5s}.k-ball7b{border:0;margin:0;width:16px;height:16px;position:absolute;border-radius:50%;animation:k-loadingO 2s ease infinite;background:#f63d3a;animation-delay:-1s}.k-ball7c{border:0;margin:0;width:16px;height:16px;position:absolute;border-radius:50%;animation:k-loadingO 2s ease infinite;background:#fda543;animation-delay:-.5s}.k-ball7d{border:0;margin:0;width:16px;height:16px;position:absolute;border-radius:50%;animation:k-loadingO 2s ease infinite;background:#193b48}@keyframes k-loadingA{0{height:15px}50%{height:35px}100%{height:15px}}@keyframes k-loadingB{0{width:15px}50%{width:35px}100%{width:15px}}@keyframes k-loadingC{0{transform:translate(0,0)}50%{transform:translate(0,15px)}100%{transform:translate(0,0)}}@keyframes k-loadingD{0{transform:rotate(0)}50%{transform:rotate(180deg)}100%{transform:rotate(360deg)}}@keyframes k-loadingE{0{transform:rotate(0)}100%{transform:rotate(360deg)}}@keyframes k-loadingF{0%{opacity:0}100%{opacity:1}}@keyframes k-loadingG{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(70px,0) rotate(360deg)}100%{transform:translate(0,0) rotate(0)}}@keyframes k-loadingGb{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(-70px,0) rotate(-360deg)}100%{transform:translate(0,0) rotate(0)}}@keyframes k-loadingH{0%{width:15px}50%{width:35px;padding:4px}100%{width:15px}}@keyframes k-loadingHb{0%{width:15px;background-color:#607d8b}50%{width:35px;padding:4px;background-color:#455a64}100%{width:15px;background-color:#263238}}@keyframes k-loadingI{100%{transform:rotate(360deg)}}@keyframes k-loadingIb{0%,100%{transform:scale(0)}50%{transform:scale(1)}}@keyframes k-loadingJ{0%,100%{transform:translate(0,0)}50%{transform:translate(80px,0);background-color:#f5634a;width:25px}}@keyframes k-loadingK{0%{left:0;transform:scale(1.1)}50%{left:100%;transform:scale(1)}100%{left:0;transform:scale(1.1)}}@keyframes k-loadingL{0%{left:100%;transform:scale(1.1)}50%{left:0;transform:scale(1)}100%{left:100%;transform:scale(1.1)}}@keyframes k-loadingM{0%{z-index:0}50%{z-index:1}100%{z-index:0}}@keyframes k-loadingN{0%{z-index:1}50%{z-index:0}100%{z-index:1}}@keyframes k-loadingO{0%,100%{transform:translate(0)}25%{transform:translate(160%)}50%{transform:translate(160%,160%)}75%{transform:translate(0,160%)}}@keyframes k-loadingP{0%{transform:translateY(0)}35%{transform:translateY(0);opacity:.3}50%{transform:translateY(-20px);opacity:.8}70%{transform:translateY(3px);opacity:.8}85%{transform:translateY(-3px)}}@keyframes k-loadingQ{33%{transform:translate(0,0);opacity:.7}66%{transform:translate(0,0);opacity:.7}}@keyframes k-loadingR{0%{opacity:.5;background:#000}30%{opacity:.5;background:#666}60%{opacity:0}75%{opacity:0}100%{opacity:.5;background:#000}}@keyframes k-loadingS{40%{transform:translateX(0);opacity:.8}100%{transform:translateX(300px);opacity:0}}
+</style>
+</head>
+<body>
+<header class="am-topbar">
+<div class="am-container">
+<h1 class="am-topbar-brand hover-bounce">
+<a href="../index.html" class="web-name">
+<span class="am-icon-film am-icon-md"></span>
+7080网
+</a>
+</h1>
+<button class="am-topbar-btn am-topbar-toggle am-btn am-btn-sm am-btn-success am-show-sm-only" data-am-collapse="{target: '#doc-topbar-collapse'}">
+<span class="am-sr-only">导航切换</span>
+<span class="am-icon-bars"></span>
+</button>
+<div class="am-collapse am-topbar-collapse" id="doc-topbar-collapse">
+<ul class="am-nav am-nav-pills am-topbar-nav" id="toutou">
+</ul>
+<form class="am-topbar-form am-topbar-left am-form-inline" role="search" action="./so.html" name="tyForm" onsubmit="return Checkfrom();">
+<div class="am-input-group am-input-group-primary am-input-group-sm">
+<input name="wd" type="text" class="am-form-field" placeholder="搜索..." required>
+<span class="am-input-group-btn">
+<button class="am-btn am-btn-primary" type="submit">
+<span class="am-icon-search"></span>
+</button>
+</span>
+</div>
+</form>
+</div>
+</header>
+
+<div class="am-container">
+<div class="am-g" style="margin: 20px 0">
+<div class="am-u-lg-10 am-u-sm-centered">
+<form action="./so.html" method="get" class="am-margin-bottom" role="search" name="SoForm" onsubmit="return Checkfrom1();">
+<div class="am-input-group am-input-group-primary">
+<input name="wd" id="wd" value="" type="text" class="am-form-field" placeholder="输入关键词搜索" required>
+<span class="am-input-group-btn">
+<button class="am-btn am-btn-primary" id="b_so" type="submit">
+<span class="am-icon-search"></span>
+</button>
+</span>
+</div>
+</form>
+</div>
+</div>
+<div data-am-widget="list_news" class="am-list-news am-list-news-default">
+<div>
+<P style="font-size:20px;"><B style="color:#00CC33">资源站选择-当前:</B><SPAN><b style="color:#CC0033" id=bolei>默认</b></SPAN></P>
+<div class="am-btn-group" id="ff"></div>
+</div>
+
+  <!-- 影片列表开始 -->
+    <div data-am-widget="titlebar" class="am-titlebar am-titlebar-default" >
+        <h2 class="am-titlebar-title ">
+            资源站搜索结果:
+        </h2>
+    </div>
+
+    <ul class="am-avg-sm-3 am-avg-md-4 am-avg-lg-7 am-thumbnails movie-lists" id="list">
+	 <div id="loading">
+<div class="k-ball7a"></div>
+<div class="k-ball7b"></div>
+<div class="k-ball7c"></div>
+<div class="k-ball7d"></div>
+</div>
+<h3>资源加载中延迟1秒。。。</h3>
+</ul>
+	  <!-- 影片列表结束 -->
+ <!-- 影片列表开始 -->
+    <div data-am-widget="titlebar" class="am-titlebar am-titlebar-default" >
+        <h2 class="am-titlebar-title ">
+            1080资源搜索:
+        </h2>
+    </div>
+
+    <ul class="am-avg-sm-3 am-avg-md-4 am-avg-lg-7 am-thumbnails movie-lists" id="list2">
+	 <div id="loading">
+<div class="k-ball7a"></div>
+<div class="k-ball7b"></div>
+<div class="k-ball7c"></div>
+<div class="k-ball7d"></div>
+</div>
+<h3>资源加载中延迟2秒。。。</h3>
+</ul>
+	  <!-- 影片列表结束 -->
+ <!-- 影片列表开始 -->
+    <div data-am-widget="titlebar" class="am-titlebar am-titlebar-default" >
+        <h2 class="am-titlebar-title ">
+            HG资源搜索:
+        </h2>
+    </div>
+
+    <ul class="am-avg-sm-3 am-avg-md-4 am-avg-lg-7 am-thumbnails movie-lists" id="list3">
+	 <div id="loading">
+<div class="k-ball7a"></div>
+<div class="k-ball7b"></div>
+<div class="k-ball7c"></div>
+<div class="k-ball7d"></div>
+</div>
+<h3>资源加载中延迟3秒。。。</h3>
+</ul>
+	  <!-- 影片列表结束 -->
+ <!-- 影片列表开始 -->
+    <div data-am-widget="titlebar" class="am-titlebar am-titlebar-default" >
+        <h2 class="am-titlebar-title ">
+            番茄资源搜索:
+        </h2>
+    </div>
+
+    <ul class="am-avg-sm-3 am-avg-md-4 am-avg-lg-7 am-thumbnails movie-lists" id="list4">
+	 <div id="loading">
+<div class="k-ball7a"></div>
+<div class="k-ball7b"></div>
+<div class="k-ball7c"></div>
+<div class="k-ball7d"></div>
+</div>
+<h3>资源加载中延迟4秒。。。</h3>
+</ul>
+	  <!-- 影片列表结束 -->
+</div>
+</div>
+<script>
+$('.search-item-href').each(function(){
+    var href = $(this).attr('href');
+    if(href == '') {
+        $(this).removeAttr('href');
+        $(this).removeAttr('target');
+    }
+});
+$('.search-item-btn').each(function(){
+    var href = $(this).attr('href');
+    if(href == '') {
+        $(this).removeAttr('href');
+        $(this).removeAttr('target');
+        $(this).attr('disabled', 'disabled');
+        $(this).html('无法播放');
+        $(this).removeClass('am-btn-secondary');
+        $(this).addClass('am-btn-default');
+    }
+});
+</script>
+<div data-am-widget="gotop" class="am-gotop am-gotop-fixed" title="返回顶部">
+<a href="#top" title="">
+<i class="am-gotop-icon am-icon-arrow-up"></i>
+</a>
+</div>
+<footer data-am-widget="footer" class="am-footer am-footer-default am-hide-sm-only" data-am-footer="{  }">
+<div class="am-footer-miscs">
+<p>本网站个人测试学习使用为非赢利性站点</p>
+<p>所有内容均来源于互联网相关站点自动搜索采集信息</p>
+<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1258200835'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/stat.php%3Fid%3D1258200835%26online%3D1%26show%3Dline' type='text/javascript'%3E%3C/script%3E"));</script>
+</div>
+</footer>
+<div data-am-widget="navbar" class="am-navbar am-cf am-navbar-default am-show-sm-only" id="">
+<ul class="am-navbar-nav am-cf am-avg-sm-4" id="souji">
+
+</ul>
+</div>
+<script src="https://cdn.bootcdn.net/ajax/libs/layer/3.5.1/layer.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+<script type="text/javascript">
+    
+ function GetQueryString(name)
+   {
+        var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if(r!=null)return  decodeURIComponent(r[2]); return null;
+ 
+   }
+var lianjie = GetQueryString("wd");
+
+if(lianjie !=null && lianjie.toString().length>1){
+  var lianjie1=lianjie;
+} else{var lianjie1="";}
+
+document.getElementById("wd").value =lianjie1;
+
+</script>
+<script type="text/javascript">
+document.getElementById("toutou").innerHTML =toutou;
+document.getElementById("souji").innerHTML =souji;
+var fenff="";
+//for ( j in feifeiw)
+//{ fenff+='<li class="hot"><span onclick="fromff('+j+')">'+feifeiw[j]+'</span></li>';} 
+//document.getElementById("ff").innerHTML =fenff;
+for ( k in pingguow)
+{ fenff+='<button type="button" class="am-btn am-btn-secondary  am-radius"><span onclick="frompg('+k+')">'+pingguow[k]+'</span></button>';} 
+document.getElementById("ff").innerHTML =fenff;
+//console.log(fenff); 
+setTimeout(function(){frompg('0');},1000);
+setTimeout(function(){zy2('0');},2000);
+setTimeout(function(){zy3('2');},3000);
+setTimeout(function(){zy4('0');},4000);
+</script>
+<script src="https://lib.baomitu.com/amazeui/2.7.2/js/amazeui.min.js"></script>
+</body>
+</html>
+
