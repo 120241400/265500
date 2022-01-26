@@ -33,7 +33,7 @@ for (h=0;h<strs.length ;h++){
 bolie1 +='<li class="'+boliee+'" ><a href="#'+bolie[h]+'">'+bolie[h]+'</a></li>';
   for (i=0;i<str1[h].length ;i+=2)
   {
-      neirong1 +='<li class="am-btn am-btn-sm btn-play-source"><a href="./jx/index.html?url='+str1[h][i+1]+'"  target="ajax" onclick="GetHref(this);return false;">'+str1[h][i]+'</a>';
+      neirong1 +='<li class="am-btn am-btn-sm btn-play-source"><a href="https://zy.zy2.top/ziyuan/jx?url='+str1[h][i+1]+'"  target="ajax" onclick="GetHref(this);return false;">'+str1[h][i]+'</a>';
   }
 neirong +='<div class="'+neinei+'" id="'+bolie[h]+'">'+neirong1+'</div>';
 var neirong1="";
@@ -43,7 +43,7 @@ var vide1=str1[0][0];
 var vide=str1[0][1];  
 document.getElementById("demo1").innerHTML =vide1;
 document.getElementById("bolie2").innerHTML =bolie1;
-document.getElementById("video").src="./jx/index.html?url="+vide ;
+document.getElementById("video").src="https://zy.zy2.top/ziyuan/jx?url="+vide ;
 document.getElementById("neirong").innerHTML =neirong;
 document.getElementById("name").innerHTML =data.list[0].vod_name;
 document.getElementById("tu").src=data.list[0].vod_pic;
