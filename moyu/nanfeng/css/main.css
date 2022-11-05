@@ -1,0 +1,1013 @@
+﻿.contAll {
+    background: url(../css/images/bg.jpg) no-repeat center top;
+    height: 1450px;
+    z-index: 3;
+}
+
+/*������ start*/
+
+.wp_nav {
+    height: 103px;
+    background: url(../css/images/nav-bg.jpg) no-repeat center top;
+}
+
+.wp_nav .logo a {
+    position: absolute;
+    background: url(../css/images/css_sprites1.png) no-repeat 0 -490px;;
+    width: 122px;
+    height: 103px;
+    left: -40px;
+    top: 0;
+    font-size: 0;
+}
+
+.wp_nav .nav-list {
+    width: 952px;
+    margin: 0 auto;
+    position: relative;
+    left: -24px;
+}
+
+.wp_nav .nav-list li {
+    margin-left: 0;
+    width: 134px;
+}
+
+.wp_nav .nav-list li:nth-of-type(1) {
+    margin-left: 11px;
+}
+
+.wp_nav .nav-list a {
+    color: #666;
+    border: none;
+    border-radius: 0;
+    width: 140px;
+    margin-top: 33px;
+    font-size: 20px;
+    position: relative;
+    text-indent: -2px;
+}
+
+.nav-list li:nth-of-type(3) a {
+    text-indent: 5px;
+}
+
+.nav-list li:nth-of-type(4) a {
+    text-indent: 10px;
+}
+
+.nav-list li:nth-of-type(5) a,
+.nav-list li:nth-of-type(6) a {
+    text-indent: 13px;
+}
+
+.nav-list li:nth-of-type(7) a {
+    text-indent: 16px;
+}
+
+.wp_nav .nav-list a:hover, .nav-list li.on a {
+    color: #d9d3dd;
+}
+
+.wp_nav .nav-list a:hover::before, .nav-list li.on a::before {
+    display: block;
+}
+
+.wp_nav .nav-list a::before {
+    content: '';
+    display: none;
+    position: absolute;
+    width: 138px;
+    height: 104px;
+    bottom: -45px;
+    left: 0;
+    z-index: 3;
+    background: url(../css/images/css_sprites2.png) no-repeat -587px -31px;;
+}
+
+.nav-list li:nth-of-type(2) a::before {
+    left: 2px;
+}
+
+.nav-list li:nth-of-type(3) a::before {
+    left: 3px;
+}
+
+.nav-list li:nth-of-type(4) a::before {
+    left: 5px;
+}
+
+.nav-list li:nth-of-type(5) a::before {
+    left: 7px;
+}
+
+.nav-list li:nth-of-type(6) a::before {
+    left: 9px;
+}
+
+.nav-list li:nth-of-type(7) a::before {
+    left: 11px;
+}
+
+/*������ end*/
+/*kv start*/
+.kv-slide {
+    height: 754px;
+}
+
+.kv-panel {
+    overflow: auto;
+    background: url(../css/images/kv.jpg) no-repeat center top;
+
+}
+
+/*kv end*/
+/*����ԤԼ start*/
+.wrap1 .grid-text-group2 {
+    position: relative;
+    left: -84px;
+}
+
+.grid-text-group2 {
+    width: 1336px;
+    height: 347px;
+    padding: 0 52px 0 80px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    background: url(../css/images/news-bg.png) no-repeat;
+}
+
+.grid-text-group2 .m1 {
+    border: none;
+    width: 192px;
+    margin-right: 8px;
+}
+
+.grid-text-group2 .reservation {
+    border: none;
+}
+
+.grid-text-group2 .reservation {
+    width: 174px;
+    height: 87px;
+    font-size: 0;
+    margin: 45px 0 0 11px;
+}
+
+.grid-text-group2 .reservation .btn-reservation {
+    font-size: 0;
+    height: 87px;
+    transition: .4s;
+    background: url(../css/images/css_sprites1.png) no-repeat -447px -178px;
+}
+
+.grid-text-group2 .reservation .btn-reservation:hover {
+    /*background: url(../css/images/css_sprites3.png) no-repeat -986px -31px;*/
+    /*transform: scale(1.06);*/
+}
+
+.grid-text-group2 .m1 .code {
+    display: block;
+    margin: 14px 0 0 28px;
+}
+
+.grid-text-group2 .m2 {
+    width: 526px;
+    padding: 0 26px 0 24px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    background: url(../css/images/news-contBg.png) no-repeat;
+    height: 327px;
+    margin-top: 20px;
+}
+
+.grid-text-group2 .m2 .grid-hd {
+    height: 46px;
+    width: 34px;
+    height: 34px;
+    right: 24px;
+    top: 8px;
+}
+
+.grid-text-group2 .m2 .grid-hd-extra,
+.wrap3 .grid-hd-extra {
+    border-radius: 0;
+    width: 34px;
+    height: 34px;
+    text-align: center;
+    line-height: 34px;
+    padding: 0;
+    background: transparent url(../css/images/css_sprites2.png) no-repeat -760px -141px;
+}
+
+.grid-hd-extra a {
+    font-size: 0;
+    position: absolute;
+    left: calc(50% - 6px);
+    top: calc(50% - 7px);
+    background: url(../css/images/css_sprites1.png) no-repeat -623px -362px;
+    width: 12px;
+    height: 13px;
+}
+
+.grid-full .tab-hd {
+    width: 476px;
+    height: 46px;
+    line-height: 46px;
+    border-bottom: 1px solid #8a827e;
+}
+
+.grid-full .tab-hd li {
+    font-size: 16px;
+    color: #666;
+}
+
+.grid-full .tab-hd li.on {
+    color: #d9d3dd;
+    border: none;
+}
+
+.wrap1 .tab-hd li {
+    padding: 0;
+    width: 74px;
+    height: 47px;
+    position: relative;
+}
+
+.wrap1 .tab-hd li::before {
+    content: '';
+    display: none;
+    position: absolute;
+    width: 74px;
+    height: 37px;
+    left: 0;
+    z-index: 3;
+    bottom: 0;
+    background: url(../css/images/css_sprites2.png) no-repeat -668px -142px;
+}
+
+.wrap1 .tab-hd li.on::before {
+    display: block;
+}
+
+.wrap1 .tab-panel:nth-of-type(1) li:nth-of-type(1) {
+    background: #252120;
+    height: 40px;
+    line-height: 40px;
+    border: none;
+    margin: 24px 0 10px;
+    padding-right: 0;
+    box-sizing: content-box;
+}
+
+.wrap1 .tab-panel:nth-of-type(1) li:nth-of-type(1) a {
+    font-size: 18px;
+    color: #AF7337;
+}
+
+.wrap1 .tab-panel:nth-of-type(1) li:nth-of-type(1) span {
+    display: none;
+}
+
+.wrap1 .tab-panel:not(:nth-of-type(1)) li:nth-of-type(1) {
+    margin-top: 20px;
+}
+
+.wrap1 .tab-panel:not(:nth-of-type(1)) a {
+    font-size: 14px;
+}
+
+.grid-tab-bd .tab-panel a {
+    color: #9a989b;
+
+}
+
+.tab-panel a:hover, .wrap3 .tab-panel li:hover {
+    color: #b67839;
+}
+
+.col-news li {
+    height: 45px;
+    line-height: 45px;
+    border-bottom: 1px solid #222123;
+}
+
+.grid-text-group2 .m3 {
+    width: 474px;
+    height: 327px;
+    margin-top: 20px;
+}
+
+.rolling .adPic img {
+    background: url(../css/images/slide1.jpg) no-repeat;
+}
+
+.rolling .adBtn {
+    width: 128px;
+    height: 28px;
+}
+
+.swiper-container1 .swiper-pagination-bullets {
+    width: 136px;
+    left: 318px;
+    bottom: 24px;
+}
+
+.swiper-container1 .swiper-pagination-bullets .swiper-pagination-bullet {
+    margin: 0 0 0 6px;
+    width: 28px;
+    height: 28px;
+    background: url(../css/images/css_sprites1.png) no-repeat -637px -177px;
+    border-radius: initial;
+    opacity: 1;
+}
+
+.swiper-container1 .swiper-pagination-bullets .swiper-pagination-bullet-active {
+    background: url(../css/images/css_sprites1.png) no-repeat -575px -362px;
+}
+
+.qucklink-ul {
+    height: 128px;
+    margin-top: 30px;
+}
+
+.qucklink-ul li {
+    width: 291px;
+    height: 128px;
+    padding: 0;
+    margin: 0 12px 0 0;
+}
+
+.qucklink-ul li:nth-last-of-type(1) {
+    margin-right: 0;
+}
+
+.qucklink-ul li a {
+    height: 128px;
+    font-size: 0;
+}
+
+.qucklink-ul li .intro1 {
+    background: url(../css/images/css_sprites3.png) no-repeat -321px -10px;
+}
+
+.qucklink-ul li .intro2 {
+    background: url(../css/images/css_sprites3.png) no-repeat -10px -10px;
+}
+
+.qucklink-ul li .intro3 {
+    background: url(../css/images/css_sprites3.png) no-repeat -321px -158px;
+}
+
+.qucklink-ul li .intro4 {
+    background: url(../css/images/css_sprites3.png) no-repeat -10px -158px;
+}
+
+/*����ԤԼ end*/
+/*ְҵ���� start*/
+.wrap2 {
+    margin-top: 104px;
+}
+
+.wrap2 .charcon {
+    padding-left: 140px;
+}
+
+.wrap2 .dbhero {
+    height: 745px;
+}
+
+.grid-hdc h2 {
+    width: 222px;
+    height: 69px;
+    margin: 0 auto;
+    font-size: 0;
+}
+
+.wrap2 .grid-hdc h2 {
+    background: url(../css/images/css_sprites1.png) no-repeat 0 -235px;
+    margin-bottom: 46px;
+}
+
+.wrap2 .grid-full .tab-hd {
+    width: 448px;
+    height: 20px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding-left: 94px;
+    background: url(../css/images/css_sprites2.png) no-repeat -746px -45px;
+    font-size: 18px;
+    color: #666;
+    border: 0;
+    margin: 0 auto;
+}
+
+.wrap2 .tab-hd li {
+    height: 20px;
+    line-height: 20px;
+    min-width: 84px;
+    padding: 0;
+}
+
+.wrap2 .tab-hd li.on {
+    color: #b67839;
+}
+
+.wrap2 .roleId .title {
+    width: 194px;
+    height: 58px;
+    font-size: 0;
+}
+
+.wrap2 .roleId .title1 {
+    background: url(../css/images/css_sprites1.png) no-repeat -446px -285px;
+}
+
+.wrap2 .roleId .title2 {
+    background: url(../css/images/css_sprites1.png) no-repeat -220px -414px;
+}
+
+.wrap2 .roleId .title3 {
+    background: url(../css/images/css_sprites1.png) no-repeat -4px -412px;
+}
+
+.wrap2 .roleId {
+    margin-top: 148px;
+}
+
+.wrap2 .role-con .roletext {
+    text-indent: 0;
+    font-size: 14px;
+    color: #9a989b;
+    line-height: 24px;
+    position: relative;
+}
+
+.wrap2 .role-con .roletext::before {
+    content: '';
+    position: absolute;
+    background: url(../css/images/css_sprites2.png) no-repeat -1222px -60px;
+    width: 328px;
+    height: 10px;
+    bottom: -25px;
+    left: 0;
+}
+
+.wrap2 .roletext::first-letter {
+    font-size: 28px;
+    color: #b67839;
+    float: left;
+    margin: -6px 6px 0 0;
+}
+
+.wrap2 .roleId-con {
+    width: 491px;
+    height: 491px;
+    background: url(../css/images/skills-bg.png) no-repeat;
+    position: absolute;
+    right: 168px;
+    top: 238px;
+}
+
+.wrap2 .charsc {
+    margin: -50px 0 0 -32px;
+}
+
+.wrap2 .tab-panel:first-child .charsc {
+    margin: -238px 0 0 -30px;
+}
+
+.wrap2 .tab-panel:first-child+.tab-panel .charsc {
+    margin: -335px 0 0 -32px;
+}
+
+.wrap2 .tab-panel:first-child+.tab-panel+.tab-panel .charsc {
+    margin: 10px 0 0 12px;
+}
+
+.wrap2 .roles-skills li {
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    position: absolute;
+    margin: 0;
+}
+
+.wrap2 .roles-skills .roles-skill1 {
+    left: 320px;
+    top: 0;
+}
+
+.wrap2 .roles-skills .roles-skill2 {
+    left: 424px;
+    top: 100px;
+}
+
+.wrap2 .roles-skills .roles-skill3 {
+    left: 444px;
+    top: 200px;
+}
+
+.wrap2 .roles-skills .roles-skill4 {
+    left: 422px;
+    top: 308px;
+}
+
+.wrap2 .roles-skills .roles-skill5 {
+    left: 327px;
+    top: 414px;
+}
+
+.wrap2 .skillinfo {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 24px 14px 0;
+    background: url(../css/images/css_sprites3.png) no-repeat -10px -645px;
+    width: 278px;
+    height: 100px;
+    margin-left: -136px;
+    bottom: -92px;
+    color: #9a989b;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.wrap2 .skillinfo h4 {
+    text-align: center;
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.wrap2 .roles-skills .roles1-skill1 {
+    background: url(../css/images/skills_sprites.png) no-repeat -222px -222px;
+
+}
+
+.wrap2 .roles-skills .roles1-skill1:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -328px -10px;
+    left: 318px;
+}
+
+.wrap2 .roles-skills .roles1-skill2 {
+    background: url(../css/images/skills_sprites.png) no-repeat -116px -10px;
+}
+
+.wrap2 .roles-skills .roles1-skill2:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -328px -328px;
+}
+
+.wrap2 .roles-skills .roles1-skill3 {
+    background: url(../css/images/skills_sprites.png) no-repeat -10px -116px;
+}
+
+.wrap2 .roles-skills .roles1-skill3:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -116px -116px;
+}
+
+.wrap2 .roles-skills .roles1-skill4 {
+    background: url(../css/images/skills_sprites.png) no-repeat -222px -10px;
+}
+
+.wrap2 .roles-skills .roles1-skill4:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -222px -116px;
+    left: 424px;
+}
+
+.wrap2 .roles-skills .roles1-skill5 {
+    background: url(../css/images/skills_sprites.png) no-repeat -10px -222px;
+
+}
+
+.wrap2 .roles-skills .roles1-skill5:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -116px -222px;
+}
+
+.wrap2 .roles-skills .roles2-skill1 {
+    background: url(../css/images/skills_sprites.png) no-repeat -434px -222px;
+}
+
+.wrap2 .roles-skills .roles2-skill1:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -434px -328px;
+}
+
+.wrap2 .roles-skills .roles2-skill2 {
+    background: url(../css/images/skills_sprites.png) no-repeat -328px -116px;
+}
+
+.wrap2 .roles-skills .roles2-skill2:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -328px -222px;
+
+}
+
+.wrap2 .roles-skills .roles2-skill3 {
+    background: url(../css/images/skills_sprites.png) no-repeat -10px -328px;
+}
+
+.wrap2 .roles-skills .roles2-skill3:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -116px -328px;
+}
+
+.wrap2 .roles-skills .roles2-skill4 {
+    background: url(../css/images/skills_sprites.png) no-repeat -222px -328px;
+}
+
+.wrap2 .roles-skills .roles2-skill4:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -10px -10px;
+}
+
+.wrap2 .roles-skills .roles2-skill5 {
+    background: url(../css/images/skills_sprites.png) no-repeat -434px -10px;
+}
+
+.wrap2 .roles-skills .roles2-skill5:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -434px -116px;
+}
+
+.wrap2 .roles-skills .roles3-skill1 {
+    background: url(../css/images/skills_sprites.png) no-repeat -540px -328px;
+}
+
+.wrap2 .roles-skills .roles3-skill1:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -540px -434px;
+}
+
+.wrap2 .roles-skills .roles3-skill2 {
+    background: url(../css/images/skills_sprites.png) no-repeat -10px -434px;
+}
+
+.wrap2 .roles-skills .roles3-skill2:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -116px -434px;
+}
+
+.wrap2 .roles-skills .roles3-skill3 {
+    background: url(../css/images/skills_sprites.png) no-repeat -222px -434px;
+}
+
+.wrap2 .roles-skills .roles3-skill3:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -328px -434px;
+}
+
+.wrap2 .roles-skills .roles3-skill4 {
+    background: url(../css/images/skills_sprites.png) no-repeat -434px -434px;
+}
+
+.wrap2 .roles-skills .roles3-skill4:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -540px -10px;
+}
+
+.wrap2 .roles-skills .roles3-skill5 {
+    background: url(../css/images/skills_sprites.png) no-repeat -540px -116px;
+}
+
+.wrap2 .roles-skills .roles3-skill5:hover {
+    background: url(../css/images/skills_sprites.png) no-repeat -540px -222px;
+}
+
+.wrap2 .md > a {
+    position: absolute;
+    width: 142px;
+    height: 63px;
+    top: 422px;
+}
+
+.wrap2 .md .prev-roles {
+    background: url(../css/images/css_sprites1.png) no-repeat -247px -227px;
+    left: -6px;
+}
+
+.wrap2 .md .prev-roles.active {
+    background: url(../css/images/css_sprites1.png) no-repeat -247px -316px;
+}
+
+.wrap2 .md .next-roles {
+    background: url(../css/images/css_sprites1.png) no-repeat -293px -488px;
+    right: -6px;
+}
+
+.wrap2 .md .next-roles.active {
+    background: url(../css/images/css_sprites1.png) no-repeat -131px -488px;
+}
+
+/*ְҵ���� end*/
+/*�������� start*/
+.wrap3 {
+    margin-top: 74px;
+}
+
+.wrap3 .grid-hdc h2 {
+    background: url(../css/images/css_sprites1.png) no-repeat -2px -324px;
+    margin-bottom: 42px;
+}
+
+.wrap3 .accCont {
+    height: 319px;
+    width: 1130px;
+    margin: 0 auto;
+}
+
+.wrap3 .cont_box .grid-hd {
+    /*width: 472px;*/
+    border: 0;
+}
+
+.wrap3 .col-news li {
+    padding-right: 14px !important;
+}
+
+.wrap3 .cont_box .second_tit {
+    font-size: 18px;
+    color: #d9d3dd;
+    position: relative;
+}
+
+.wrap3 .cont_box .second_tit::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 611px;
+    height: 9px;
+    background: url(../css/images/css_sprites2.png) no-repeat -754px -21px;
+}
+
+.wrap3 .cont_box .grid-hd-extra {
+    top: 10px;
+}
+
+.wrap3 .reRaidersAccord .cont_box {
+    left: 98px;
+    width: 667px;
+    height: 319px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 0 34px 0 20px;
+    background: url(../css/images/news-contBg1.png) no-repeat;
+}
+
+.wrap3 .reRaidersAccord .accordLi {
+    width: 98px;
+    overflow: hidden;
+    margin: 0 10px;
+}
+
+.wrap3 .reRaidersAccord .accordLi:first-of-type(1) {
+    margin-left: 0;
+}
+
+.wrap3 .reRaidersAccord .raider_title {
+    width: 98px;
+    height: 319px;
+    font-size: 0;
+}
+
+.wrap3 .accordLi:nth-of-type(1) .raider_title1 {
+    background: url(../css/images/css_sprites3.png) no-repeat -246px -306px;
+}
+
+.wrap3 .accordLi:nth-of-type(1).animate .raider_title {
+    background: url(../css/images/css_sprites3.png) no-repeat -364px -306px;
+}
+
+.wrap3 .reRaidersAccord .raider_title2 {
+    background: url(../css/images/css_sprites3.png) no-repeat -128px -306px;
+}
+
+.wrap3 .accordLi:nth-of-type(4).animate .raider_title2 {
+    background: url(../css/images/css_sprites3.png) no-repeat -632px -10px;
+}
+
+.wrap3 .reRaidersAccord .raider_title3 {
+    background: url(../css/images/css_sprites3.png) no-repeat -10px -306px;
+}
+
+.wrap3 .accordLi:nth-of-type(2).animate .raider_title3 {
+    background: url(../css/images/css_sprites3.png) no-repeat -868px -10px;
+}
+
+.wrap3 .reRaidersAccord .raider_title4 {
+    background: url(../css/images/css_sprites3.png) no-repeat -750px -10px;
+}
+
+.wrap3 .accordLi:nth-of-type(3).animate .raider_title4 {
+    background: url(../css/images/css_sprites3.png) no-repeat -482px -306px;
+}
+
+/*�������� end*/
+/*��Ϸ��ɫ start*/
+.wrap4 {
+    margin-top: 110px;
+}
+
+.wrap4 .grid-hdc h2 {
+    background: url(../css/images/css_sprites1.png) no-repeat -446px -2px;
+    margin-bottom: 56px;
+}
+
+.wrap4 .swiper-container54 {
+    height: 389px;
+    width: 930px;
+}
+
+.wrap4 .swiper-wrapper .swiper-slide {
+    width: 717px !important;
+    height: 389px;
+}
+
+.wrap4 .mcm-next, .wrap4 .mcm-prev {
+    width: 142px;
+    height: 63px;
+    opacity: 1;
+    border: 0;
+}
+
+.wrap4 .mcm-next {
+    right: 0;
+    background: url(../css/images/css_sprites1.png) no-repeat -131px -488px;
+}
+
+.wrap4 .mcm-prev {
+    left: 0;
+    background: url(../css/images/css_sprites1.png) no-repeat -247px -316px;
+}
+
+.wrap4 .feature-coverflow .swiper-pagination-bullets {
+    width: 252px;
+    height: 28px;
+    left: calc(50% - 252px / 2);
+}
+
+.wrap4 .feature-coverflow .swiper-pagination-bullet {
+    border-radius: 0;
+    margin: 0 20px 0 0;
+    background: url(../css/images/css_sprites1.png) no-repeat -637px -177px;;
+    width: 28px;
+    height: 28px;
+}
+
+.wrap4 .feature-coverflow .swiper-pagination-bullet-active {
+    background: url(../css/images/css_sprites1.png) no-repeat -576px -361px;
+}
+
+/*��Ϸ��ɫ end*/
+/*�ٷ����� start*/
+.wrap5 {
+    margin: 28px 0 422px 0;
+}
+
+/*.wrap5 .offcial-channel {
+    width: 948px;
+    height: 233px;
+    margin-top: 36px;
+    background: url(../css/images/concat-bg.jpg) no-repeat;
+}
+
+.wrap5 .offcial-channel li {
+    border: 0;
+    width: 240px;
+    margin: 64px 38px 0;
+}*/
+.wrap5 .offcial-channel {
+    width: 952px;
+    height: 233px;
+    margin-top: 36px;
+    background: url(../css/images/concat-bg.jpg) no-repeat;
+}
+
+.wrap5 .offcial-channel li {
+    border: 0;
+    width: 240px;
+    margin: 64px 36px 0;
+}
+
+.wrap5 .offcial-channel li:nth-of-type(3) {
+    width: 266px;
+    margin: 64px 24px 0;
+}
+
+.wrap5 .offcial-channel .ewmDiv {
+    padding: 0;
+    width: 266px;
+}
+
+.wrap5 .offcial-channel .ewm-name {
+    font-size: 20px;
+    color: #9a989b;
+    line-height: 36px !important;
+    border: 0 !important;
+    height: 36px !important;
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.wrap5 .ewm-title3 > div {
+    margin-bottom: 0 !important;
+}
+
+.wrap5 .ewm-title3 .g-name {
+    margin-top: 10px;
+}
+
+.wrap5 .offcial-channel .ewm-name::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background-color: #423d40;
+}
+
+.wrap5 .offcial-channel .g-name {
+    font-size: 16px;
+    color: #666;
+}
+
+.wrap5 .ewmDiv .ewm-title3 {
+    width: 266px;
+}
+
+.wrap5 .ewm-name .go {
+    display: inline-block;
+    margin-left: 10px;
+    padding-left: 22px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 148px;
+    height: 24px;
+    font-size: 16px;
+    color: #666;
+    line-height: 24px;
+    border-radius: 14px;
+    background-color: #30282a;
+}
+
+.wrap5 .go i {
+    font-style: normal;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 12px;
+    background-color: #272123;
+}
+
+.wrap5 .g-name span {
+    margin-left: 10px;
+    color: #666;
+    font-size: 16px;
+    float: right;
+}
+
+/*�ٷ����� end*/
+#videoDialog {
+    width: 800px;
+    height: 600px;
+    display: none;
+    z-index: 9999;
+}
+
+.closeDia {
+    color: #fff;
+    font-size: 40px;
+    position: absolute;
+    right: -40px;
+    height: 40px;
+    line-height: 30px;
+    width: 40px;
+    text-align: center;
+    background-color: #000;
+    z-index: 9999;
+}
+
+/*add start game*/
+.kv-slide .start-game {
+    position: absolute;
+    top: 484px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: 290px;
+    height: 108px;
+    text-indent: -9999px;
+    background: url(../css/images/css_sprites3.png) no-repeat -638px -358px;
+}
+.wrap1 .start-game{
+    display: block;
+    width: 169px;
+    height: 177px;
+    text-indent: -9999px;
+    margin: 70px auto 0;
+    background: url(../css/images/css_sprites3.png) no-repeat -999px -147px;
+}
+
+/*ai*/
+.ai-question{
+    position: fixed;
+    bottom: 5%;
+    left: 20px;
+    z-index: 10;
+}
