@@ -10,7 +10,7 @@
 
 /* 全局*/
 
-html{color:#505050;font-size:14px;background:#221f27 url(https://za.120241400.com/moyu/xuanbing/img/bg.jpg) no-repeat center top;}
+html{color:#505050;font-size:14px;background:#221f27 url(https://i0.wp.com/za.120241400.com/moyu/xuanbing/img/bg.jpg) no-repeat center top;}
 
 a{color:#505050;text-decoration:none;}
 
@@ -34,7 +34,7 @@ h1,h2,h3,h6,h1 b,h6 b{font-size:15px;font-weight:bold;}
 
 /* 布局*/
 
-#tt {width:988px;height:48px;margin:0 auto;margin-top:5px;background:url(https://za.120241400.com/moyu/xuanbing/img/main.png) no-repeat;}
+#tt {width:988px;height:48px;margin:0 auto;margin-top:5px;background:url(https://i0.wp.com/za.120241400.com/moyu/xuanbing/img/main.png) no-repeat;}
 
 #main{width:988px;margin:0 auto;overflow:hidden;background:#fff;-moz-border-radius:3px 3px 4px 4px;-webkit-border-radius:3px 3px 4px 4px;border-radius:3px 3px 4px 4px;-webkit-box-shadow:0 0 8px #000000;-moz-box-shadow:0 0 8px #000000;box-shadow:0 0 8px #000000;}
 
@@ -44,7 +44,7 @@ h1,h2,h3,h6,h1 b,h6 b{font-size:15px;font-weight:bold;}
 
 #header{overflow:hidden;position:relative;}
 
-#ico{float:left;width:85px;height:80px;margin:8px 0 0 8px;background:url(https://za.120241400.com/moyu/xuanbing/img/ico.png) no-repeat;-moz-animation:flip 3s infinite;-webkit-animation:flip 3s infinite;animation:flip 3s infinite}
+#ico{float:left;width:85px;height:80px;margin:8px 0 0 8px;background:url(https://i0.wp.com/za.120241400.com/moyu/xuanbing/img/ico.png) no-repeat;-moz-animation:flip 3s infinite;-webkit-animation:flip 3s infinite;animation:flip 3s infinite}
 
 @-webkit-keyframes flip{from{-webkit-transform:rotate3d(0, 1, 0, 0deg);transform:rotate3d(0, 1, 0, 0deg)} to{-webkit-transform:rotate3d(0, 1, 0, 360deg);transform:rotate3d(0, 1, 0, 360deg)}}
 
