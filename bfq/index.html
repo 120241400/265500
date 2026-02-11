@@ -20,7 +20,7 @@ html, body {
 .nav-box {
     width: 100%;
     background: linear-gradient(to bottom, #1e1e1e, #2d2d2d);
-    padding: 5px 8px;
+    padding: 4px 6px;
     display: flex;
     justify-content: center;
     box-shadow: 0 3px 8px rgba(0,0,0,0.5);
@@ -38,16 +38,16 @@ html, body {
 }
 .nav-list {
     display: flex;
-    gap: 4px;
+    gap: 3px;
     width: max-content;
     margin: 0 auto;
 }
 .nav-btn {
-    padding: 5px 14px;
+    padding: 4px 10px;
     background: linear-gradient(to top, #3a3a3a, #4a4a4a);
     border: 1px solid #555555;
     border-radius: 2px;
-    font-size: 12px;
+    font-size: 11px;
     color: #e0e0e0;
     white-space: nowrap;
     cursor: pointer;
@@ -67,7 +67,7 @@ html, body {
 }
 .search-container {
     width: 100%;
-    height: calc(100vh - 28px);
+    height: calc(100vh - 26px);
     background: #ffffff;
 }
 #search-iframe {
@@ -78,14 +78,14 @@ html, body {
 }
 @media (max-width: 768px) {
     .nav-box {
-        padding: 4px 5px;
+        padding: 3px 4px;
     }
     .nav-btn {
-        padding: 4px 11px;
-        font-size: 12px;
+        padding: 3px 8px;
+        font-size: 11px;
     }
     .search-container {
-        height: calc(100vh - 22px);
+        height: calc(100vh - 20px);
         background: #ffffff;
     }
 }
@@ -96,7 +96,7 @@ html, body {
     <div class="nav-scroll">
         <div class="nav-list">
             <!-- 播放器按钮保留原有前缀，用于关键词拼接 -->
-            <button class="nav-btn" data-prefix="https://265500.netlify.app/bfq/ffplayer.html?url=">默认播放</button>
+            <button class="nav-btn" data-prefix="https://265500.netlify.app/bfq/ffplayer.html?url=">刷新一下</button>
             <!-- 其他按钮修改为对应网站主页，不再带搜索参数 -->
             <button class="nav-btn" data-url="https://265500.netlify.app/bfq/lingquan.html">淘宝领券</button>
             <button class="nav-btn" data-url="">勿信广告</button>
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const m3u8Url = parseM3u8Url(cleanedUrl);
                 if (m3u8Url) {
                     // 播放器按钮 + m3u8链接：使用播放器打开
-                    iframe.src = `https://265500.netlify.app/bfq/ffplayer?url=${encodeURIComponent(m3u8Url)}`;
+                    iframe.src = `https://265500.netlify.app/bfq/?url=${encodeURIComponent(m3u8Url)}`;
                 } else {
                     if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
                         // 完整URL：直接在iframe打开
