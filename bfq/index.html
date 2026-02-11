@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         if (m3u8Url) {
             // 是m3u8链接，使用指定播放器打开
-            iframe.src = `https://265500.netlify.app/bfq/?url=${encodeURIComponent(m3u8Url)}`;
+            iframe.src = `https://265500.netlify.app/bfq/ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
         } else {
             // 非m3u8链接：判断是完整URL还是关键词
             if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
@@ -232,3 +232,4 @@ document.addEventListener('DOMContentLoaded', function () {
 </body>
 
 </html>
+
