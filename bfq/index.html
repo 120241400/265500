@@ -1,102 +1,94 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>自识别播放器</title>
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: "Microsoft YaHei", sans-serif;
-    }
-    html, body {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #121212;
-    }
-
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft YaHei", sans-serif;
+}
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #121212;
+}
+.nav-box {
+    width: 100%;
+    background: linear-gradient(to bottom, #1e1e1e, #2d2d2d);
+    padding: 5px 8px;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+}
+.nav-scroll {
+    width: 100%;
+    max-width: 1200px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.nav-scroll::-webkit-scrollbar {
+    display: none;
+}
+.nav-list {
+    display: flex;
+    gap: 4px;
+    width: max-content;
+    margin: 0 auto;
+}
+.nav-btn {
+    padding: 5px 14px;
+    background: linear-gradient(to top, #3a3a3a, #4a4a4a);
+    border: 1px solid #555555;
+    border-radius: 2px;
+    font-size: 12px;
+    color: #e0e0e0;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+}
+.nav-btn:hover {
+    background: linear-gradient(to top, #4a4a4a, #5a5a5a);
+}
+/* 完全移除active样式，取消高亮效果 */
+.nav-btn.active {
+    background: linear-gradient(to top, #3a3a3a, #4a4a4a);
+    color: #e0e0e0;
+    font-weight: normal;
+    box-shadow: none;
+    border-color: #555555;
+}
+.search-container {
+    width: 100%;
+    height: calc(100vh - 28px);
+    background: #ffffff;
+}
+#search-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+@media (max-width: 768px) {
     .nav-box {
-        width: 100%;
-        background: linear-gradient(to bottom, #1e1e1e, #2d2d2d);
-        padding: 10px 15px;
-        display: flex;
-        justify-content: center;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+        padding: 4px 5px;
     }
-    .nav-scroll {
-        width: 100%;
-        max-width: 1200px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-    }
-    .nav-scroll::-webkit-scrollbar {
-        display: none;
-    }
-    .nav-list {
-        display: flex;
-        gap: 8px;
-        width: max-content;
-        margin: 0 auto;
-    }
-
     .nav-btn {
-        padding: 10px 28px;
-        background: linear-gradient(to top, #3a3a3a, #4a4a4a);
-        border: 1px solid #555555;
-        border-radius: 4px;
-        font-size: 14px;
-        color: #e0e0e0;
-        white-space: nowrap;
-        cursor: pointer;
-        transition: all 0.25s ease;
-        text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+        padding: 4px 11px;
+        font-size: 12px;
     }
-
-    .nav-btn:hover {
-        background: linear-gradient(to top, #4a4a4a, #5a5a5a);
-    }
-
-    /* 完全移除active样式，取消高亮效果 */
-    .nav-btn.active {
-        background: linear-gradient(to top, #3a3a3a, #4a4a4a);
-        color: #e0e0e0;
-        font-weight: normal;
-        box-shadow: none;
-        border-color: #555555;
-    }
-
     .search-container {
-        width: 100%;
-        height: calc(100vh - 56px);
+        height: calc(100vh - 22px);
         background: #ffffff;
     }
-    #search-iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-        display: block;
-    }
-
-    @media (max-width: 768px) {
-        .nav-box {
-            padding: 8px 10px;
-        }
-        
-        .nav-btn {
-            padding: 9px 22px;
-            font-size: 13px;
-        }
-        
-        .search-container {
-            height: calc(100vh - 44px);
-            background: #ffffff;
-        }
-    }
+}
 </style>
 </head>
 <body>
@@ -120,31 +112,25 @@ function getUrlKeyword() {
     const params = new URLSearchParams(window.location.search);
     return params.get('url') || '';
 }
-
 // 通用URL清理函数：移除http/https前面的所有无关字符
 function cleanUrl(rawUrl) {
     if (!rawUrl) return null;
-    
     // 找到https开头的位置
     const httpsStartIndex = rawUrl.indexOf('https');
     if (httpsStartIndex !== -1) {
         return rawUrl.substring(httpsStartIndex);
     }
-    
     // 找不到https，找http开头的位置
     const httpStartIndex = rawUrl.indexOf('http');
     if (httpStartIndex !== -1) {
         return rawUrl.substring(httpStartIndex);
     }
-    
     // 不是URL，返回原始字符串（作为关键词）
     return rawUrl;
 }
-
 // 解析m3u8链接（基于清理后的URL）
 function parseM3u8Url(cleanedUrl) {
     if (!cleanedUrl) return null;
-    
     // 只处理以http/https开头且包含.m3u8的链接
     if ((cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) && cleanedUrl.includes('.m3u8')) {
         // 找到.m3u8的结束位置，过滤后面的所有字符
@@ -153,25 +139,20 @@ function parseM3u8Url(cleanedUrl) {
             return cleanedUrl.substring(0, m3u8EndIndex + 5); // +5 包含.m3u8
         }
     }
-    
     // 不是m3u8链接
     return null;
 }
-
 document.addEventListener('DOMContentLoaded', function () {
     const iframe = document.getElementById('search-iframe');
     const btns = document.querySelectorAll('.nav-btn');
     const rawKeyword = getUrlKeyword();
     // 标记第一个播放器按钮
     const playerBtn = btns[0];
-    
     // 第一步：清理URL（移除http/https前面的所有无关字符）
     const cleanedUrl = cleanUrl(rawKeyword);
-    
     if (cleanedUrl) {
         // 第二步：默认加载时，判断是否是m3u8链接（只针对播放器按钮）
         const m3u8Url = parseM3u8Url(cleanedUrl);
-        
         if (m3u8Url) {
             // 是m3u8链接，使用指定播放器打开
             iframe.src = `https://265500.netlify.app/bfq/ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
@@ -190,24 +171,20 @@ document.addEventListener('DOMContentLoaded', function () {
         // 无参数，显示空白
         iframe.src = 'about:blank';
     }
-    
     btns.forEach((btn) => {
         btn.addEventListener('click', function () {
             const kw = getUrlKeyword();
             // 清理URL
             const cleanedUrl = cleanUrl(kw);
-            
             // 区分第一个播放器按钮和其他按钮
             if (this === playerBtn) {
                 // 第一个播放器按钮：保留原有逻辑（拼接关键词）
                 if (!kw || !cleanedUrl) return;
-                
                 // 解析是否为m3u8链接
                 const m3u8Url = parseM3u8Url(cleanedUrl);
-                
                 if (m3u8Url) {
                     // 播放器按钮 + m3u8链接：使用播放器打开
-                    iframe.src = `https://265500.netlify.app/bfq/?url=${encodeURIComponent(m3u8Url)}`;
+                    iframe.src = `https://265500.netlify.app/bfq/ffplayer?url=${encodeURIComponent(m3u8Url)}`;
                 } else {
                     if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
                         // 完整URL：直接在iframe打开
@@ -230,6 +207,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 </body>
-
 </html>
-
