@@ -1,38 +1,38 @@
-﻿<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>自识别播放器</title>
-<style>
+﻿
+ 
+
+ 
+  
+
+
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Microsoft YaHei", sans-serif;
+    边距：0;
+    
+    盒模型：边框盒;
+    字体："微软 YaHei"，无衬线;
 }
-html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #121212;
+, { 
+    
+    
+    溢出：隐藏;
+    背景: #121212;
 }
-.nav-box {
-    width: 100%;
-    background: linear-gradient(to bottom, #1e1e1e, #2d2d2d);
-    padding: 4px 6px;
-    display: flex;
-    justify-content: center;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+.导航框 {
+    
+     
+     
+    显示：伸缩;
+    文本对齐：居中;
+       
 }
 /* 底部纯黑标题栏 */
-.footer-box {
-    width: 100%;
-    height: 26px;
-    background: #000000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.页脚盒子 {
+    
+    
+    背景: #000000;
+    显示：伸缩;
+    对齐项目：居中;
+    文本对齐：居中;
 }
 .nav-scroll {
     width: 100%;
@@ -106,7 +106,7 @@ html, body {
 <div class="nav-box">
     <div class="nav-scroll">
         <div class="nav-list">
-            <button class="nav-btn" data-prefix="https://265500.netlify.app/bfq/ffplayer.html?url=">刷新一下</button>
+            <button class="nav-btn" data-prefix="https://svip.ffzyplay.com/?url=">刷新一下</button>
             <button class="nav-btn" data-url="https://265500.netlify.app/bfq/lingquan.html">淘宝领券</button>
             <button class="nav-btn" data-url="">勿信广告</button>
         </div>
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (cleanedUrl) {
         const m3u8Url = parseM3u8Url(cleanedUrl);
         if (m3u8Url) {
-            iframe.src = `https://265500.netlify.app/bfq/ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
+            iframe.src = `https://svip.ffzyplay.com/?url=${encodeURIComponent(m3u8Url)}`;
         } else {
             if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
                 iframe.src = cleanedUrl;
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!kw || !cleanedUrl) return;
                 const m3u8Url = parseM3u8Url(cleanedUrl);
                 if (m3u8Url) {
-                    iframe.src = `https://265500.netlify.app/bfq/ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
+                    iframe.src = `https://svip.ffzyplay.com/?url=${encodeURIComponent(m3u8Url)}`;
                 } else {
                     if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
                         iframe.src = cleanedUrl;
@@ -193,4 +193,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 </body>
+
 </html>
