@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (cleanedUrl) {
         const m3u8Url = parseM3u8Url(cleanedUrl);
         if (m3u8Url) {
-            iframe.src = `https://svip.ffzyplay.com/?url=${encodeURIComponent(m3u8Url)}`;
+            iframe.src = `https://265500.netlify.app/bfq/ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
         } else {
             if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
                 iframe.src = cleanedUrl;
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!kw || !cleanedUrl) return;
                 const m3u8Url = parseM3u8Url(cleanedUrl);
                 if (m3u8Url) {
-                    iframe.src = `https://svip.ffzyplay.com/?url=${encodeURIComponent(m3u8Url)}`;
+                    iframe.src = `https://265500.netlify.app/bfq/ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
                 } else {
                     if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
                         iframe.src = cleanedUrl;
@@ -194,5 +194,6 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
 
 
