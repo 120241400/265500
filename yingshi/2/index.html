@@ -1,8 +1,7 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 修复：添加viewport的viewport-fit=cover，适配刘海屏/全面屏 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>请勿相信视频中的广告</title>
     <style>
@@ -27,7 +26,6 @@
             padding: 0;
             box-sizing: border-box;
             font-family: "Microsoft YaHei", sans-serif;
-            /* 修复：强制重置所有元素的外边距/内边距，避免浏览器默认样式干扰 */
             border: none;
             outline: none;
         }
@@ -38,10 +36,8 @@
             height: 100dvh;
             overflow: hidden;
             background: var(--color-bg-primary);
-            /* 修复：彻底清除html/body的默认边距 */
             margin: 0;
             padding: 0;
-            /* 修复：确保body占满整个视口 */
             position: relative;
         }
 
@@ -51,7 +47,6 @@
             width: 100%;
             height: 100vh;
             height: 100dvh;
-            /* 修复：确保容器紧贴顶部，无偏移 */
             position: absolute;
             top: 0;
             left: 0;
@@ -70,7 +65,6 @@
             justify-content: center;
             align-items: center;
             border-bottom: 1px solid #1e293b;
-            /* 修复：确保导航栏无额外偏移 */
             position: relative;
             z-index: 1;
         }
@@ -320,6 +314,20 @@
                 height: -webkit-fill-available;
             }
         }
+
+        /* 新增：全屏样式兼容 */
+        :-webkit-full-screen #search-iframe {
+            width: 100%;
+            height: 100%;
+        }
+        :-moz-full-screen #search-iframe {
+            width: 100%;
+            height: 100%;
+        }
+        :fullscreen #search-iframe {
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body>
@@ -330,22 +338,25 @@
                     <button class="nav-btn active" data-prefix="https://z1.m1907.top/?jx=">一线</button>
                     <button class="nav-btn" data-prefix="https://video.isyour.love/player/getplayer?url=">二线</button>
                     <button class="nav-btn" id="openSearch">🔍</button>
-                    <button class="nav-btn" id="goHome">🏠</button>
+                    <button class="nav-btn" id="goHome">🏬</button>
                 </div>
             </div>
         </div>
 
         <div class="search-container">
             <div class="empty-tip" id="emptyTip">请点击顶部按钮搜索</div>
+            <!-- 修改：增强iframe的全屏属性配置 -->
             <iframe 
                 id="search-iframe" 
                 src="about:blank"
-                allowfullscreen
-                webkitallowfullscreen
-                mozallowfullscreen
-                oallowfullscreen
-                msallowfullscreen
-                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                allowfullscreen="true"
+                webkitallowfullscreen="true"
+                mozallowfullscreen="true"
+                oallowfullscreen="true"
+                msallowfullscreen="true"
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture; gyroscope; accelerometer"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-fullscreen allow-forms"
+                frameborder="0"
             ></iframe>
         </div>
 
@@ -405,8 +416,47 @@
                     emptyTip.style.display = 'flex';
                     iframe.style.display = 'none';
                 }
+            },
+
+            // 新增：处理iframe全屏兼容性
+            enableIframeFullscreen() {
+                const iframe = document.getElementById('search-iframe');
+                // 监听iframe加载完成事件
+                iframe.addEventListener('load', function() {
+                    try {
+                        // 向iframe发送全屏权限允许的消息（如果跨域则需要目标页面配合）
+                        this.contentWindow.postMessage({ type: 'allowFullscreen' }, '*');
+                    } catch (e) {
+                        console.log('跨域iframe全屏消息发送失败:', e);
+                    }
+                });
+
+                // 监听全屏变化事件，适配移动端
+                document.addEventListener('fullscreenchange', handleFullscreenChange);
+                document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+                document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+                document.addEventListener('MSFullscreenChange', handleFullscreenChange);
             }
         };
+
+        // 新增：全屏状态变化处理函数
+        function handleFullscreenChange() {
+            const isFullscreen = !!document.fullscreenElement || 
+                                !!document.webkitFullscreenElement || 
+                                !!document.mozFullScreenElement || 
+                                !!document.msFullscreenElement;
+            
+            const iframe = document.getElementById('search-iframe');
+            if (isFullscreen) {
+                // 全屏时确保iframe占满屏幕
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                document.body.style.overflow = 'hidden';
+            } else {
+                // 退出全屏后恢复样式
+                document.body.style.overflow = '';
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
             const elements = {
@@ -424,6 +474,9 @@
             utils.resizeContainer();
             window.addEventListener('resize', utils.resizeContainer);
             window.addEventListener('orientationchange', utils.resizeContainer);
+
+            // 新增：启用iframe全屏功能
+            utils.enableIframeFullscreen();
 
             utils.toggleEmptyTip(!!keyword);
 
