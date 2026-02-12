@@ -25,15 +25,14 @@ html, body {
     justify-content: center;
     box-shadow: 0 3px 8px rgba(0,0,0,0.5);
 }
-/* 新增底部标题栏样式 */
+/* 底部纯黑标题栏 */
 .footer-box {
-    width: 50%; /* 宽度为顶部的一半 */
-    margin: 0 auto; /* 水平居中 */
-    background: linear-gradient(to bottom, #1e1e1e, #2d2d2d);
-    padding: 4px 6px;
+    width: 100%;
+    height: 26px;
+    background: #000000;
     display: flex;
+    align-items: center;
     justify-content: center;
-    box-shadow: 0 -3px 8px rgba(0,0,0,0.5); /* 底部阴影 */
 }
 .nav-scroll {
     width: 100%;
@@ -48,7 +47,7 @@ html, body {
 }
 .nav-list {
     display: flex;
-    gap: 9px; /* 间距改为现在的3倍 */
+    gap: 9px;
     width: max-content;
     margin: 0 auto;
 }
@@ -67,7 +66,6 @@ html, body {
 .nav-btn:hover {
     background: linear-gradient(to top, #4a4a4a, #5a5a5a);
 }
-/* 完全移除active样式，取消高亮效果 */
 .nav-btn.active {
     background: linear-gradient(to top, #3a3a3a, #4a4a4a);
     color: #e0e0e0;
@@ -77,7 +75,7 @@ html, body {
 }
 .search-container {
     width: 100%;
-    height: calc(100vh - 26px - 26px); /* 减去顶部和底部标题栏高度 */
+    height: calc(100vh - 26px - 26px);
     background: #ffffff;
 }
 #search-iframe {
@@ -91,15 +89,14 @@ html, body {
         padding: 3px 4px;
     }
     .footer-box {
-        padding: 3px 4px;
-        width: 50%; /* 移动端也保持一半宽度 */
+        height: 20px;
     }
     .nav-btn {
         padding: 3px 8px;
         font-size: 11px;
     }
     .search-container {
-        height: calc(100vh - 20px - 20px); /* 移动端调整高度 */
+        height: calc(100vh - 20px - 20px);
         background: #ffffff;
     }
 }
@@ -109,9 +106,7 @@ html, body {
 <div class="nav-box">
     <div class="nav-scroll">
         <div class="nav-list">
-            <!-- 播放器按钮保留原有前缀，用于关键词拼接 -->
             <button class="nav-btn" data-prefix="https://265500.netlify.app/bfq/ffplayer.html?url=">刷新一下</button>
-            <!-- 其他按钮修改为对应网站主页，不再带搜索参数 -->
             <button class="nav-btn" data-url="https://265500.netlify.app/bfq/lingquan.html">淘宝领券</button>
             <button class="nav-btn" data-url="">勿信广告</button>
         </div>
@@ -120,101 +115,74 @@ html, body {
 <div class="search-container">
     <iframe id="search-iframe" src="about:blank"></iframe>
 </div>
-<!-- 新增底部标题栏 -->
-<div class="footer-box">
-    <!-- 空内容，不放置任何按钮 -->
-</div>
+<!-- 底部纯黑标题栏 -->
+<div class="footer-box"></div>
 <script>
-// 获取URL参数
 function getUrlKeyword() {
     const params = new URLSearchParams(window.location.search);
     return params.get('url') || '';
 }
-// 通用URL清理函数：移除http/https前面的所有无关字符
 function cleanUrl(rawUrl) {
     if (!rawUrl) return null;
-    // 找到https开头的位置
     const httpsStartIndex = rawUrl.indexOf('https');
     if (httpsStartIndex !== -1) {
         return rawUrl.substring(httpsStartIndex);
     }
-    // 找不到https，找http开头的位置
     const httpStartIndex = rawUrl.indexOf('http');
     if (httpStartIndex !== -1) {
         return rawUrl.substring(httpStartIndex);
     }
-    // 不是URL，返回原始字符串（作为关键词）
     return rawUrl;
 }
-// 解析m3u8链接（基于清理后的URL）
 function parseM3u8Url(cleanedUrl) {
     if (!cleanedUrl) return null;
-    // 只处理以http/https开头且包含.m3u8的链接
     if ((cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) && cleanedUrl.includes('.m3u8')) {
-        // 找到.m3u8的结束位置，过滤后面的所有字符
         const m3u8EndIndex = cleanedUrl.indexOf('.m3u8');
         if (m3u8EndIndex !== -1) {
-            return cleanedUrl.substring(0, m3u8EndIndex + 5); // +5 包含.m3u8
+            return cleanedUrl.substring(0, m3u8EndIndex + 5);
         }
     }
-    // 不是m3u8链接
     return null;
 }
 document.addEventListener('DOMContentLoaded', function () {
     const iframe = document.getElementById('search-iframe');
     const btns = document.querySelectorAll('.nav-btn');
     const rawKeyword = getUrlKeyword();
-    // 标记第一个播放器按钮
     const playerBtn = btns[0];
-    // 第一步：清理URL（移除http/https前面的所有无关字符）
     const cleanedUrl = cleanUrl(rawKeyword);
     if (cleanedUrl) {
-        // 第二步：默认加载时，判断是否是m3u8链接（只针对播放器按钮）
         const m3u8Url = parseM3u8Url(cleanedUrl);
         if (m3u8Url) {
-            // 是m3u8链接，使用指定播放器打开
             iframe.src = `https://265500.netlify.app/bfq/ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
         } else {
-            // 非m3u8链接：判断是完整URL还是关键词
             if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
-                // 是完整URL，直接在iframe打开
                 iframe.src = cleanedUrl;
             } else {
-                // 是关键词，使用播放器前缀搜索
                 const defaultPrefix = playerBtn.getAttribute('data-prefix');
                 iframe.src = defaultPrefix + encodeURIComponent(cleanedUrl);
             }
         }
     } else {
-        // 无参数，显示空白
         iframe.src = 'about:blank';
     }
     btns.forEach((btn) => {
         btn.addEventListener('click', function () {
             const kw = getUrlKeyword();
-            // 清理URL
             const cleanedUrl = cleanUrl(kw);
-            // 区分第一个播放器按钮和其他按钮
             if (this === playerBtn) {
-                // 第一个播放器按钮：保留原有逻辑（拼接关键词）
                 if (!kw || !cleanedUrl) return;
-                // 解析是否为m3u8链接
                 const m3u8Url = parseM3u8Url(cleanedUrl);
                 if (m3u8Url) {
-                    // 播放器按钮 + m3u8链接：使用播放器打开
                     iframe.src = `https://265500.netlify.app/bfq/ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
                 } else {
                     if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
-                        // 完整URL：直接在iframe打开
                         iframe.src = cleanedUrl;
                     } else {
-                        // 关键词：使用播放器前缀搜索
                         const prefix = this.getAttribute('data-prefix');
                         iframe.src = prefix + encodeURIComponent(cleanedUrl);
                     }
                 }
             } else {
-                // 其他按钮：直接打开对应网站主页，不拼接任何关键词
                 const targetUrl = this.getAttribute('data-url');
                 if (targetUrl) {
                     window.open(targetUrl, '_blank');
