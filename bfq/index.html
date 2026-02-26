@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -77,6 +77,7 @@ html, body {
     width: 100%;
     height: calc(100vh - 26px - 26px);
     background: #ffffff;
+    position: relative;
 }
 #search-iframe {
     width: 100%;
@@ -112,8 +113,14 @@ html, body {
         </div>
     </div>
 </div>
-<div class="search-container">
-    <iframe id="search-iframe" src="about:blank"></iframe>
+<div class="search-container" id="playerContainer">
+    <!-- 保留iframe的全屏权限属性，这是核心 -->
+    <iframe id="search-iframe" src="about:blank" 
+        allowfullscreen="true" 
+        webkitallowfullscreen="true" 
+        mozallowfullscreen="true" 
+        allow="fullscreen; autoplay; encrypted-media; picture-in-picture">
+    </iframe>
 </div>
 <!-- 底部纯黑标题栏 -->
 <div class="footer-box"></div>
@@ -144,12 +151,14 @@ function parseM3u8Url(cleanedUrl) {
     }
     return null;
 }
+
 document.addEventListener('DOMContentLoaded', function () {
     const iframe = document.getElementById('search-iframe');
     const btns = document.querySelectorAll('.nav-btn');
-    const rawKeyword = getUrlKeyword();
     const playerBtn = btns[0];
+    const rawKeyword = getUrlKeyword();
     const cleanedUrl = cleanUrl(rawKeyword);
+
     if (cleanedUrl) {
         const m3u8Url = parseM3u8Url(cleanedUrl);
         if (m3u8Url) {
@@ -165,6 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
         iframe.src = 'about:blank';
     }
+
     btns.forEach((btn) => {
         btn.addEventListener('click', function () {
             const kw = getUrlKeyword();
@@ -190,13 +200,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // 保留iframe加载后的全屏权限支持
+    iframe.addEventListener('load', function() {
+        try {
+            iframe.contentWindow.postMessage({ type: 'allowFullscreen' }, '*');
+        } catch (e) {
+            console.log('iframe跨域，无法直接操作内部页面:', e);
+        }
+    });
 });
 </script>
 </body>
 </html>
-
-
-
-
-
-
