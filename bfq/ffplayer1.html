@@ -1,14 +1,15 @@
+
 <!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  
-
-   
-
- ">
- 
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>忘情播放器</title>
+<link rel="stylesheet" type="text/css" href="/bfq/1.css">
+</head>
+<body onload="init()">
+<div id="a1"></div>
 <script src="/bfq/2.js"></script>
 <script src="/bfq/3.js"></script>
 <script type="text/javascript">
@@ -29,11 +30,11 @@ function getCookie(name) {
 }
 
 function timeHandler(t) {
-    if (t > -1) setCookie (`${videoid}_time`, t);  
+    if (t > -1) setCookie(`${videoid}_time`, t);
 }
 
-函数 初始化Hls播放器(视频, 网址, 艺术) {
-    如果 (Hls.isSupported()) {
+function initHlsPlayer(video, url, art) {
+    if (Hls.isSupported()) {
         hlsInstance = new Hls({
             maxBufferLength: 120,
             maxMaxBufferLength: 120,
