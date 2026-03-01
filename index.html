@@ -52,6 +52,11 @@
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
 
+        /* 第四区域 - 温暖紫红玫瑰渐变 */
+        .section-4 {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
         .search-section:hover {
             flex: 1.2;
         }
@@ -154,17 +159,17 @@
 </head>
 <body>
     <div class="container">
-        <!-- 影视 -->
+        <!-- 影视一站 -->
         <a href="./yingshi/1" target="_blank" class="search-section section-1" onclick="createRipple(event, this)">
             <div class="content">
                 <div class="icon">🔍</div>
                 <div class="title">影视一站</div>
-                <div class="subtitle">线路较多 可能访问较慢或失效</div>
+                <div class="subtitle">多线路只有搜索 部分网络可能无法使用</div>
             </div>
             <div class="arrow">→</div>
         </a>
 
-        <!-- 影视 -->
+        <!-- 影视二站 -->
         <a href="./yingshi/2" target="_blank" class="search-section section-2" onclick="createRipple(event, this)">
             <div class="content">
                 <div class="icon">🔍</div>
@@ -174,12 +179,22 @@
             <div class="arrow">→</div>
         </a>
 
-        <!-- 影视 -->
+        <!-- 影视三站 -->
         <a href="./yingshi/3" target="_blank" class="search-section section-3" onclick="createRipple(event, this)">
             <div class="content">
                 <div class="icon">🔍</div>
                 <div class="title">影视三站</div>
-                <div class="subtitle">单一线路 体验好 可能部分人无法使用</div>
+                <div class="subtitle">单一线路 体验好</div>
+            </div>
+            <div class="arrow">→</div>
+        </a>
+
+        <!-- 影视四站 -->
+        <a href="./yingshi/4" target="_blank" class="search-section section-4" onclick="createRipple(event, this)">
+            <div class="content">
+                <div class="icon">🔍</div>
+                <div class="title">影视四站</div>
+                <div class="subtitle">多线路有分类显示 部分网络可能无法使用</div>
             </div>
             <div class="arrow">→</div>
         </a>
@@ -218,5 +233,4 @@
         });
     </script>
 </body>
-
 </html>
