@@ -615,7 +615,7 @@ body {
   z-index: 100002;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 20px;
   border-bottom: 1px solid rgba(0,122,255,0.3);
   backdrop-filter: blur(10px);
@@ -624,21 +624,11 @@ body {
 #playerModal .top-info-content {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 15px;
   font-size: 14px;
   color: rgba(255,255,255,0.9);
   flex: 1;
-  overflow: hidden;
-}
-
-#playerModal .current-video-title {
-  color:#00a8ff; 
-  font-weight:600;
-  font-size: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 60%;
 }
 
 #playerModal .ad-warning-top {
@@ -650,7 +640,6 @@ body {
   font-weight: bold;
   opacity: 0;
   transition: opacity 0.5s ease;
-  flex-shrink: 0;
   pointer-events: none;
 }
 
@@ -665,10 +654,12 @@ body {
 }
 
 #playerModal .player-controls {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   gap: 10px;
-  flex-shrink: 0;
-  margin-left: 15px;
 }
 
 #playerModal .play-close,
@@ -865,12 +856,6 @@ body {
   
   #playerModal .top-info-content {
     gap: 10px;
-    justify-content: center;
-  }
-  
-  #playerModal .current-video-title {
-    font-size: 14px;
-    max-width: 40%;
   }
   
   #playerModal .ad-warning-top {
@@ -879,8 +864,7 @@ body {
   }
   
   #playerModal .player-controls {
-    margin-left: 10px;
-    gap: 8px;
+    right: 15px;
   }
   
   #playerModal .play-close,
@@ -1087,6 +1071,7 @@ body {
 <div class="container">
   <!-- 创新的Logo设计 -->
   <div class="logo" onclick="location.href='?url='">
+    <div class="logo-icon"></div>
     <div>
       <div class="logo-text">影视大全</div>
       <div class="logo-tagline">海量影视免费看</div>
@@ -1119,7 +1104,6 @@ body {
   <!-- 顶部信息栏 -->
   <div class="top-info-bar">
     <div class="top-info-content">
-      <span class="current-vi8deo-title" id="currentVi8deoTitle">未知影片</span>
       <span class="ad-warning-top" id="adWarningTop">⚠️ 请勿相信视频中的广告</span>
     </div>
     <div class="player-controls">
@@ -1183,7 +1167,6 @@ const parseLoading = playerModal.querySelector('.parse-loading');
 const episodeListContainer = document.getElementById('episodeListContainer');
 const episodeListGrid = document.getElementById('episodeListGrid');
 const endMarker = document.getElementById('endMarker');
-const currentVideoTitle = document.getElementById('currentVideoTitle');
 const adWarningTop = document.getElementById('adWarningTop');
 
 const detailModal = document.getElementById('detailModal');
@@ -1508,9 +1491,6 @@ function openPlayer(item){
   playerModal.style.display='flex';
   document.body.style.overflow='hidden';
   
-  // 更新顶部标题
-  currentVideoTitle.textContent = item.vod_name || '未知影片';
-  
   // 显示广告警告（5秒后自动消失）
   showAdWarning();
   
@@ -1638,4 +1618,3 @@ window.addEventListener('resize', () => {
 </script>
 </body>
 </html>
-
