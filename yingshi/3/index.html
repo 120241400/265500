@@ -1,4 +1,5 @@
-﻿
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -588,7 +589,7 @@ body {
   }
 }
 
-/* ====================== 播放器样式 ====================== */
+/* ====================== 播放器样式 - 优化版 ====================== */
 #playerModal {
   position: fixed;
   top: 0;
@@ -602,61 +603,107 @@ body {
   display: none;
   flex-direction: column;
   align-items: center;
-  padding-top: 90px;
 }
-#playerModal .player-controls {
+
+/* 顶部信息栏 - 固定顶部 */
+#playerModal .top-info-bar {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%);
   z-index: 100002;
   display: flex;
-  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(0,122,255,0.3);
+  backdrop-filter: blur(10px);
 }
+
+#playerModal .top-info-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.9);
+  flex: 1;
+  overflow: hidden;
+}
+
+#playerModal .current-video-title {
+  color:#00a8ff; 
+  font-weight:600;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
+
+#playerModal .ad-warning-top {
+  background: rgba(255, 0, 0, 0.9);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+#playerModal .ad-warning-top.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@keyframes pulse-warning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+#playerModal .player-controls {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: 15px;
+}
+
 #playerModal .play-close,
 #playerModal .detail-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: #000;
-  border: 2px solid #fff;
+  background: rgba(0,0,0,0.6);
+  border: 2px solid rgba(255,255,255,0.3);
   color: #fff;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
 }
+
 #playerModal .play-close:hover,
 #playerModal .detail-btn:hover {
-  background: #333;
-  color: #fff;
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.6);
+  transform: scale(1.1);
 }
-#playerModal .ad-warning-tooltip {
-  position: fixed;
-  top: 25px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 0, 0, 0.9);
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: bold;
-  z-index: 100001;
-  text-align: center;
-  animation: fadeInOut 4s ease-in-out;
-  opacity: 0;
-  pointer-events: none;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
+
 #playerModal .play-iframe {
   width: 100%;
   height: 100%;
   border: none;
   display: block;
 }
+
 #playerModal .parse-loading {
   position: absolute;
   top: 50%;
@@ -671,42 +718,116 @@ body {
   border-radius: 8px;
   display: none;
 }
+
+/* 自定义滚动条样式 */
+#playerModal .episode-list-container {
+  flex: 1;
+  width: 100%;
+  background: rgba(18, 26, 41, 0.85);
+  border-radius: 8px;
+  padding: 10px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #007aff #1a1d28;
+}
+
+#playerModal .episode-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+#playerModal .episode-list-container::-webkit-scrollbar-track {
+  background: #1a1d28;
+  border-radius: 3px;
+}
+
+#playerModal .episode-list-container::-webkit-scrollbar-thumb {
+  background: #007aff;
+  border-radius: 3px;
+}
+
+#playerModal .episode-list-container::-webkit-scrollbar-thumb:hover {
+  background: #00a8ff;
+}
+
+#playerModal .episode-list-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
 #playerModal .episode-item {
-  padding: 8px 0;
+  padding: 12px 16px;
   background: rgba(34, 43, 56, 0.9);
-  border-radius: 6px;
+  border-radius: 8px;
   text-align: center;
   cursor: pointer;
   font-size: 14px;
   color: #e6e6e6;
   transition: all 0.2s ease;
-}
-#playerModal .episode-item:hover {
-  background: #0088dd;
-  color: #fff;
-}
-#playerModal .episode-item.active {
-  background: #00a8ff !important;
-  color: #fff !important;
-  font-weight: bold;
+  border: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
-/* 电脑端播放页 */
+#playerModal .episode-item:hover {
+  background: rgba(0, 122, 255, 0.2);
+  border-color: rgba(0, 122, 255, 0.4);
+  transform: translateX(4px);
+}
+
+#playerModal .episode-item.active {
+  background: linear-gradient(135deg, #007aff, #0056cc) !important;
+  color: #fff !important;
+  font-weight: bold;
+  border-color: #00a8ff;
+  box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+}
+
+/* 到底了标记 */
+#playerModal .end-marker {
+  text-align: center;
+  padding: 15px;
+  color: rgba(255,255,255,0.4);
+  font-size: 12px;
+  margin-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+#playerModal .end-marker::before,
+#playerModal .end-marker::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  max-width: 50px;
+}
+
+/* 电脑端播放页 - 自适应高度 */
 @media (min-width:769px) {
   #playerModal {
-    padding-top: 80px;
+    padding-top: 60px;
   }
+  
   #playerModal .play-container {
     display: flex;
     width: 95vw;
-    height: 70vh;
-    gap: 30px;
+    height: calc(100vh - 80px);
+    max-height: 900px;
+    gap: 20px;
     padding: 15px;
     margin: 0 auto;
     max-width: 1400px;
   }
+  
   #playerModal .play-wrap {
-    flex: 9;
+    flex: 3;
     height: 100%;
     width: auto;
     background: rgba(0,0,0,0.7);
@@ -716,100 +837,130 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
+    min-height: 400px;
   }
+  
   #playerModal .episode-list-container {
     flex: 1;
-    width: auto;
+    max-width: 280px;
+    min-width: 220px;
     height: 100%;
     max-height: 100%;
-    background: rgba(18, 26, 41, 0.85);
-    border-radius: 8px;
-    padding: 10px;
     margin-top: 0;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  #playerModal .episode-list-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
   }
 }
 
-/* 手机端播放页 */
+/* 手机端播放页 - 单列布局优化 */
 @media (max-width:768px) {
   #playerModal {
-    padding-top: 80px !important;
+    padding-top: 50px !important;
     display: flex;
     flex-direction: column;
     align-items: center;
   }
+  
+  #playerModal .top-info-bar {
+    height: 50px;
+    padding: 0 15px;
+  }
+  
+  #playerModal .top-info-content {
+    gap: 10px;
+  }
+  
+  #playerModal .current-video-title {
+    font-size: 14px;
+    max-width: 50%;
+  }
+  
+  #playerModal .ad-warning-top {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+  
+  #playerModal .player-controls {
+    margin-left: 10px;
+    gap: 8px;
+  }
+  
+  #playerModal .play-close,
+  #playerModal .detail-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    border-width: 1px;
+  }
+  
   #playerModal .play-container {
     display: flex;
     flex-direction: column;
     width: 100vw;
-    height: auto;
+    height: calc(100vh - 50px);
     gap: 8px;
-    padding: 0;
-    margin-top: 0;
-    margin-bottom: 80px !important;
+    padding: 8px;
+    margin: 0;
   }
+  
   #playerModal .play-wrap {
-    width: 100vw !important;
-    height: calc(100vw * 5 / 7) !important;
-    border-radius: 0 !important;
+    width: 100% !important;
+    height: 35vh !important;
+    min-height: 200px;
+    border-radius: 8px !important;
     flex: none;
+    position: relative;
+    background: #000;
+  }
+  
+  /* 根据选集数量动态调整高度 */
+  #playerModal .play-wrap.expanded {
+    height: 45vh !important;
+  }
+  
+  #playerModal .play-wrap.compact {
+    height: 30vh !important;
+  }
+  
+  #playerModal .episode-list-container {
+    width: 100% !important;
+    flex: 1;
+    max-height: none;
+    height: auto;
+    padding: 10px 12px !important;
+    border-radius: 8px;
     margin-top: 0;
     position: relative;
+    z-index: 1;
   }
-  #playerModal .player-controls {
-    top: 10px !important;
-    right: 10px !important;
-  }
-  #playerModal .play-close,
-  #playerModal .detail-btn {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 16px !important;
-  }
-  #playerModal .ad-warning-tooltip {
-    top: 45px !important;
-    font-size: 12px !important;
-    padding: 5px 12px !important;
-    width: 180px !important;
-  }
-  #playerModal .episode-list-container {
-    width: 100vw !important;
-    max-height: 300px !important;
-    height: auto !important;
-    padding: 10px !important;
-    margin-top: 0 !important;
-    flex: none;
-    overflow-y: auto;
-  }
+  
   #playerModal .episode-list-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
+    display: flex !important;
+    flex-direction: column !important;
     gap: 6px !important;
-    width: 100%;
   }
+  
   #playerModal .episode-item {
-    padding: 6px 0 !important;
-    font-size: 12px !important;
+    padding: 14px 16px !important;
+    font-size: 14px !important;
     width: 100%;
     max-width: none !important;
     margin: 0 !important;
-    background: rgba(50, 60, 80, 0.9);
-    color: #f0f0f0;
-    border: 1px solid #445066;
+    background: rgba(40, 50, 70, 0.9);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    text-align: center;
+    justify-content: center;
   }
+  
   #playerModal .episode-item.active {
-    background: #00a8ff !important;
-    color: #fff !important;
+    background: linear-gradient(135deg, #007aff, #0056cc) !important;
     border: 1px solid #0088dd !important;
+    box-shadow: 0 4px 15px rgba(0,122,255,0.4);
+  }
+  
+  #playerModal .end-marker {
+    padding: 12px;
+    font-size: 11px;
+    margin-top: 8px;
   }
 }
 
@@ -836,7 +987,24 @@ body {
   overflow-y: auto;
   color: #e6e6e6;
   font-family: "Microsoft YaHei", sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: #007aff #1a1d28;
 }
+
+.detail-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.detail-box::-webkit-scrollbar-track {
+  background: #1a1d28;
+  border-radius: 3px;
+}
+
+.detail-box::-webkit-scrollbar-thumb {
+  background: #007aff;
+  border-radius: 3px;
+}
+
 .detail-header {
   background: #1a1d28;
   padding: 16px 20px;
@@ -844,6 +1012,9 @@ body {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #2d3a5e;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 .detail-title {
   font-size: 20px;
@@ -888,6 +1059,7 @@ body {
   color: #e6e6e6;
   word-wrap: break-word;
   word-break: break-all;
+  line-height: 1.5;
 }
 
 @keyframes fadeInOut {
@@ -895,6 +1067,16 @@ body {
   10% { opacity: 1; transform: translateY(0) translateX(-50%); }
   90% { opacity: 1; transform: translateY(0) translateX(-50%); }
   100% { opacity: 0; transform: translateY(10px) translateX(-50%); }
+}
+
+/* 滚动定位高亮动画 */
+@keyframes scroll-highlight {
+  0% { background: rgba(0, 168, 255, 0.3); }
+  100% { background: transparent; }
+}
+
+.scroll-target {
+  animation: scroll-highlight 1s ease;
 }
 </style>
 </head>
@@ -932,18 +1114,28 @@ body {
 </div>
 
 <div id="playerModal">
-  <div class="player-controls">
-    <button class="detail-btn" onclick="openDetail()">?</button>
-    <button class="play-close" onclick="closePlayer()">×</button>
+  <!-- 顶部信息栏 -->
+  <div class="top-info-bar">
+    <div class="top-info-content">
+      <span class="current-video-title" id="currentVideoTitle">未知影片</span>
+      <span class="ad-warning-top" id="adWarningTop">⚠️ 请勿相信视频中的广告</span>
+    </div>
+    <div class="player-controls">
+      <button class="detail-btn" onclick="openDetail()" title="影片详情">?</button>
+      <button class="play-close" onclick="closePlayer()" title="关闭">×</button>
+    </div>
   </div>
-  <div class="ad-warning-tooltip">请勿相信视频中的广告</div>
+  
   <div class="play-container">
-    <div class="play-wrap">
+    <div class="play-wrap" id="playWrap">
       <div class="parse-loading">请稍后~~~</div>
       <iframe class="play-iframe" allowfullscreen></iframe>
     </div>
-    <div class="episode-list-container">
-      <div class="episode-list-grid"></div>
+    <div class="episode-list-container" id="episodeListContainer">
+      <div class="episode-list-grid" id="episodeListGrid"></div>
+      <div class="end-marker" id="endMarker">
+        <span>到底了</span>
+      </div>
     </div>
   </div>
 </div>
@@ -973,24 +1165,28 @@ const MAX_PAGES = 100;
 let vodList = [];
 let episodes = [];
 let currentPlayItem = null;
+let currentEpisodeIndex = 0;
 let currentPage = 1;
 let pageCache = {};
 let hasParentChild = false;
+let adWarningTimer = null;
 
 const searchInput = document.getElementById('wd');
 const clearBtn = document.getElementById('clearBtn');
 const loadingTip = document.getElementById('loadingTip');
 const playerModal = document.getElementById('playerModal');
+const playWrap = document.getElementById('playWrap');
 const playIframe = playerModal.querySelector('.play-iframe');
 const parseLoading = playerModal.querySelector('.parse-loading');
-const episodeListGrid = playerModal.querySelector('.episode-list-grid');
-const adWarningTooltip = playerModal.querySelector('.ad-warning-tooltip');
+const episodeListContainer = document.getElementById('episodeListContainer');
+const episodeListGrid = document.getElementById('episodeListGrid');
+const endMarker = document.getElementById('endMarker');
+const currentVideoTitle = document.getElementById('currentVideoTitle');
+const adWarningTop = document.getElementById('adWarningTop');
 
 const detailModal = document.getElementById('detailModal');
 const detailTitle = document.getElementById('detailTitle');
 const detailContent = document.getElementById('detailContent');
-
-let adWarningTimer;
 
 // ====================== 新增：拖拽滚动功能 ======================
 function initDragScroll() {
@@ -1033,14 +1229,6 @@ function initDragScroll() {
       el.scrollLeft = scrollLeft - walk;
     });
   });
-}
-
-function showAdWarning() {
-  clearTimeout(adWarningTimer);
-  adWarningTooltip.style.opacity = 1;
-  adWarningTimer = setTimeout(()=>{
-    adWarningTooltip.style.opacity = 0;
-  },4000);
 }
 
 function setRandomHomeBackground() {
@@ -1247,26 +1435,109 @@ function renderPagination(){
   p.append(prev,txt,next);
 }
 
+// ====================== 智能滚动定位功能 ======================
+function scrollToActiveEpisode() {
+  const activeItem = episodeListGrid.querySelector('.episode-item.active');
+  if (!activeItem) return;
+  
+  // 添加高亮动画
+  activeItem.classList.add('scroll-target');
+  setTimeout(() => activeItem.classList.remove('scroll-target'), 1000);
+  
+  // 智能滚动：将当前选集滚动到可视区域中间
+  const container = episodeListContainer;
+  const itemRect = activeItem.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  
+  const itemCenter = itemRect.top + itemRect.height / 2;
+  const containerCenter = containerRect.top + containerRect.height / 2;
+  const scrollOffset = itemCenter - containerCenter;
+  
+  container.scrollTo({
+    top: container.scrollTop + scrollOffset,
+    behavior: 'smooth'
+  });
+}
+
+// ====================== 自适应高度计算 ======================
+function adjustPlayerHeight() {
+  if (window.innerWidth > 768) return; // 仅手机端需要调整
+  
+  const episodeCount = episodes.length;
+  const playWrapEl = document.getElementById('playWrap');
+  
+  // 根据选集数量动态调整高度
+  if (episodeCount <= 10) {
+    playWrapEl.style.height = '45vh';
+    playWrapEl.classList.add('expanded');
+    playWrapEl.classList.remove('compact');
+  } else if (episodeCount >= 50) {
+    playWrapEl.style.height = '30vh';
+    playWrapEl.classList.add('compact');
+    playWrapEl.classList.remove('expanded');
+  } else {
+    // 10-50集之间，线性插值
+    const ratio = (episodeCount - 10) / 40; // 0 to 1
+    const height = 45 - (ratio * 15); // 45vh to 30vh
+    playWrapEl.style.height = `${height}vh`;
+    playWrapEl.classList.remove('expanded', 'compact');
+  }
+}
+
+// ====================== 广告警告5秒后消失 ======================
+function showAdWarning() {
+  // 清除之前的定时器
+  if (adWarningTimer) {
+    clearTimeout(adWarningTimer);
+  }
+  
+  // 显示警告
+  adWarningTop.classList.add('show');
+  
+  // 5秒后隐藏
+  adWarningTimer = setTimeout(() => {
+    adWarningTop.classList.remove('show');
+  }, 5000);
+}
+
 function openPlayer(item){
   currentPlayItem=item;
+  currentEpisodeIndex = 0;
   playerModal.style.display='flex';
   document.body.style.overflow='hidden';
+  
+  // 更新顶部标题
+  currentVideoTitle.textContent = item.vod_name || '未知影片';
+  
+  // 显示广告警告（5秒后自动消失）
+  showAdWarning();
+  
   const u=item.vod_play_url||'';
   episodes=u.split('#').filter(s=>s.includes('$')).map(s=>{const[n,l]=s.split('$');return{name:n,url:PLAYER+encodeURIComponent(l)};});
+  
   if(episodes.length===0){alert('暂无播放源');closePlayer();return;}
+  
+  // 显示或隐藏"到底了"标记
+  endMarker.style.display = episodes.length > 0 ? 'flex' : 'none';
+  
+  // 自适应高度
+  adjustPlayerHeight();
+  
   play(0);
 }
 
 function play(idx){
+  currentEpisodeIndex = idx;
   const ep=episodes[idx];
   parseLoading.style.display='block';
   playIframe.src='';
   playIframe.onload=playIframe.onerror=()=>{
     parseLoading.style.display='none';
-    showAdWarning();
   };
   playIframe.src=ep.url;
   document.title=`${currentPlayItem?.vod_name||'播放'} - ${ep.name}`;
+  
+  // 渲染选集列表
   episodeListGrid.innerHTML='';
   episodes.forEach((e,i)=>{
     const d=document.createElement('div');d.className='episode-item';
@@ -1275,6 +1546,9 @@ function play(idx){
     d.onclick=()=>play(i);
     episodeListGrid.appendChild(d);
   });
+  
+  // 智能滚动到当前选集
+  setTimeout(scrollToActiveEpisode, 100);
 }
 
 function closePlayer(){
@@ -1283,7 +1557,18 @@ function closePlayer(){
   document.body.style.overflow='';
   document.title='影视大全';
   currentPlayItem=null;
+  currentEpisodeIndex = 0;
   parseLoading.style.display='none';
+  
+  // 清除广告警告定时器
+  if (adWarningTimer) {
+    clearTimeout(adWarningTimer);
+    adWarningTimer = null;
+  }
+  
+  // 隐藏广告警告
+  adWarningTop.classList.remove('show');
+  
   closeDetail();
 }
 
@@ -1337,8 +1622,14 @@ async function doSearch(){
   await loadPage(1);
   loadingTip.style.display='none';
 }
+
+// 监听窗口大小变化，重新调整高度
+window.addEventListener('resize', () => {
+  if (playerModal.style.display === 'flex') {
+    adjustPlayerHeight();
+    setTimeout(scrollToActiveEpisode, 100);
+  }
+});
 </script>
 </body>
 </html>
-
-
