@@ -1,0 +1,871 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>影视搜索导航</title>
+    <style>
+        :root {
+            --color-bg-primary: #0a0f1d;
+            --color-bg-secondary: #111827;
+            --color-bg-third: #1a2235;
+            --color-btn-normal: #1e293b;
+            --color-btn-hover: #273449;
+            --color-btn-active: #1d4ed8;
+            --color-border-normal: #2d3748;
+            --color-text-primary: #e2e8f0;
+            --color-text-secondary: #94a3b8;
+            --color-accent: #3b82f6;
+            --shadow-normal: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-active: 0 0 15px rgba(29, 78, 216, 0.4);
+            --radius-btn: 20px;
+            --radius-modal: 16px;
+            --radius-input: 12px;
+            --radius-card: 12px;
+            --gradient-btn: linear-gradient(135deg, #1e293b 0%, #273449 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+            border: none;
+            outline: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            background: var(--color-bg-primary);
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        /* 顶部导航栏 */
+        .nav-box {
+            width: 100%;
+            background: var(--color-bg-secondary);
+            padding: 9px 10px;
+            box-shadow: var(--shadow-normal);
+            height: 46px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-scroll {
+            width: 100%;
+            max-width: 1200px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .nav-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-list {
+            display: flex;
+            gap: 8px;
+            width: max-content;
+            margin: 0 auto;
+        }
+
+        .nav-btn {
+            padding: 8px 20px;
+            background: var(--gradient-btn);
+            border: 1px solid var(--color-border-normal);
+            border-radius: var(--radius-btn);
+            font-size: 13px;
+            color: var(--color-text-primary);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+
+        .nav-btn:hover {
+            background: #273449;
+            border-color: #334155;
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.active {
+            background: var(--color-btn-active);
+            color: #ffffff;
+            font-weight: bold;
+            box-shadow: var(--shadow-active);
+            border-color: #3b82f6;
+            transform: translateY(-1px);
+        }
+
+        /* 主页按钮样式 - 永远不高亮 */
+        .nav-btn.home-btn {
+            background: var(--gradient-btn);
+            border-color: var(--color-border-normal);
+            font-weight: normal;
+        }
+        
+        .nav-btn.home-btn:hover {
+            background: #273449;
+            border-color: #334155;
+        }
+        
+        .nav-btn.home-btn.active {
+            background: var(--gradient-btn);
+            border-color: var(--color-border-normal);
+            color: var(--color-text-primary);
+            font-weight: normal;
+            box-shadow: none;
+        }
+
+        /* 热门搜索区域样式 */
+        .hot-search-container {
+            flex: 1;
+            width: 100%;
+            background: var(--color-bg-primary);
+            overflow-y: auto;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hot-search-box {
+            width: 100%;
+            max-width: 900px;
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-card);
+            padding: 20px;
+            box-shadow: var(--shadow-normal);
+            border: 1px solid var(--color-border-normal);
+        }
+
+        .hot-search-title {
+            font-size: 18px;
+            color: var(--color-text-primary);
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* 分类标签容器 - 居中显示 */
+        .category-tabs-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 5px 0;
+            scrollbar-width: none;
+            justify-content: center;
+            flex-wrap: nowrap;
+        }
+
+        .category-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* 分类按钮样式 */
+        .category-tab {
+            flex: 0 0 auto;
+            padding: 10px 20px;
+            background: var(--color-btn-normal);
+            color: var(--color-text-secondary);
+            border: 1px solid var(--color-border-normal);
+            border-radius: var(--radius-btn);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .category-tab.active {
+            background: var(--color-btn-active);
+            color: #fff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+        }
+
+        .category-tab:hover {
+            background: var(--color-btn-hover);
+            color: var(--color-text-primary);
+            transform: translateY(-1px);
+        }
+
+        /* 修改：热门搜索列表 - 改为自适应换行布局 */
+        .hot-search-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .hot-search-item {
+            background: var(--color-bg-third);
+            border: 1px solid var(--color-border-normal);
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            /* 自动适应内容宽度 */
+            white-space: nowrap;
+            /* 不换行，但允许缩小 */
+            flex-shrink: 0;
+            /* 最小宽度 */
+            min-width: 100px;
+            /* 根据内容自动调整宽度 */
+            width: auto;
+        }
+
+        .hot-search-item:hover {
+            background: var(--color-btn-hover);
+            border-color: var(--color-accent);
+            transform: translateY(-2px);
+        }
+
+        .hot-search-item-text {
+            color: var(--color-text-primary);
+            font-size: 14px;
+            /* 确保长文本显示完整 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        /* 加载状态 */
+        .loading-hot-search {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            width: 100%;
+        }
+
+        /* 搜索结果容器样式 */
+        .search-container {
+            flex: 1;
+            width: 100%;
+            background: var(--color-bg-secondary);
+            overflow: hidden;
+            position: relative;
+            display: none;
+        }
+
+        #search-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            object-fit: cover;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        /* 搜索模态框样式 */
+        .search-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .search-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .search-modal-box {
+            width: 90%;
+            max-width: 500px;
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-modal);
+            padding: 30px 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            position: relative;
+            border: 1px solid #1e293b;
+        }
+
+        .search-close {
+            position: absolute;
+            right: 18px;
+            top: 18px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--color-btn-normal);
+            border: 1px solid var(--color-border-normal);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .search-close:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+            transform: rotate(90deg);
+        }
+
+        .search-modal-title {
+            text-align: center;
+            color: var(--color-text-primary);
+            font-size: 19px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .search-input-wrap {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        #localInput {
+            flex: 1;
+            height: 48px;
+            padding: 0 20px;
+            border-radius: var(--radius-input);
+            border: 1px solid var(--color-border-normal);
+            background: var(--color-btn-normal);
+            color: var(--color-text-primary);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        #localInput:focus {
+            border-color: var(--color-btn-active);
+            background: #273449;
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+        }
+
+        #localSearchBtn {
+            height: 48px;
+            padding: 0 25px;
+            border-radius: var(--radius-input);
+            border: 1px solid var(--color-btn-active);
+            background: var(--color-btn-active);
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        #localSearchBtn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .footer-box {
+            width: 100%;
+            background: var(--color-bg-secondary);
+            padding: 9px 10px;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
+            height: 46px;
+            flex-shrink: 0;
+            border-top: 1px solid #1e293b;
+        }
+
+        /* 手机端适配 */
+        @media (max-width: 768px) {
+            .nav-box, .footer-box {
+                padding: 8px 10px;
+                height: 42px;
+            }
+
+            .nav-btn {
+                padding: 7px 16px;
+                font-size: 12px;
+            }
+
+            .category-tab {
+                padding: 8px 15px;
+                font-size: 12px;
+                min-width: 85px;
+            }
+
+            .hot-search-container {
+                padding: 15px 10px;
+            }
+
+            .hot-search-box {
+                padding: 15px;
+                max-width: 100%;
+            }
+
+            .hot-search-title {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+
+            /* 手机端：热门搜索项自适应 */
+            .hot-search-item {
+                padding: 8px 12px;
+                min-width: 80px;
+            }
+
+            .hot-search-item-text {
+                font-size: 13px;
+            }
+        }
+
+        /* 小屏幕手机适配 */
+        @media (max-width: 480px) {
+            .nav-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+            
+            .category-tab {
+                padding: 6px 12px;
+                font-size: 11px;
+                min-width: 75px;
+            }
+            
+            .hot-search-item {
+                min-width: 70px;
+                padding: 6px 10px;
+            }
+        }
+
+        /* 全屏样式兼容 */
+        :-webkit-full-screen #search-iframe {
+            width: 100%;
+            height: 100%;
+        }
+        :-moz-full-screen #search-iframe {
+            width: 100%;
+            height: 100%;
+        }
+        :fullscreen #search-iframe {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="nav-box">
+            <div class="nav-scroll">
+                <div class="nav-list">
+                    <button class="nav-btn home-btn" id="homeBtn">🏠 主页</button>
+                    <button class="nav-btn active" data-prefix="/yingshi/2/1907.html?url=">一线</button>
+                    <button class="nav-btn" data-prefix="https://video.isyour.love/player/getplayer?url=">二线</button>
+                    <button class="nav-btn" id="openSearch">🔍 搜索</button>
+                    <button class="nav-btn" id="goHome">🎁 福利</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 热门搜索内容区域 -->
+        <div class="hot-search-container" id="hotSearchContainer">
+            <div class="hot-search-box">
+                <div class="hot-search-title">【点顶部放大镜搜索】</div>
+                <div class="hot-search-title">热门更新</div>                
+                <!-- 分类标签容器 -->
+                <div class="category-tabs-container">
+                    <div class="category-tabs">
+                        <button class="category-tab active" data-category="国产剧" data-t="13">热播国剧</button>
+                        <button class="category-tab" data-category="电影" data-t="6">热播电影</button>
+                        <button class="category-tab" data-category="国产动漫" data-t="30">热播国漫</button>
+                        <button class="category-tab" data-category="短剧" data-t="37">热播短剧</button>
+                    </div>
+                </div>
+                
+                <!-- 热门搜索列表 - 改为自适应换行布局 -->
+                <div class="hot-search-list" id="hotSearchList">
+                    <div class="loading-hot-search">正在加载热门影片...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 搜索结果容器 -->
+        <div class="search-container" id="searchContainer">
+            <iframe 
+                id="search-iframe" 
+                src="about:blank"
+                allowfullscreen="true"
+                webkitallowfullscreen="true"
+                mozallowfullscreen="true"
+                oallowfullscreen="true"
+                msallowfullscreen="true"
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture; gyroscope; accelerometer"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-fullscreen allow-forms"
+                frameborder="0"
+            ></iframe>
+        </div>
+
+        <div class="footer-box"></div>
+    </div>
+
+    <!-- 搜索模态框 -->
+    <div class="search-modal" id="searchModal">
+        <div class="search-modal-box">
+            <button class="search-close" id="closeSearch">✕</button>
+            <div class="search-modal-title">影视搜索</div>
+            <div class="search-input-wrap">
+                <input type="text" id="localInput" placeholder="请输入影片关键词...">
+                <button id="localSearchBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CONSTANTS = {
+            SOGOU_URL: '/bfq/lingquan.html',
+            DEFAULT_PREFIX: '/yingshi/2/1907.html?url=',
+            NON_ACTIVE_BUTTONS: ['openSearch', 'goHome', 'homeBtn']
+        };
+
+        // 热门搜索功能相关变量
+        const CORS_PREFIXES = [
+            "",
+            "",
+            ""
+        ];
+        let categoryDataCache = {};
+        let currentCategory = "国产剧";
+
+        const utils = {
+            getUrlKeyword() {
+                const params = new URLSearchParams(window.location.search);
+                let keyword = params.get('url') || '';
+                if (keyword.includes(' ')) {
+                    keyword = keyword.split(' ')[0];
+                }
+                return keyword.trim();
+            },
+
+            resizeContainer() {
+                const appContainer = document.querySelector('.app-container');
+                if (appContainer) {
+                    appContainer.style.height = window.innerHeight + 'px';
+                }
+            },
+
+            toggleActiveNavBtn(activeBtn) {
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    if (!CONSTANTS.NON_ACTIVE_BUTTONS.includes(btn.id)) {
+                        btn.classList.toggle('active', btn === activeBtn);
+                    }
+                });
+            },
+
+            // 切换显示模式：热门搜索 或 搜索结果
+            toggleDisplayMode(showResults) {
+                const hotSearchContainer = document.getElementById('hotSearchContainer');
+                const searchContainer = document.getElementById('searchContainer');
+                
+                if (showResults) {
+                    hotSearchContainer.style.display = 'none';
+                    searchContainer.style.display = 'block';
+                } else {
+                    hotSearchContainer.style.display = 'flex';
+                    searchContainer.style.display = 'none';
+                }
+            },
+
+            // 返回主页 - 修改：直接跳转到主页并刷新页面
+            goToHomePage() {
+                // 跳转到当前页面路径，不带任何参数
+                window.location.href = window.location.pathname;
+            },
+
+            // 带重试机制的fetch函数
+            async fetchWithRetry(url, options = {}, retryCount = 0) {
+                try {
+                    if (retryCount === 0 && url.includes(CORS_PREFIXES[0])) {
+                        url = url.replace(CORS_PREFIXES[0], CORS_PREFIXES[0]);
+                    } else if (retryCount > 0 && retryCount < CORS_PREFIXES.length) {
+                        for (let i = 0; i < CORS_PREFIXES.length; i++) {
+                            if (url.includes(CORS_PREFIXES[i])) {
+                                url = url.replace(CORS_PREFIXES[i], CORS_PREFIXES[retryCount]);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    const response = await fetch(url, {
+                        ...options,
+                        timeout: 10000
+                    });
+                    
+                    if (!response.ok && retryCount < CORS_PREFIXES.length - 1) {
+                        console.log(`接口请求失败，尝试切换跨域接口 (${retryCount + 1}/${CORS_PREFIXES.length - 1})`);
+                        return this.fetchWithRetry(url, options, retryCount + 1);
+                    }
+                    
+                    return response;
+                } catch (error) {
+                    if (retryCount < CORS_PREFIXES.length - 1) {
+                        console.log(`接口请求出错: ${error.message}，尝试切换跨域接口 (${retryCount + 1}/${CORS_PREFIXES.length - 1})`);
+                        return this.fetchWithRetry(url, options, retryCount + 1);
+                    }
+                    throw error;
+                }
+            },
+
+            getAvailableCorsPrefix() {
+                return CORS_PREFIXES[0];
+            }
+        };
+
+        // 热门搜索功能
+        class HotSearchManager {
+            constructor() {
+                this.categoryTabs = document.querySelectorAll('.category-tab');
+                this.hotSearchList = document.getElementById('hotSearchList');
+                this.init();
+            }
+
+            init() {
+                // 绑定分类标签点击事件
+                this.categoryTabs.forEach(tab => {
+                    tab.addEventListener('click', async () => {
+                        this.categoryTabs.forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        currentCategory = tab.dataset.category;
+                        const tParam = tab.dataset.t;
+                        await this.loadRecentUpdates(currentCategory, tParam);
+                    });
+                });
+
+                // 加载默认分类数据
+                const defaultTab = document.querySelector('.category-tab.active');
+                this.loadRecentUpdates(defaultTab.dataset.category, defaultTab.dataset.t);
+            }
+
+            async loadRecentUpdates(category, tParam) {
+                // 如果有缓存，直接使用缓存数据
+                if (categoryDataCache[category]) {
+                    this.renderHotSearchList(categoryDataCache[category]);
+                    return;
+                }
+
+                try {
+                    this.showLoading();
+                    const categoryUrl = utils.getAvailableCorsPrefix() + `https://caiji.maotaizy.cc/api.php/provide/vod/from/mtm3u8/?t=${tParam}`;
+                    const res = await utils.fetchWithRetry(categoryUrl);
+                    const data = await res.json();
+                    
+                    if (data.code === 1 && data.list && data.list.length > 0) {
+                        const top20 = data.list.slice(0, 20);
+                        categoryDataCache[category] = top20;
+                        this.renderHotSearchList(top20);
+                    } else {
+                        this.showError('暂无数据');
+                    }
+                } catch (e) {
+                    console.error(`获取${category}更新失败：`, e);
+                    this.showError('加载失败，请刷新重试');
+                }
+            }
+
+            renderHotSearchList(list) {
+                this.hotSearchList.innerHTML = "";
+                
+                if (!list || list.length === 0) {
+                    this.showError('暂无数据');
+                    return;
+                }
+
+                list.forEach(item => {
+                    const { vod_name } = item;
+                    if (!vod_name) return;
+                    
+                    const div = document.createElement("div");
+                    div.className = "hot-search-item";
+                    
+                    const textSpan = document.createElement("span");
+                    textSpan.className = "hot-search-item-text";
+                    textSpan.textContent = vod_name;
+                    
+                    div.appendChild(textSpan);
+                    
+                    // 点击热门影片，执行搜索
+                    div.onclick = () => {
+                        this.performSearch(vod_name);
+                    };
+                    
+                    this.hotSearchList.appendChild(div);
+                });
+            }
+
+            performSearch(keyword) {
+                if (!keyword) return;
+                
+                // 编码关键词并跳转
+                const encodedKeyword = encodeURIComponent(keyword);
+                location.href = `?url=${encodedKeyword}`;
+            }
+
+            showLoading() {
+                this.hotSearchList.innerHTML = '<div class="loading-hot-search">正在加载热门影片...</div>';
+            }
+
+            showError(message) {
+                this.hotSearchList.innerHTML = `<div class="loading-hot-search">${message}</div>`;
+            }
+        }
+
+        // 主程序
+        document.addEventListener('DOMContentLoaded', function () {
+            const elements = {
+                iframe: document.getElementById('search-iframe'),
+                navButtons: document.querySelectorAll('.nav-btn'),
+                searchModal: document.getElementById('searchModal'),
+                closeSearchBtn: document.getElementById('closeSearch'),
+                searchInput: document.getElementById('localInput'),
+                searchBtn: document.getElementById('localSearchBtn'),
+                homeBtn: document.getElementById('homeBtn')
+            };
+
+            const keyword = utils.getUrlKeyword();
+
+            // 初始化
+            utils.resizeContainer();
+            window.addEventListener('resize', utils.resizeContainer);
+            window.addEventListener('orientationchange', utils.resizeContainer);
+
+            // 根据URL参数决定显示模式
+            if (keyword) {
+                utils.toggleDisplayMode(true);
+                elements.iframe.src = `${CONSTANTS.DEFAULT_PREFIX}${encodeURIComponent(keyword)}`;
+            } else {
+                utils.toggleDisplayMode(false);
+                // 初始化热门搜索管理器
+                new HotSearchManager();
+            }
+
+            // 主页按钮事件
+            elements.homeBtn.addEventListener('click', () => {
+                utils.goToHomePage();
+            });
+
+            // 导航按钮事件
+            elements.navButtons.forEach(btn => {
+                if (keyword && btn.classList.contains('active')) {
+                    utils.toggleActiveNavBtn(btn);
+                }
+
+                btn.addEventListener('click', function () {
+                    if (this.id === 'openSearch') {
+                        elements.searchModal.classList.add('show');
+                        elements.searchInput.focus();
+                        return;
+                    }
+
+                    if (this.id === 'goHome') {
+                        window.open(CONSTANTS.SOGOU_URL, '_blank');
+                        return;
+                    }
+
+                    if (this.id === 'homeBtn') {
+                        utils.goToHomePage();
+                        return;
+                    }
+
+                    if (!keyword) return;
+                    
+                    utils.toggleActiveNavBtn(this);
+                    const prefix = this.getAttribute('data-prefix');
+                    elements.iframe.src = `${prefix}${encodeURIComponent(keyword)}`;
+                });
+            });
+
+            // 搜索模态框事件
+            elements.closeSearchBtn.addEventListener('click', () => {
+                elements.searchModal.classList.remove('show');
+            });
+
+            elements.searchModal.addEventListener('click', (e) => {
+                if (e.target === elements.searchModal) {
+                    elements.searchModal.classList.remove('show');
+                }
+            });
+
+            const doSearch = () => {
+                let val = elements.searchInput.value.trim();
+                if (val.includes(' ')) {
+                    val = val.split(' ')[0];
+                }
+                if (val) {
+                    location.href = `?url=${encodeURIComponent(val)}`;
+                } else {
+                    alert('请输入内容');
+                }
+            };
+
+            elements.searchBtn.addEventListener('click', doSearch);
+            elements.searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') doSearch();
+            });
+        });
+    </script>
+</body>
+</html>
