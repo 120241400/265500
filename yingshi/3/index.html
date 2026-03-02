@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -866,11 +865,12 @@ body {
   
   #playerModal .top-info-content {
     gap: 10px;
+    justify-content: center;
   }
   
   #playerModal .current-video-title {
     font-size: 14px;
-    max-width: 50%;
+    max-width: 40%;
   }
   
   #playerModal .ad-warning-top {
@@ -902,13 +902,15 @@ body {
   }
   
   #playerModal .play-wrap {
-    width: 100% !important;
+    width: calc(100% - 16px) !important;
     height: 35vh !important;
     min-height: 200px;
-    border-radius: 8px !important;
+    border-radius: 12px !important;
     flex: none;
     position: relative;
     background: #000;
+    margin: 0 8px;
+    overflow: hidden;
   }
   
   /* 根据选集数量动态调整高度 */
@@ -921,13 +923,13 @@ body {
   }
   
   #playerModal .episode-list-container {
-    width: 100% !important;
+    width: calc(100% - 16px) !important;
     flex: 1;
     max-height: none;
     height: auto;
     padding: 10px 12px !important;
-    border-radius: 8px;
-    margin-top: 0;
+    border-radius: 12px;
+    margin: 0 8px 8px 8px;
     position: relative;
     z-index: 1;
   }
@@ -1536,6 +1538,9 @@ function play(idx){
   };
   playIframe.src=ep.url;
   document.title=`${currentPlayItem?.vod_name||'播放'} - ${ep.name}`;
+  
+  // 每次点击选集都显示广告警告
+  showAdWarning();
   
   // 渲染选集列表
   episodeListGrid.innerHTML='';
