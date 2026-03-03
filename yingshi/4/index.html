@@ -1291,6 +1291,7 @@ body {
 // ================= 配置与状态 =================
 const API_CONFIGS = {
     "切换线路": { url: "", isDefault: true },
+    "天堂": { url: "http://caiji.dyttzyapi.com/api.php/provide/vod/from/dyttm3u8/" },
     "如意": { url: "https://cj.rycjapi.com/api.php/provide/vod/from/rym3u8" },
     "茅台": { url: "https://caiji.maotaizy.cc/api.php/provide/vod/from/mtm3u8" },
     "无尽": { url: "https://api.wujinapi.me/api.php/provide/vod/from/wjm3u8" },
@@ -1314,7 +1315,6 @@ const API_CONFIGS = {
     "暴风": { url: "https://bfzyapi.com/api.php/provide/vod" },
     "光速": { url: "https://api.guangsuapi.com/api.php/provide/vod/from/gsm3u8" },
     "豪华": { url: "https://hhzyapi.com/api.php/provide/vod/from/hhm3u8/" },
-    "天堂": { url: "http://caiji.dyttzyapi.com/api.php/provide/vod/from/dyttm3u8/" },
     "百度": { url: "https://api.apibdzy.com/api.php/provide/vod/" },
     "虎牙": { url: "https://www.huyaapi.com/api.php/provide/vod/from/hym3u8/" },
     "豆瓣": { url: "https://caiji.dbzy5.com/api.php/provide/vod/from/dbm3u8" },
@@ -1347,7 +1347,7 @@ function switchToNextProxy() {
     return getCurrentProxy();
 }
 
-let API_MAIN = API_CONFIGS["如意"].url;
+let API_MAIN = API_CONFIGS["天堂"].url;
 const PLAYER = "https://www.265500.vip/bfq/?url=";
 
 // 背景图配置
@@ -1584,7 +1584,7 @@ function initApiSwitch() {
     const apiSwitchEl = document.getElementById('apiSwitch');
     apiSwitchEl.innerHTML = '';
     const urlParams = new URLSearchParams(window.location.search);
-    const apiKey = urlParams.get('api') || '如意';
+    const apiKey = urlParams.get('api') || '天堂';
     const scrollLeft = parseInt(urlParams.get('scrollLeft')) || 0;
 
     Object.keys(API_CONFIGS).forEach(key => {
@@ -2068,4 +2068,5 @@ async function doSearch() {
 }
 </script>
 </body>
+
 </html>
