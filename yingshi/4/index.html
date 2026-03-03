@@ -1,0 +1,2071 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>白象影院 - 免费看全网</title>
+<style>
+:root {
+    --bg-overlay: rgba(10, 10, 12, 0.85);
+    --card-bg: rgba(30, 30, 35, 0.6);
+    --card-hover: rgba(50, 50, 60, 0.8);
+    --accent: #d4af37; /* 香槟金 */
+    --accent-hover: #f9d86c;
+    --text-main: #ffffff;
+    --text-sub: #a0a0a0;
+    --border: rgba(255, 255, 255, 0.08);
+    --radius: 8px;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+
+body {
+    background-color: #050505;
+    color: var(--text-main);
+    font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+/* ================= 背景图系统 ================= */
+#global-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: transform 0.5s ease;
+    /* 默认先显示黑色，JS加载后替换 */
+    background-color: #000; 
+}
+
+#global-bg::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.95) 100%);
+    z-index: 1;
+}
+
+/* 页面内容容器 */
+.app-container {
+    position: relative;
+    z-index: 10;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ================= 顶部与搜索 ================= */
+.header-area {
+    text-align: center;
+    padding: 40px 0 20px; /* 减少底部内边距 */
+    animation: fadeDown 0.8s ease-out;
+}
+
+.logo {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 900;
+    color: var(--text-main);
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    margin-bottom: 20px; /* 减少底部外边距 */
+    display: inline-block;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 5px;
+}
+
+/* 优化搜索框整体效果 */
+.search-wrapper {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    box-shadow: var(--shadow);
+    border-radius: 50px;
+    background: rgba(0, 0, 0, 0.7); /* 加深背景 */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(212, 175, 55, 0.2); /* 添加金色边框 */
+    padding: 5px;
+    transition: all 0.3s ease;
+}
+
+/* 搜索框聚焦时增强效果 */
+.search-wrapper:focus-within {
+    border-color: var(--accent);
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 
+                0 0 0 1px rgba(212, 175, 55, 0.3);
+}
+
+.search-wrapper input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    padding: 15px 25px;
+    font-size: 16px;
+    border-radius: 50px 0 0 50px;
+}
+
+.search-wrapper input::placeholder { color: var(--text-sub); }
+
+.search-wrapper button {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 0 30px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.search-wrapper button:hover { background: var(--accent-hover); }
+
+/* 搜索框清除按钮 - 完美圆形设计，调整位置避免重叠 */
+#clearBtn {
+    position: absolute;
+    right: 120px; /* 从90px增加到120px，向前挪动30px，避免与搜索按钮重叠 */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px; /* 确保宽度和高度相等 */
+    height: 30px; /* 确保宽度和高度相等 */
+    background: rgba(255, 255, 255, 0.15); /* 半透明白色背景 */
+    border-radius: 50%; /* 关键：设置为50%确保完美圆形 */
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: none; /* 默认隐藏 */
+    align-items: center;
+    justify-content: center;
+    font-size: 20px; /* 稍大一点 */
+    font-weight: 300; /* 更细的字体 */
+    z-index: 5;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* 添加外部阴影 */
+    padding: 0; /* 确保内边距为0 */
+    line-height: 1; /* 重置行高 */
+    overflow: hidden; /* 防止内容溢出 */
+}
+
+/* 悬停状态 */
+#clearBtn:hover {
+    background: rgba(255, 255, 255, 0.25); /* 悬停时背景更亮 */
+    transform: translateY(-50%) scale(1.1); /* 悬停时轻微放大 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* 增强阴影 */
+}
+
+/* 活动状态 */
+#clearBtn:active {
+    transform: translateY(-50%) scale(0.95); /* 点击时轻微缩小 */
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* 确保清除按钮的X符号完美居中 */
+#clearBtn:before {
+    content: '×';
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* 精确居中 */
+    width: auto;
+    height: auto;
+    line-height: 1;
+}
+
+/* ================= 导航与分类 ================= */
+.nav-scroller {
+    display: flex;
+    gap: 8px; /* 减少按钮之间的间隙 */
+    overflow-x: auto;
+    padding: 10px 5px; /* 减少内边距 */
+    margin-bottom: 8px; /* 减少底部外边距，缩小行间距 */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE */
+}
+.nav-scroller::-webkit-scrollbar { display: none; }
+
+/* 切换线路按钮 - 保持不变 */
+#apiSwitch .nav-btn {
+    background: var(--card-bg);
+    color: var(--text-sub);
+    border: 1px solid var(--border);
+    padding: 10px 20px; /* 保持不变 */
+    border-radius: var(--radius);
+    white-space: nowrap;
+    cursor: pointer;
+    font-size: 14px; /* 保持不变 */
+    transition: all 0.3s;
+    backdrop-filter: blur(5px);
+}
+
+/* 线路父按钮 - 减少1 */
+#typeParent .nav-btn {
+    background: var(--card-bg);
+    color: var(--text-sub);
+    border: 1px solid var(--border);
+    padding: 9px 18px; /* 从10px 20px减少1 */
+    border-radius: var(--radius);
+    white-space: nowrap;
+    cursor: pointer;
+    font-size: 13px; /* 从14px减少1 */
+    transition: all 0.3s;
+    backdrop-filter: blur(5px);
+}
+
+/* 线路子按钮 - 减少2 */
+#typeChild .nav-btn {
+    background: var(--card-bg);
+    color: var(--text-sub);
+    border: 1px solid var(--border);
+    padding: 8px 16px; /* 从10px 20px减少2 */
+    border-radius: var(--radius);
+    white-space: nowrap;
+    cursor: pointer;
+    font-size: 12px; /* 从14px减少2 */
+    transition: all 0.3s;
+    backdrop-filter: blur(5px);
+}
+
+/* 通用悬停和激活状态 */
+.nav-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.nav-btn.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+/* 特殊高亮样式 - 修复点击按钮高亮问题 */
+.nav-btn.active-highlight {
+    background: var(--accent) !important;
+    color: #000 !important;
+    border-color: var(--accent) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3) !important;
+}
+
+/* ================= 增强加载提示 ================= */
+.loading-tip {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--accent); /* 改为主题金色 */
+    font-size: 20px; /* 增大字体 */
+    display: none;
+    font-weight: 700; /* 加粗 */
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.4); /* 添加金色阴影 */
+    letter-spacing: 1.5px; /* 增加字间距 */
+    position: relative;
+    animation: pulse 1.5s infinite; /* 添加脉动动画 */
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius);
+    margin: 20px 0;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+/* 加载动画图标 */
+.loading-tip::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(212, 175, 55, 0.3);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    margin-right: 12px;
+    animation: spin 1.2s linear infinite;
+    vertical-align: middle;
+}
+
+/* ================= 新增：搜索结果为空提示 ================= */
+.empty-tip {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--accent);
+    font-size: 18px;
+    font-weight: 600;
+    display: none;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: var(--radius);
+    margin: 20px 0;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    animation: fadeDown 0.5s ease-out;
+}
+
+.empty-tip-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.8;
+}
+
+.empty-tip-text {
+    line-height: 1.8;
+    color: var(--text-sub);
+}
+
+.empty-tip-text strong {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* ================= 视频列表 ================= */
+.vod-list {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+    padding-bottom: 40px;
+}
+
+/* 增强视频卡片整体效果 */
+.vod-item {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid transparent;
+    position: relative;
+    aspect-ratio: 2/3;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* 添加卡片阴影 */
+}
+
+/* 悬停时增强效果 */
+.vod-item:hover {
+    transform: translateY(-8px) scale(1.02); /* 添加轻微放大 */
+    background: var(--card-hover);
+    border-color: var(--accent); /* 悬停时边框变为金色 */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4), 
+                0 0 0 1px rgba(212, 175, 55, 0.3); /* 添加金色外发光 */
+}
+
+.vod-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+    opacity: 0.9;
+    position: relative;
+    z-index: 0;
+}
+
+.vod-item:hover img {
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+/* 增强图片遮罩效果 - 修改为两行文字高度 */
+.vod-item::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: calc(14px * 1.4 * 2 + 15px + 15px); /* 字体大小 * 行高 * 2行 + 上下padding */
+    background: linear-gradient(
+        to top, 
+        rgba(0, 0, 0, 0.95) 0%, 
+        rgba(0, 0, 0, 0.8) 50%, 
+        rgba(0, 0, 0, 0.4) 80%,
+        transparent 100%
+    );
+    z-index: 1;
+    opacity: 0.9;
+    transition: opacity 0.4s ease;
+}
+
+.vod-item:hover::before {
+    opacity: 1;
+}
+
+/* 增强影片信息区域背景和阴影 */
+.vod-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px; /* 统一padding */
+    background: transparent; /* 背景移到::before伪元素 */
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    height: calc(14px * 1.4 * 2 + 15px + 15px); /* 与遮罩高度一致 */
+}
+
+/* 增强影片标题的视觉效果 */
+.vod-title {
+    font-size: 14px;
+    font-weight: 700; /* 增加字重 */
+    color: #fff;
+    text-align: left;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4; /* 行高1.4 */
+    text-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.9), /* 主阴影 */
+        0 2px 4px rgba(0, 0, 0, 0.7); /* 次要阴影 */
+    letter-spacing: 0.3px; /* 轻微增加字间距 */
+    position: relative;
+    width: 100%;
+    max-height: calc(14px * 1.4 * 2); /* 限制最大高度为两行 */
+}
+
+/* 悬停时进一步增强文字效果 */
+.vod-item:hover .vod-title {
+    text-shadow: 
+        0 1px 3px rgba(0, 0, 0, 1), 
+        0 2px 6px rgba(0, 0, 0, 0.8);
+    transform: translateY(-1px); /* 悬停时轻微上移 */
+    transition: all 0.3s ease;
+}
+
+/* ================= 分页 ================= */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 40px 0;
+    flex-wrap: wrap;
+}
+
+.pagination button {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 80px;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+}
+
+.pagination button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.page-text {
+    display: flex;
+    align-items: center;
+    color: var(--text-sub);
+    font-size: 14px;
+}
+
+/* ================= 播放器模态框 (沉浸式) ================= */
+#playerModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 播放器背景图 */
+#player-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: blur(40px) brightness(0.4);
+    z-index: -1;
+    transform: scale(1.1); /* 防止模糊边缘露白 */
+}
+
+.player-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    z-index: 10;
+}
+
+.player-title-display {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    max-width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-controls {
+    display: flex;
+    gap: 15px;
+}
+
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.3s;
+    backdrop-filter: blur(5px);
+}
+
+.icon-btn:hover {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+}
+
+/* 广告警告气泡 - 修改到页面最顶部 */
+.ad-warning {
+    position: fixed; /* 改为fixed定位，固定在视口 */
+    top: 10px; /* 距离视口顶部10px */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(200, 50, 50, 0.9);
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 2010; /* 确保在最上层 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.player-content-area {
+    flex: 1;
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    height: calc(100% - 70px);
+    position: relative;
+}
+
+.video-wrapper {
+    flex: 1;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease; /* 添加过渡动画 */
+    height: 100%; /* 确保视频容器高度为100% */
+}
+
+.play-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.parse-loading {
+    position: absolute;
+    color: var(--accent);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    animation: pulse 1.5s infinite;
+    z-index: 5;
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+.episode-panel {
+    width: 320px;
+    background: rgba(20, 20, 25, 0.85);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s;
+    height: 100%; /* 修改：设置高度为100%，与播放器高度一致 */
+}
+
+.ep-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 16px;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.ep-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    grid-template-columns: repeat(1, 1fr); /* 电脑端默认一行一个 */
+    
+    /* 自定义滚动条样式 */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--accent) rgba(255,255,255,0.1);
+}
+
+/* Webkit浏览器滚动条样式 */
+.ep-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ep-grid::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+}
+
+.ep-grid::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+}
+
+.ep-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-hover);
+}
+
+.ep-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid transparent;
+    color: var(--text-sub);
+    padding: 12px 15px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center; /* 确保文字居中 */
+    cursor: pointer;
+    transition: all 0.2s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 水平居中 */
+    word-break: break-word;
+    line-height: 1.2;
+    white-space: normal;
+}
+
+.ep-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.ep-btn.active {
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+/* 到底了按钮样式 */
+.end-marker {
+    background: rgba(255,255,255,0.02);
+    border: 1px dashed var(--border);
+    color: var(--text-sub);
+    padding: 10px 5px;
+    border-radius: 6px;
+    font-size: 12px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    cursor: default; /* 默认不可点击 */
+    font-style: italic;
+    opacity: 0.7;
+    margin-top: 5px;
+    grid-column: 1 / -1; /* 跨所有列 */
+}
+
+/* ================= 详情弹窗 ================= */
+#detailModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.detail-card {
+    background: #1a1a1e;
+    width: 100%;
+    max-width: 600px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    overflow: hidden;
+    animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.detail-head {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.02);
+}
+
+.detail-head h3 {
+    color: var(--accent);
+    font-size: 20px;
+    margin: 0;
+}
+
+.detail-body {
+    padding: 25px;
+    max-height: 60vh;
+    overflow-y: auto;
+    /* 修改：添加跟随主题的滚动条样式 */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--accent) rgba(255,255,255,0.1);
+}
+
+/* Webkit浏览器详情弹窗滚动条样式 */
+.detail-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.detail-body::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+}
+
+.detail-body::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+}
+
+.detail-body::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-hover);
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 15px;
+    font-size: 15px;
+    border-bottom: 1px dashed rgba(255,255,255,0.05);
+    padding-bottom: 10px;
+}
+
+.info-label {
+    width: 80px;
+    color: var(--text-sub);
+    flex-shrink: 0;
+}
+
+.info-val {
+    color: #ddd;
+    word-break: break-all;
+}
+
+/* 新增：无内容提示样式 */
+.info-val.empty-content {
+    color: var(--text-sub);
+    font-style: italic;
+    opacity: 0.6;
+}
+
+.info-val.empty-content::after {
+    content: ' (暂无)';
+    font-size: 12px;
+    color: rgba(212, 175, 55, 0.6);
+}
+
+/* 新增：详情为空时的特殊行样式 */
+.info-row.empty-row {
+    order: 999; /* 确保在最后 */
+    opacity: 0.7;
+    border-bottom: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(212, 175, 55, 0.2);
+}
+
+.info-row.empty-row .info-label {
+    color: rgba(212, 175, 55, 0.8);
+}
+
+/* ================= 动画 ================= */
+@keyframes fadeDown { 
+    from { 
+        opacity: 0; 
+        transform: translateY(-20px); 
+    } 
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    } 
+}
+@keyframes zoomIn { 
+    from { 
+        opacity: 0; 
+        transform: scale(0.9); 
+    } 
+    to { 
+        opacity: 1; 
+        transform: scale(1); 
+    } 
+}
+@keyframes pulse { 
+    0% { 
+        opacity: 0.6; 
+    } 
+    50% { 
+        opacity: 1; 
+    } 
+    100% { 
+        opacity: 0.6; 
+    } 
+}
+@keyframes spin {
+    0% { 
+        transform: rotate(0deg); 
+    }
+    100% { 
+        transform: rotate(360deg); 
+    }
+}
+
+/* ================= 响应式适配 ================= */
+/* 电脑端 (1025px以上) - 选集面板宽度缩减，播放器宽度增加 */
+@media (min-width: 1025px) {
+    .episode-panel { 
+        width: 200px; /* 从320px缩减到200px */
+    }
+    .ep-grid { 
+        grid-template-columns: repeat(1, 1fr); /* 确保电脑端一行一个 */
+    }
+    .ep-btn { 
+        padding: 10px 8px; 
+        font-size: 13px; 
+        min-height: 40px;
+    }
+    
+    /* 播放器增加缩减的部分（120px） */
+    .video-wrapper {
+        flex: 1 1 calc(100% - 220px); /* 100% - 200px(选集宽度) - 20px(gap) */
+    }
+}
+
+/* 平板端 (769px-1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .vod-list { 
+        grid-template-columns: repeat(4, 1fr); 
+    }
+    .player-content-area { 
+        flex-direction: column; 
+        height: auto; 
+        overflow-y: auto; 
+    }
+    .video-wrapper { 
+        height: 50vh; 
+        width: 100%; 
+    }
+    .episode-panel { 
+        width: 100%; 
+        height: auto; /* 平板端保持自适应高度 */
+        max-height: 300px; 
+    }
+    .ep-grid { 
+        grid-template-columns: repeat(1, 1fr); /* 平板端也改为一行一个 */
+    }
+    .ep-btn { 
+        padding: 10px 8px; 
+        font-size: 13px; 
+        min-height: 40px;
+        text-align: center;
+        justify-content: center;
+    }
+    .end-marker {
+        grid-column: 1 / -1; /* 跨所有列 */
+        font-size: 12px;
+    }
+    
+    /* 平板端空提示适配 */
+    .empty-tip {
+        padding: 40px 15px;
+        font-size: 16px;
+    }
+    .empty-tip-icon {
+        font-size: 40px;
+    }
+}
+
+/* 手机端 (768px及以下) - 修改为显示3个影片 */
+@media (max-width: 768px) {
+    .app-container { padding: 10px; } /* 减小内边距以容纳更多内容 */
+    .logo { font-size: 32px; margin-bottom: 15px; }
+    .search-wrapper { border-radius: 25px; }
+    .search-wrapper input { padding: 10px 15px; font-size: 14px; }
+    .search-wrapper button { padding: 0 18px; font-size: 14px; }
+    
+    /* 手机端清除按钮适配 */
+    #clearBtn { 
+        right: 85px; /* 调整位置 */
+        width: 26px; 
+        height: 26px; 
+        font-size: 16px; 
+    }
+    
+    /* 手机端悬停效果 */
+    #clearBtn:hover {
+        transform: translateY(-50%) scale(1.05); 
+    }
+    
+    /* 修改为显示3个影片 */
+    .vod-list { 
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 8px; /* 减小间距 */
+    }
+    
+    /* 调整影片标题大小以适应更小的卡片 */
+    .vod-title {
+        font-size: 12px; /* 减小字体 */
+        line-height: 1.3;
+    }
+    
+    /* 调整遮罩高度以适应新的字体大小 */
+    .vod-item::before {
+        height: calc(12px * 1.3 * 2 + 10px + 10px); /* 字体大小 * 行高 * 2行 + 上下padding */
+    }
+    
+    .vod-info {
+        height: calc(12px * 1.3 * 2 + 10px + 10px);
+        padding: 10px; /* 减小内边距 */
+    }
+    
+    /* 加载提示在手机端的样式 */
+    .loading-tip {
+        font-size: 16px;
+        padding: 30px 20px;
+        margin: 15px 0;
+    }
+    
+    .loading-tip::before {
+        width: 18px;
+        height: 18px;
+        margin-right: 8px;
+    }
+    
+    /* 手机端空提示样式 */
+    .empty-tip {
+        padding: 40px 15px;
+        font-size: 16px;
+        margin: 15px 0;
+    }
+    .empty-tip-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+    }
+    .empty-tip-text {
+        font-size: 14px;
+    }
+    
+    .player-top-bar { padding: 10px 15px; }
+    .player-title-display { font-size: 14px; max-width: 70%; }
+    .icon-btn { width: 34px; height: 34px; font-size: 18px; }
+    
+    .player-content-area { 
+        flex-direction: column; 
+        padding: 10px; 
+        gap: 10px; 
+        height: calc(100% - 60px); /* 调整总高度 */
+    }
+    
+    /* 手机端播放器高度自适应 */
+    .video-wrapper { 
+        height: 40vh; /* 初始高度，可根据选集数量调整 */
+        width: 100%; 
+        border-radius: 8px;
+        flex-shrink: 0; /* 防止被压缩 */
+    }
+    
+    /* 手机端选集面板高度自适应 */
+    .episode-panel { 
+        width: 100%; 
+        border-radius: 8px; 
+        max-height: none; /* 移除最大高度限制 */
+        flex: 1; /* 占据剩余空间 */
+        min-height: 150px; /* 最小高度 */
+        height: auto; /* 手机端保持自适应高度 */
+    }
+    
+    /* 手机端选集列表一行显示1个（修改为单列） */
+    .ep-grid { 
+        grid-template-columns: repeat(1, 1fr); 
+        gap: 8px; 
+        padding: 10px; 
+    }
+    
+    /* 手机端选集按钮样式 */
+    .ep-btn { 
+        font-size: 13px; 
+        padding: 10px 8px; 
+        min-height: 40px;
+        height: auto; /* 自动高度 */
+        text-align: center;
+        justify-content: center;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+    }
+    
+    /* 确保按钮内文本居中且不换行 */
+    .ep-btn span {
+        display: block;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: center;
+    }
+    
+    .end-marker {
+        grid-column: 1 / 2; /* 手机端占1列 */
+        font-size: 12px;
+    }
+    
+    .detail-card { margin: 10px; max-height: 85vh; }
+    .info-row { font-size: 13px; }
+    .info-label { width: 60px; }
+    
+    /* 手机端按钮调整 */
+    #apiSwitch .nav-btn {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    
+    #typeParent .nav-btn {
+        padding: 7px 14px;
+        font-size: 12px;
+    }
+    
+    #typeChild .nav-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+}
+
+/* 小手机端 (480px及以下) - 保持3个影片，进一步微调 */
+@media (max-width: 480px) {
+    .app-container { padding: 8px; } /* 进一步减小内边距 */
+    
+    .vod-list { 
+        grid-template-columns: repeat(3, 1fr); /* 保持3个影片 */
+        gap: 6px; /* 进一步减小间距 */
+    }
+    
+    /* 超小屏幕下进一步调整字体 */
+    .vod-title {
+        font-size: 11px; /* 更小的字体 */
+        line-height: 1.25;
+    }
+    
+    /* 调整遮罩高度 */
+    .vod-item::before {
+        height: calc(11px * 1.25 * 2 + 8px + 8px);
+    }
+    
+    .vod-info {
+        height: calc(11px * 1.25 * 2 + 8px + 8px);
+        padding: 8px;
+    }
+    
+    .nav-btn { padding: 6px 12px; font-size: 12px; }
+    
+    /* 小手机端清除按钮适配 */
+    #clearBtn {
+        right: 75px;
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+    }
+    
+    /* 加载提示在小手机端的样式 */
+    .loading-tip {
+        font-size: 14px;
+        padding: 20px 15px;
+        margin: 10px 0;
+    }
+    
+    .loading-tip::before {
+        width: 16px;
+        height: 16px;
+        margin-right: 6px;
+    }
+    
+    /* 小手机端空提示样式 */
+    .empty-tip {
+        padding: 30px 10px;
+        font-size: 14px;
+        margin: 10px 0;
+    }
+    .empty-tip-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+    .empty-tip-text {
+        font-size: 12px;
+    }
+    
+    /* 小手机端选集列表一行显示1个保持不变 */
+    .ep-grid { 
+        grid-template-columns: repeat(1, 1fr); 
+        gap: 6px; 
+    }
+    
+    .ep-btn { 
+        font-size: 12px; 
+        padding: 8px 6px; 
+        min-height: 36px;
+    }
+    
+    .end-marker {
+        font-size: 11px;
+        padding: 8px 4px;
+        min-height: 36px;
+    }
+    
+    /* 小手机端按钮进一步缩小 */
+    #apiSwitch .nav-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+    
+    #typeParent .nav-btn {
+        padding: 5px 10px;
+        font-size: 10px;
+    }
+    
+    #typeChild .nav-btn {
+        padding: 4px 8px;
+        font-size: 9px;
+    }
+}
+
+/* 确保清除按钮在搜索框聚焦时也正确显示 */
+.search-wrapper:focus-within #clearBtn {
+    display: flex; /* 确保在搜索框聚焦时正确显示 */
+}
+</style>
+</head>
+<body>
+
+<!-- 全局背景 -->
+<div id="global-bg"></div>
+
+<div class="app-container">
+    <div class="header-area">
+        <div class="logo" onclick="location.href='?url='">白象影院</div>
+        
+        <div class="search-wrapper">
+            <input id="wd" placeholder="输入影片名称..." onkeydown="if(event.key==='Enter') doSearch()">
+            <button id="clearBtn" onclick="clearSearch()"></button>
+            <button onclick="doSearch()">搜索</button>
+        </div>
+    </div>
+
+    <!-- 线路切换 -->
+    <div id="apiSwitch" class="nav-scroller"></div>
+    
+    <div class="loading-tip" id="loadingTip">正在加载资源...</div>
+    
+    <!-- 新增：搜索结果为空提示 -->
+    <div class="empty-tip" id="emptyTip">
+        <div class="empty-tip-text">
+            未找到相关内容<br>
+            <span style="font-size: 14px; opacity: 0.8;">请尝试更换关键词或切换线路</span>
+        </div>
+    </div>
+    
+    <!-- 分类 -->
+    <div id="typeParent" class="nav-scroller"></div>
+    <div id="typeChild" class="nav-scroller"></div>
+    
+    <!-- 列表 -->
+    <div id="list" class="vod-list"></div>
+    <div id="pagination" class="pagination"></div>
+</div>
+
+<!-- 播放器 -->
+<div id="playerModal">
+    <div id="player-bg"></div>
+    
+    <div class="player-top-bar">
+        <div class="player-title-display" id="playerTitleDisplay">正在播放...</div>
+        <div class="player-controls">
+            <button class="icon-btn" onclick="openDetail()" title="详情">?</button>
+            <button class="icon-btn" onclick="closePlayer()" title="关闭">✕</button>
+        </div>
+    </div>
+    
+    <!-- 广告警告气泡移动到页面最顶部 -->
+    <div class="ad-warning" id="adWarning">请勿相信视频内广告</div>
+    
+    <div class="player-content-area">
+        <div class="video-wrapper">
+            <div class="parse-loading">影片加载中...</div>
+            <iframe class="play-iframe" allowfullscreen></iframe>
+        </div>
+        
+        <div class="episode-panel">
+            <div class="ep-header">选集列表</div>
+            <div class="ep-grid" id="episodeListGrid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div id="detailModal" onclick="if(event.target===this) closeDetail()">
+    <div class="detail-card">
+        <div class="detail-head">
+            <h3 id="detailTitle">影片详情</h3>
+            <button class="icon-btn" style="width:30px;height:30px;font-size:16px;" onclick="closeDetail()">✕</button>
+        </div>
+        <div class="detail-body" id="detailContent"></div>
+    </div>
+</div>
+
+<script>
+// ================= 配置与状态 =================
+const API_CONFIGS = {
+    "切换线路": { url: "", isDefault: true },
+    "如意": { url: "https://cj.rycjapi.com/api.php/provide/vod/from/rym3u8" },
+    "茅台": { url: "https://caiji.maotaizy.cc/api.php/provide/vod/from/mtm3u8" },
+    "无尽": { url: "https://api.wujinapi.me/api.php/provide/vod/from/wjm3u8" },
+    "魔都": { url: "https://www.mdzyapi.com/api.php/provide/vod/" },
+    "红牛": { url: "https://www.hongniuzy2.com/api.php/provide/vod/from/hnm3u8" },
+    "量子": { url: "http://cj.lziapi.com/api.php/provide/vod/from/lzm3u8" },
+    "非凡": { url: "http://api.ffzyapi.com/api.php/provide/vod/from/ffm3u8" },
+    "爱坤": { url: "https://ikunzyapi.com/api.php/provide/vod/from/ikm3u8" },
+    "极速": { url: "https://jszyapi.com/api.php/provide/vod/from/jsm3u8" },
+    "卧龙": { url: "https://collect.wolongzy.cc/api.php/provide/vod/" },
+    "速播": { url: "https://subocaiji.com/api.php/provide/vod/from/subm3u8" },
+    "索尼": { url: "https://suoniapi.com/api.php/provide/vod/from/snm3u8" },
+    "新浪": { url: "https://api.xinlangapi.com/xinlangapi.php/provide/vod/from/xlm3u8" },
+    "最大": { url: "https://api.zuidapi.com/api.php/provide/vod/from/zuidam3u8" },
+    "快车": { url: "https://caiji.kuaichezy.org/api.php/provide/vod/" },
+    "三六": { url: "https://360zyzz.com/api.php/provide/vod" },
+    "闪电": { url: "https://xsd.sdzyapi.com/api.php/provide/vod/from/sdm3u8" },
+    "金鹰": { url: "https://jyzyapi.com/provide/vod/from/jinyingm3u8" },
+    "樱花": { url: "https://m3u8.apiyhzy.com/api.php/seacms/vod" },
+    "优质": { url: "https://api.yzzy-api.com/inc/api_mac10.php" },
+    "暴风": { url: "https://bfzyapi.com/api.php/provide/vod" },
+    "光速": { url: "https://api.guangsuapi.com/api.php/provide/vod/from/gsm3u8" },
+    "豪华": { url: "https://hhzyapi.com/api.php/provide/vod/from/hhm3u8/" },
+    "天堂": { url: "http://caiji.dyttzyapi.com/api.php/provide/vod/from/dyttm3u8/" },
+    "百度": { url: "https://api.apibdzy.com/api.php/provide/vod/" },
+    "虎牙": { url: "https://www.huyaapi.com/api.php/provide/vod/from/hym3u8/" },
+    "豆瓣": { url: "https://caiji.dbzy5.com/api.php/provide/vod/from/dbm3u8" },
+    "天涯": { url: "https://tyyszyapi.com/api.php/provide/vod" },
+    "猫眼": { url: "https://api.maoyanapi.top/api.php/provide/vod/" },
+    "牛牛": { url: "https://api.niuniuzy.me/api.php/provide/vod/from/nnm3u8/" },
+    "欧凯": { url: "http://api.okzyw.net/api.php/provide/vod/from/okm3u8" },
+    "鸭鸭": { url: "https://cj.yayazy.net/api.php/provide/vod/from/yym3u8" },
+    "奇异": { url: "https://iqiyizyapi.com/api.php/provide/vod" }
+};
+
+// CORS代理配置 - 支持多个代理
+const CORS_PROXIES = [
+    "https://cors.eu.org/",
+    "https://corsproxy.io/",
+    "https://api.allorigins.win/raw?url=" // 备选格式
+];
+
+let currentProxyIndex = 0; // 当前使用的代理索引
+
+// 获取当前CORS代理
+function getCurrentProxy() {
+    return CORS_PROXIES[currentProxyIndex];
+}
+
+// 切换到下一个代理
+function switchToNextProxy() {
+    currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
+    console.log('切换到代理:', getCurrentProxy());
+    return getCurrentProxy();
+}
+
+let API_MAIN = API_CONFIGS["如意"].url;
+const PLAYER = "https://www.265500.vip/bfq/?url=";
+
+// 背景图配置
+const BG_PRIMARY = "http://bing.img.run/rand.php";
+const BG_FALLBACK = "https://picsum.photos/1920/1080";
+
+let allTypes = [];
+let currentT = "";
+let currentQuery = { ac: "videolist" };
+const PAGE_SIZE = 24; // 确保一页显示24个视频
+const MAX_PAGES = 100;
+let vodList = [];
+let episodes = [];
+let currentPlayItem = null;
+let currentPage = 1;
+let pageCache = {};
+let hasParentChild = false;
+let adWarningTimer;
+let resizeHandler = null; // 用于resize事件监听
+
+// DOM 元素
+const searchInput = document.getElementById('wd');
+const clearBtn = document.getElementById('clearBtn');
+const loadingTip = document.getElementById('loadingTip');
+const emptyTip = document.getElementById('emptyTip'); // 新增：空结果提示
+const playerModal = document.getElementById('playerModal');
+const playIframe = playerModal.querySelector('.play-iframe');
+const parseLoading = playerModal.querySelector('.parse-loading');
+const episodeListGrid = playerModal.querySelector('#episodeListGrid');
+const adWarning = document.getElementById('adWarning');
+const detailModal = document.getElementById('detailModal');
+const detailTitle = document.getElementById('detailTitle');
+const detailContent = document.getElementById('detailContent');
+const globalBg = document.getElementById('global-bg');
+const playerBg = document.getElementById('player-bg');
+const playerTitleDisplay = document.getElementById('playerTitleDisplay');
+const videoWrapper = playerModal.querySelector('.video-wrapper');
+const episodePanel = playerModal.querySelector('.episode-panel');
+
+// ================= 工具函数 =================
+// 对分类进行排序和过滤
+function processCategories(categories) {
+    if (!categories || !Array.isArray(categories)) return [];
+    
+    // 定义优先显示的关键词
+    const priorityKeywords = ["内地", "国产", "中国", "大陆"];
+    // 定义需要屏蔽的关键词
+    const bannedKeywords = ["伦理"];
+    
+    // 先过滤掉包含屏蔽关键词的分类
+    const filteredCategories = categories.filter(item => {
+        if (!item.type_name) return true;
+        // 检查是否包含任何屏蔽关键词
+        return !bannedKeywords.some(keyword => 
+            item.type_name.includes(keyword)
+        );
+    });
+    
+    // 然后对分类进行排序
+    return filteredCategories.sort((a, b) => {
+        const aName = a.type_name || "";
+        const bName = b.type_name || "";
+        
+        // 检查a是否包含优先关键词
+        const aHasPriority = priorityKeywords.some(keyword => aName.includes(keyword));
+        const bHasPriority = priorityKeywords.some(keyword => bName.includes(keyword));
+        
+        // 如果a有优先关键词而b没有，a排在前面
+        if (aHasPriority && !bHasPriority) return -1;
+        // 如果b有优先关键词而a没有，b排在前面
+        if (!aHasPriority && bHasPriority) return 1;
+        // 如果都有优先关键词或都没有，保持原顺序
+        return 0;
+    });
+}
+
+// ================= 自适应高度计算 =================
+function calculateOptimalHeight() {
+    if (window.innerWidth > 768) {
+        // 电脑端/平板端不需要动态调整高度
+        return;
+    }
+    
+    // 手机端：根据选集数量调整播放器和选集面板的高度
+    const episodeCount = episodes.length;
+    const playerArea = document.querySelector('.player-content-area');
+    const playerAreaHeight = playerArea.offsetHeight;
+    
+    if (episodeCount <= 6) {
+        // 选集较少时，播放器占60%，选集占40%
+        videoWrapper.style.height = '60vh';
+        episodePanel.style.flex = '0 0 auto';
+        episodePanel.style.height = 'calc(40vh - 20px)'; // 减去间隙
+    } else if (episodeCount <= 12) {
+        // 选集中等时，播放器占50%，选集占50%
+        videoWrapper.style.height = '50vh';
+        episodePanel.style.flex = '1';
+        episodePanel.style.height = 'auto';
+    } else if (episodeCount <= 20) {
+        // 选集较多时，播放器占40%，选集占60%
+        videoWrapper.style.height = '40vh';
+        episodePanel.style.flex = '1';
+        episodePanel.style.height = 'auto';
+    } else {
+        // 选集很多时，播放器占30%，选集占70%
+        videoWrapper.style.height = '30vh';
+        episodePanel.style.flex = '1';
+        episodePanel.style.height = 'auto';
+    }
+    
+    // 确保选集面板不会太小
+    const computedHeight = episodePanel.offsetHeight;
+    if (computedHeight < 150) {
+        episodePanel.style.minHeight = '150px';
+    }
+}
+
+// ================= 初始化与背景加载 =================
+function initBackground() {
+    // 尝试加载主背景
+    const img = new Image();
+    img.onload = () => {
+        globalBg.style.backgroundImage = `url('${BG_PRIMARY}')`;
+        playerBg.style.backgroundImage = `url('${BG_PRIMARY}')`;
+    };
+    img.onerror = () => {
+        // 失败则加载备用
+        globalBg.style.backgroundImage = `url('${BG_FALLBACK}')`;
+        playerBg.style.backgroundImage = `url('${BG_FALLBACK}')`;
+    };
+    img.src = BG_PRIMARY + '?t=' + new Date().getTime(); // 防止缓存
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+    initBackground();
+    playerModal.style.display = 'none';
+    playIframe.src = '';
+    
+    initApiSwitch();
+    await loadTypes();
+    renderParent();
+    initDragScroll();
+    
+    // 监听窗口大小变化
+    window.addEventListener('resize', () => {
+        initDragScroll();
+        initDragScrollForElement(document.getElementById('apiSwitch'));
+        
+        // 如果播放器打开，重新计算布局
+        if (playerModal.style.display === 'flex') {
+            calculateOptimalHeight();
+        }
+    });
+    
+    const kw = getUrlParam('url').trim();
+    if (kw) {
+        searchInput.value = kw;
+        clearBtn.style.display = 'flex';
+        setTimeout(doSearch, 100);
+    } else {
+        loadPage(1);
+    }
+});
+
+// ================= 交互逻辑 =================
+searchInput.addEventListener('input', () => {
+    clearBtn.style.display = searchInput.value ? 'flex' : 'none';
+});
+
+function clearSearch() {
+    searchInput.value = '';
+    clearBtn.style.display = 'none';
+}
+
+function getUrlParam(key) {
+    return new URLSearchParams(window.location.search).get(key) || '';
+}
+
+function showAdWarning() {
+    clearTimeout(adWarningTimer);
+    adWarning.style.opacity = 1;
+    adWarningTimer = setTimeout(() => {
+        adWarning.style.opacity = 0;
+    }, 4000);
+}
+
+// ================= 拖拽滚动 (PC端) =================
+function initDragScrollForElement(el) {
+    if (window.innerWidth <= 768 || !el) return;
+    let isDragging = false;
+    let startX, scrollLeft;
+
+    el.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        el.style.cursor = 'grabbing';
+        startX = e.pageX - el.offsetLeft;
+        scrollLeft = el.scrollLeft;
+        e.preventDefault();
+    });
+
+    el.addEventListener('mouseleave', () => { isDragging = false; el.style.cursor = 'grab'; });
+    el.addEventListener('mouseup', () => { isDragging = false; el.style.cursor = 'grab'; });
+
+    el.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const x = e.pageX - el.offsetLeft;
+        const walk = (x - startX) * 2;
+        el.scrollLeft = scrollLeft - walk;
+    });
+}
+
+function initDragScroll() {
+    if (window.innerWidth <= 768) return;
+    const els = [document.getElementById('apiSwitch'), document.getElementById('typeParent'), document.getElementById('typeChild')];
+    els.forEach(el => initDragScrollForElement(el));
+}
+
+// ================= 数据加载 =================
+async function loadTypes() {
+    try {
+        const r = await fetch(`${getCurrentProxy()}${API_MAIN}`);
+        const d = await r.json();
+        allTypes = d.class || [];
+        hasParentChild = allTypes.length > 0 && 'type_pid' in allTypes[0];
+    } catch(e) { 
+        console.log('Load types failed:', e); 
+        // 尝试切换到下一个代理
+        switchToNextProxy();
+        // 可以在这里添加重试逻辑
+    }
+}
+
+function initApiSwitch() {
+    const apiSwitchEl = document.getElementById('apiSwitch');
+    apiSwitchEl.innerHTML = '';
+    const urlParams = new URLSearchParams(window.location.search);
+    const apiKey = urlParams.get('api') || '如意';
+    const scrollLeft = parseInt(urlParams.get('scrollLeft')) || 0;
+
+    Object.keys(API_CONFIGS).forEach(key => {
+        const btn = document.createElement('button');
+        btn.className = 'nav-btn';
+        btn.textContent = key;
+        if (key === apiKey) {
+            btn.classList.add('active');
+            btn.classList.add('active-highlight'); // 添加高亮类
+            if (API_CONFIGS[key].url) API_MAIN = API_CONFIGS[key].url;
+        }
+        btn.onclick = () => {
+            const currentScrollLeft = apiSwitchEl.scrollLeft;
+            if (key === "切换线路") {
+                window.location.href = `${window.location.pathname}?url=&scrollLeft=${currentScrollLeft}`;
+            } else {
+                const newUrl = `${window.location.pathname}?api=${encodeURIComponent(key)}&url=${encodeURIComponent(searchInput.value.trim())}&scrollLeft=${currentScrollLeft}`;
+                window.location.href = newUrl;
+            }
+        };
+        apiSwitchEl.appendChild(btn);
+    });
+    setTimeout(() => { apiSwitchEl.scrollLeft = scrollLeft; }, 0);
+    initDragScrollForElement(apiSwitchEl);
+}
+
+function renderParent() {
+    const p = document.getElementById('typeParent');
+    p.innerHTML = '';
+    
+    const recent = document.createElement('button');
+    recent.className = 'nav-btn active';
+    recent.classList.add('active-highlight'); // 添加高亮类
+    recent.textContent = '最近更新';
+    p.appendChild(recent);
+    
+    recent.onclick = () => {
+        document.querySelectorAll('#typeParent .nav-btn').forEach(b => {
+            b.classList.remove('active');
+            b.classList.remove('active-highlight');
+        });
+        recent.classList.add('active');
+        recent.classList.add('active-highlight'); // 添加高亮类
+        document.getElementById('typeChild').innerHTML = '';
+        currentQuery = { ac: "videolist" };
+        pageCache = {};
+        loadPage(1);
+    };
+    
+    // 处理分类：过滤、排序
+    const parents = hasParentChild ? 
+        allTypes.filter(t => t.type_pid == 0) : 
+        allTypes.filter(t => t.type_id !== 17);
+    
+    const processedParents = processCategories(parents);
+    
+    processedParents.forEach(item => {
+        const b = document.createElement('button');
+        b.className = 'nav-btn';
+        b.textContent = item.type_name;
+        p.appendChild(b);
+        
+        b.onclick = () => {
+            document.querySelectorAll('#typeParent .nav-btn').forEach(x => {
+                x.classList.remove('active');
+                x.classList.remove('active-highlight');
+            });
+            b.classList.add('active');
+            b.classList.add('active-highlight'); // 添加高亮类
+            document.getElementById('typeChild').innerHTML = '';
+            
+            if (hasParentChild) {
+                renderChildByPid(item.type_id);
+                const cs = allTypes.filter(t => t.type_pid == item.type_id);
+                if (cs.length > 0) {
+                    setTimeout(() => document.querySelector('#typeChild .nav-btn')?.click(), 50);
+                } else {
+                    currentQuery = { ac: "videolist", t: item.type_id };
+                    pageCache = {};
+                    loadPage(1);
+                }
+            } else {
+                currentQuery = { ac: "videolist", t: item.type_id };
+                pageCache = {};
+                loadPage(1);
+            }
+        };
+    });
+}
+
+function renderChildByPid(pid) {
+    if (!hasParentChild) return;
+    const c = document.getElementById('typeChild');
+    c.innerHTML = '';
+    
+    const children = allTypes.filter(t => t.type_pid == pid);
+    const processedChildren = processCategories(children);
+    
+    processedChildren.forEach((item, idx) => {
+        const b = document.createElement('button');
+        b.className = 'nav-btn';
+        if (idx === 0) {
+            b.classList.add('active');
+            b.classList.add('active-highlight'); // 添加高亮类
+        }
+        b.textContent = item.type_name;
+        c.appendChild(b);
+        
+        b.onclick = () => {
+            document.querySelectorAll('#typeChild .nav-btn').forEach(x => {
+                x.classList.remove('active');
+                x.classList.remove('active-highlight');
+            });
+            b.classList.add('active');
+            b.classList.add('active-highlight'); // 添加高亮类
+            currentQuery = { ac: "videolist", t: item.type_id };
+            pageCache = {};
+            loadPage(1);
+        };
+    });
+}
+
+async function loadPage(page, isPrefetch = false) {
+    if (page < 1 || page > MAX_PAGES) return;
+    
+    const key = JSON.stringify({ ...currentQuery, pg: page, pagesize: PAGE_SIZE });
+    if (pageCache[key]) {
+        if (!isPrefetch) {
+            vodList = pageCache[key];
+            currentPage = page;
+            renderPage();
+        }
+        return;
+    }
+    
+    if (!isPrefetch) {
+        loadingTip.style.display = 'block';
+        emptyTip.style.display = 'none'; // 隐藏空提示
+        document.getElementById('list').innerHTML = '';
+        document.getElementById('pagination').innerHTML = '';
+    }
+    
+    try {
+        const res = await fetch(`${getCurrentProxy()}${API_MAIN}?${new URLSearchParams({ ...currentQuery, pg: page, pagesize: PAGE_SIZE })}`);
+        const data = await res.json();
+        pageCache[key] = data.list || [];
+        if (!isPrefetch) {
+            vodList = pageCache[key];
+            currentPage = page;
+        }
+    } catch(e) {
+        if (!isPrefetch) vodList = [];
+        // 尝试切换到下一个代理
+        switchToNextProxy();
+    }
+    
+    if (!isPrefetch) {
+        loadingTip.style.display = 'none';
+        renderPage();
+    }
+}
+
+function loadImageWithFallback(img, url) {
+    if (!url) {
+        img.src = "https://picsum.photos/300/450";
+        return;
+    }
+    // 使用代理或直连，这里保持原逻辑但优化错误处理
+    const pureUrl = url.replace(/^https?:\/\//, '');
+    img.src = "https://i0.wp.com/" + pureUrl;
+    img.onerror = () => {
+        img.src = "https://picsum.photos/300/450";
+    };
+}
+
+function renderPage() {
+    const el = document.getElementById('list');
+    const paginationEl = document.getElementById('pagination');
+    el.innerHTML = '';
+    
+    // 检查是否有内容
+    if (!vodList || vodList.length === 0) {
+        // 显示空提示
+        emptyTip.style.display = 'block';
+        paginationEl.innerHTML = '';
+        return;
+    } else {
+        emptyTip.style.display = 'none';
+    }
+    
+    // 确保只显示24个视频
+    const displayList = vodList.slice(0, PAGE_SIZE);
+    
+    displayList.forEach(item => {
+        const d = document.createElement('div');
+        d.className = 'vod-item';
+        d.onclick = () => openPlayer(item);
+        
+        const img = document.createElement('img');
+        loadImageWithFallback(img, item.vod_pic);
+        
+        const info = document.createElement('div');
+        info.className = 'vod-info';
+        
+        const t = document.createElement('div');
+        t.className = 'vod-title';
+        t.innerText = item.vod_name || '未知';
+        
+        info.appendChild(t);
+        d.append(img, info);
+        el.appendChild(d);
+    });
+    
+    renderPagination();
+    if (currentPage < MAX_PAGES) setTimeout(() => loadPage(currentPage + 1, true), 600);
+}
+
+function renderPagination() {
+    const p = document.getElementById('pagination');
+    p.innerHTML = '';
+    
+    const prev = document.createElement('button');
+    prev.innerText = '上一页';
+    prev.disabled = currentPage <= 1;
+    prev.onclick = () => loadPage(currentPage - 1);
+    
+    const txt = document.createElement('span');
+    txt.className = 'page-text';
+    txt.innerText = `第 ${currentPage} 页`;
+    
+    const next = document.createElement('button');
+    next.innerText = '下一页';
+    next.disabled = currentPage >= MAX_PAGES;
+    next.onclick = () => loadPage(currentPage + 1);
+    
+    p.append(prev, txt, next);
+}
+
+// ================= 播放器逻辑 =================
+function openPlayer(item) {
+    currentPlayItem = item;
+    playerModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    playerTitleDisplay.innerText = item.vod_name || '正在播放';
+    
+    // 同步背景图到播放器
+    if(globalBg.style.backgroundImage) {
+        playerBg.style.backgroundImage = globalBg.style.backgroundImage;
+    }
+
+    const u = item.vod_play_url || '';
+    episodes = u.split('#')
+        .filter(s => s.includes('$'))
+        .map(s => {
+            const [n, l] = s.split('$');
+            return { name: n, url: PLAYER + encodeURIComponent(l) };
+        });
+    
+    if (episodes.length === 0) {
+        alert('暂无播放源');
+        closePlayer();
+        return;
+    }
+    
+    // 设置窗口大小变化监听
+    if (resizeHandler) {
+        window.removeEventListener('resize', resizeHandler);
+    }
+    resizeHandler = () => {
+        // 重置布局
+        if (window.innerWidth <= 768) {
+            calculateOptimalHeight();
+        } else {
+            // 电脑端恢复默认样式
+            videoWrapper.style.height = '';
+            episodePanel.style.flex = '';
+            episodePanel.style.height = '';
+        }
+    };
+    window.addEventListener('resize', resizeHandler);
+    
+    play(0);
+}
+
+function play(idx) {
+    const ep = episodes[idx];
+    parseLoading.style.display = 'block';
+    playIframe.src = '';
+    
+    playIframe.onload = playIframe.onerror = () => {
+        parseLoading.style.display = 'none';
+        showAdWarning();
+    };
+    
+    playIframe.src = ep.url;
+    document.title = `${currentPlayItem?.vod_name || '播放'} - ${ep.name}`;
+    
+    episodeListGrid.innerHTML = '';
+    
+    // 根据设备设置选集布局
+    if (window.innerWidth <= 768) {
+        // 手机端：一行1个
+        episodeListGrid.style.gridTemplateColumns = 'repeat(1, 1fr)';
+        episodeListGrid.style.gap = '8px';
+        
+        // 计算并设置自适应高度
+        calculateOptimalHeight();
+    } else {
+        // 电脑端/平板端：一行1个
+        episodeListGrid.style.gridTemplateColumns = 'repeat(1, 1fr)';
+        episodeListGrid.style.gap = '10px';
+        
+        // 恢复默认高度
+        videoWrapper.style.height = '';
+        episodePanel.style.flex = '';
+        episodePanel.style.height = '';
+    }
+    
+    // 生成选集按钮
+    episodes.forEach((e, i) => {
+        const d = document.createElement('div');
+        d.className = 'ep-btn';
+        if (i === idx) d.classList.add('active');
+        
+        // 创建span元素来包裹文本，确保文本居中且不换行
+        const span = document.createElement('span');
+        span.innerText = e.name;
+        d.appendChild(span);
+        
+        d.onclick = () => play(i);
+        episodeListGrid.appendChild(d);
+    });
+    
+    // 添加"到底了~"按钮
+    const endMarker = document.createElement('div');
+    endMarker.className = 'end-marker';
+    endMarker.textContent = '到底了~';
+    episodeListGrid.appendChild(endMarker);
+    
+    // 滚动到当前选集位置（只在选集容器内滚动，不影响页面）
+    scrollToActiveEpisode(idx);
+    
+    // 移动端点击选集后自动滚动到顶部
+    if(window.innerWidth <= 768) {
+        document.querySelector('.player-content-area').scrollTop = 0;
+    }
+}
+
+// 滚动到当前激活的选集（只在选集容器内滚动）
+function scrollToActiveEpisode(idx) {
+    // 使用setTimeout确保DOM已更新
+    setTimeout(() => {
+        const activeBtn = episodeListGrid.querySelector('.ep-btn.active');
+        if (activeBtn && episodeListGrid) {
+            // 计算相对位置，手动设置容器的scrollTop
+            // 这样不会影响整个页面的滚动
+            const containerRect = episodeListGrid.getBoundingClientRect();
+            const activeRect = activeBtn.getBoundingClientRect();
+            
+            // 计算元素相对于容器的位置
+            const relativeTop = activeRect.top - containerRect.top + episodeListGrid.scrollTop;
+            const containerHeight = containerRect.height;
+            const activeHeight = activeRect.height;
+            
+            // 将激活的按钮滚动到容器中间位置
+            const targetScrollTop = relativeTop - (containerHeight / 2) + (activeHeight / 2);
+            
+            // 平滑滚动
+            episodeListGrid.scrollTo({
+                top: Math.max(0, targetScrollTop),
+                behavior: 'smooth'
+            });
+        }
+    }, 50);
+}
+
+function closePlayer() {
+    playerModal.style.display = 'none';
+    playIframe.src = '';
+    document.body.style.overflow = '';
+    document.title = '白象影院';
+    currentPlayItem = null;
+    parseLoading.style.display = 'none';
+    closeDetail();
+    
+    // 移除窗口大小变化监听
+    if (resizeHandler) {
+        window.removeEventListener('resize', resizeHandler);
+        resizeHandler = null;
+    }
+}
+
+// ================= 详情逻辑 =================
+function openDetail() {
+    if (!currentPlayItem) return;
+    
+    detailTitle.innerText = currentPlayItem.vod_name || '未知影片';
+    const d = currentPlayItem;
+    
+    // 定义详情字段，标记哪些可能为空
+    const fields = [
+        { key: 'type_name', label: '类型', checkEmpty: false },
+        { key: 'vod_remarks', label: '状态', checkEmpty: false },
+        { key: 'vod_year', label: '年份', checkEmpty: false },
+        { key: 'vod_area', label: '地区', checkEmpty: false },
+        { key: 'vod_director', label: '导演', checkEmpty: true },
+        { key: 'vod_actor', label: '主演', checkEmpty: true },
+        { key: 'vod_content', label: '简介', checkEmpty: true, isContent: true }
+    ];
+    
+    // 分离有内容和无内容的字段
+    const validFields = [];
+    const emptyFields = [];
+    
+    fields.forEach(field => {
+        const value = d[field.key];
+        const isEmpty = !value || value === '-' || value === '暂无' || value === '暂无简介' || value === '未知' || String(value).trim() === '';
+        
+        if (field.checkEmpty && isEmpty) {
+            emptyFields.push({ ...field, value: value || '-' });
+        } else {
+            validFields.push({ ...field, value: value || '-' });
+        }
+    });
+    
+    // 构建HTML，有内容的在前，无内容的在后
+    let html = '';
+    
+    // 渲染有内容的字段
+    validFields.forEach(field => {
+        const value = field.isContent ? (field.value || '暂无简介') : field.value;
+        html += `
+            <div class="info-row ${field.isContent ? 'content-row' : ''}">
+                <div class="info-label">${field.label}</div>
+                <div class="info-val ${field.checkEmpty && (!field.value || field.value === '-') ? 'empty-content' : ''}" 
+                     style="${field.isContent ? 'line-height:1.8;' : ''}">
+                    ${value}
+                </div>
+            </div>
+        `;
+    });
+    
+    // 渲染无内容的字段（挪到最后）
+    if (emptyFields.length > 0) {
+        emptyFields.forEach(field => {
+            html += `
+                <div class="info-row empty-row">
+                    <div class="info-label">${field.label}</div>
+                    <div class="info-val empty-content" style="line-height:1.8;">
+                        ${field.value || '暂无'}
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    detailContent.innerHTML = html;
+    detailModal.style.display = 'flex';
+}
+
+function closeDetail() {
+    detailModal.style.display = 'none';
+}
+
+async function doSearch() {
+    const wd = searchInput.value.trim();
+    if (!wd) return;
+    
+    // 更新加载提示文本
+    loadingTip.innerText = '搜索中...';
+    loadingTip.style.display = 'block';
+    emptyTip.style.display = 'none'; // 隐藏空提示
+    document.getElementById('list').innerHTML = '';
+    document.getElementById('pagination').innerHTML = '';
+    
+    currentQuery = { ac: "videolist", wd };
+    pageCache = {};
+    await loadPage(1);
+    
+    loadingTip.style.display = 'none';
+}
+</script>
+</body>
+</html>
