@@ -1,4 +1,6 @@
-﻿<!doctype html>
+
+
+<!doctype html>
 <html>
 
 <head>
@@ -72,16 +74,16 @@
                     font-size: 24px;
                 `;
                 container.textContent = '使用方式 ?url=视频地址';
-                return; // 停止执行
+                return;
             }
 
             // 定义主用和备用JS链接
             const hlsJsSources = [
-                'https://vip.dytt-tvs.com/frontend/players/js/hls.js',
+                'https://cdn.jsdmirror.com/gh/120241400/265500/bfq/hls.js',
                 'https://www.265500.vip/bfq/hls.js'
             ];
             const artplayerJsSources = [
-                'https://vip.dytt-tvs.com/frontend/players/artplayer/artplayer.js',
+                'https://cdn.jsdmirror.com/gh/120241400/265500/bfq/artplayer.js',
                 'https://www.265500.vip/bfq/artplayer.js'
             ];
 
@@ -131,7 +133,6 @@
 
             function initializePlayer() {
                 const resolutionDisplay = document.getElementById('resolutionDisplay');
-                // 保存HLS实例引用，方便统一管理
                 let hlsInstance = null;
 
                 function showResolution(width, height) {
@@ -173,6 +174,8 @@
                     autoOrientation: true,
                     airplay: false,
                     whitelist: ['*'],
+                    // 禁用所有通知弹窗
+                    notice: false,
                     customType: {
                         m3u8: function (video, url) {
                             // 先销毁旧的HLS实例
@@ -187,30 +190,30 @@
 
                             if (Hls.isSupported()) {
                                 const hls = new Hls({
-                                    // 禁用自动级别切换，避免频繁切换导致播放中断
+                                    // 强制使用最高清晰度
                                     startLevel: -1,
+                                    // 禁用自动质量切换，锁定最高质量
+                                    autoStartLoad: true,
                                     maxBufferLength: 30,
-                                    maxMaxBufferLength: 60
+                                    maxMaxBufferLength: 60,
+                                    // 禁止降级
+                                    capLevelToPlayerSize: false,
+                                    // 强制最高质量级别
+                                    startLevel: Infinity
                                 });
                                 hlsInstance = hls;
 
                                 hls.loadSource(url);
                                 hls.attachMedia(video);
 
-                                // 监听级别切换事件，但避免触发不必要的操作
-                                hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
-                                    console.log('级别切换:', data);
-                                    // 延迟更长时间获取分辨率，避免切换过程中读取错误
-                                    setTimeout(() => {
-                                        const resolution = getVideoResolution(video);
-                                        if (resolution) {
-                                            showResolution(resolution.width, resolution.height);
-                                        }
-                                    }, 2000);
-                                });
-
-                                hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                                    console.log('HLS清单解析完成');
+                                // 清单解析完成后立即切换到最高质量
+                                hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                                    console.log('HLS清单解析完成, 可用级别:', data.levels.length);
+                                    
+                                    // 强制设置为最高质量级别
+                                    const maxLevel = data.levels.length - 1;
+                                    hls.currentLevel = maxLevel;
+                                    
                                     setTimeout(() => {
                                         const resolution = getVideoResolution(video);
                                         if (resolution) {
@@ -219,25 +222,27 @@
                                     }, 1500);
                                 });
 
-                                // 监听错误事件，避免错误导致播放中断
+                                // 监听级别切换显示分辨率
+                                hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+                                    console.log('当前级别:', data.level);
+                                    setTimeout(() => {
+                                        const resolution = getVideoResolution(video);
+                                        if (resolution) {
+                                            showResolution(resolution.width, resolution.height);
+                                        }
+                                    }, 2000);
+                                });
+
+                                // 错误处理 - 禁止断线重连，仅记录错误不恢复
                                 hls.on(Hls.Events.ERROR, function (event, data) {
                                     console.error('HLS错误:', data);
-                                    // 仅处理致命错误
+                                    // 禁止任何重连/恢复操作，直接销毁
                                     if (data.fatal) {
-                                        switch (data.type) {
-                                            case Hls.ErrorTypes.NETWORK_ERROR:
-                                                console.log('网络错误，尝试重新加载');
-                                                hls.startLoad();
-                                                break;
-                                            case Hls.ErrorTypes.MEDIA_ERROR:
-                                                console.log('媒体错误，尝试恢复');
-                                                hls.recoverMediaError();
-                                                break;
-                                            default:
-                                                // 无法恢复的错误，销毁实例
-                                                hls.destroy();
-                                                break;
-                                        }
+                                        console.log('发生致命错误，停止播放');
+                                        hls.destroy();
+                                        hlsInstance = null;
+                                        // 可选：显示错误状态，但不弹窗
+                                        video.style.opacity = '0.5';
                                     }
                                 });
 
@@ -250,11 +255,17 @@
                                     }
                                 });
                             } else {
-                                window.player.notice.show = 'Unsupported playback format: m3u8';
+                                console.error('Unsupported playback format: m3u8');
                             }
                         },
                     }
                 });
+
+                // 禁用播放器所有通知
+                window.player.notice = {
+                    show: () => {},
+                    hide: () => {}
+                };
 
                 // 视频元数据加载完成后显示分辨率
                 window.player.on('video:loadedmetadata', function () {
@@ -281,11 +292,26 @@
                     }
                 });
 
-                // 防止播放错误导致重新加载
+                // 禁止错误弹窗，仅记录日志
                 window.player.on('error', (e) => {
                     console.error('播放器错误:', e);
-                    // 阻止错误冒泡导致的播放器重置
                     e.preventDefault();
+                    // 禁止显示错误通知
+                    return false;
+                });
+
+                // 禁止网络错误提示
+                window.player.on('networkError', (e) => {
+                    console.error('网络错误:', e);
+                    e.preventDefault();
+                    return false;
+                });
+
+                // 禁止解码错误提示
+                window.player.on('decodeError', (e) => {
+                    console.error('解码错误:', e);
+                    e.preventDefault();
+                    return false;
                 });
             }
         });
