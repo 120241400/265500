@@ -1,0 +1,328 @@
+﻿
+
+
+<!doctype html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=9" />
+    <title>忘情播放器</title>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .resolution-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .resolution-display.show {
+            opacity: 1;
+        }
+    </style>
+    <script>
+        // 初始化参数
+        var m3u8Url = new URLSearchParams(location.search.substring(1)).get('url');
+    </script>
+</head>
+
+<body>
+    <div id="container"></div>
+    <div id="resolutionDisplay" class="resolution-display"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            // 检查是否有视频地址
+            if (!m3u8Url) {
+                const container = document.getElementById('container');
+                container.style.cssText = `
+                    background-color: black;
+                    color: white;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-size: 24px;
+                `;
+                container.textContent = '使用方式 ?url=视频地址';
+                return;
+            }
+
+            // 定义主用和备用JS链接
+            const hlsJsSources = [
+                'https://gcore.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js',
+                'https://testingcf.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js',
+                'https://cdn.jsdmirror.com/gh/120241400/265500/bfq/hls.js',
+                'https://www.265500.vip/bfq/hls.js'
+            ];
+            const artplayerJsSources = [
+                'https://gcore.jsdelivr.net/npm/artplayer@latest/dist/artplayer.js',
+                'https://testingcf.jsdelivr.net/npm/artplayer@latest/dist/artplayer.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/artplayer/5.0.9/artplayer.js',
+                'https://cdn.jsdmirror.com/gh/120241400/265500/bfq/artplayer.js',
+                'https://www.265500.vip/bfq/artplayer.js'
+            ];
+
+            function loadScript(srcArray) {
+                return new Promise((resolve, reject) => {
+                    let currentIndex = 0;
+                    function tryLoad() {
+                        if (currentIndex >= srcArray.length) {
+                            reject(new Error(`All sources failed: ${srcArray.join(', ')}`));
+                            return;
+                        }
+                        const script = document.createElement('script');
+                        script.src = srcArray[currentIndex];
+                        script.onload = () => resolve(script);
+                        script.onerror = () => {
+                            console.warn(`Failed to load script from: ${srcArray[currentIndex]}, trying next...`);
+                            currentIndex++;
+                            tryLoad();
+                        };
+                        document.head.appendChild(script);
+                    }
+                    tryLoad();
+                });
+            }
+
+            Promise.all([
+                loadScript(hlsJsSources),
+                loadScript(artplayerJsSources)
+            ]).then(() => {
+                console.log('All external scripts loaded successfully.');
+                initializePlayer();
+            }).catch((error) => {
+                console.error('Failed to load required scripts:', error);
+                const container = document.getElementById('container');
+                container.style.cssText = `
+                    background-color: black;
+                    color: white;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-size: 18px;
+                    padding: 20px;
+                    text-align: center;
+                `;
+                container.textContent = '播放器脚本加载失败，请刷新页面重试';
+            });
+
+            function initializePlayer() {
+                const resolutionDisplay = document.getElementById('resolutionDisplay');
+                let hlsInstance = null;
+
+                function showResolution(width, height) {
+                    resolutionDisplay.textContent = `${width}×${height}`;
+                    resolutionDisplay.classList.add('show');
+                    setTimeout(() => {
+                        resolutionDisplay.classList.remove('show');
+                    }, 9000);
+                }
+
+                function getVideoResolution(videoElement) {
+                    if (videoElement && videoElement.videoWidth && videoElement.videoHeight) {
+                        return {
+                            width: videoElement.videoWidth,
+                            height: videoElement.videoHeight
+                        };
+                    }
+                    return null;
+                }
+
+                window.player = new Artplayer({
+                    container: '#container',
+                    url: m3u8Url,
+                    autoplay: true,
+                    autoSize: false,
+                    loop: false,
+                    mutex: true,
+                    setting: true,
+                    pip: true,
+                    flip: false,
+                    lock: true,
+                    fastForward: true,
+                    playbackRate: true,
+                    aspectRatio: true,
+                    theme: '#ff0057',
+                    fullscreen: true,
+                    fullscreenWeb: false,
+                    miniProgressBar: true,
+                    autoOrientation: true,
+                    airplay: false,
+                    whitelist: ['*'],
+                    // 禁用所有通知弹窗
+                    notice: false,
+                    customType: {
+                        m3u8: function (video, url) {
+                            // 先销毁旧的HLS实例
+                            if (hlsInstance) {
+                                try {
+                                    hlsInstance.destroy();
+                                } catch (e) {
+                                    console.warn('销毁旧HLS实例:', e);
+                                }
+                                hlsInstance = null;
+                            }
+
+                            if (Hls.isSupported()) {
+                                const hls = new Hls({
+                                    // 强制使用最高清晰度
+                                    startLevel: -1,
+                                    // 禁用自动质量切换，锁定最高质量
+                                    autoStartLoad: true,
+                                    maxBufferLength: 30,
+                                    maxMaxBufferLength: 60,
+                                    // 禁止降级
+                                    capLevelToPlayerSize: false,
+                                    // 强制最高质量级别
+                                    startLevel: Infinity
+                                });
+                                hlsInstance = hls;
+
+                                hls.loadSource(url);
+                                hls.attachMedia(video);
+
+                                // 清单解析完成后立即切换到最高质量
+                                hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                                    console.log('HLS清单解析完成, 可用级别:', data.levels.length);
+                                    
+                                    // 强制设置为最高质量级别
+                                    const maxLevel = data.levels.length - 1;
+                                    hls.currentLevel = maxLevel;
+                                    
+                                    setTimeout(() => {
+                                        const resolution = getVideoResolution(video);
+                                        if (resolution) {
+                                            showResolution(resolution.width, resolution.height);
+                                        }
+                                    }, 1500);
+                                });
+
+                                // 监听级别切换显示分辨率
+                                hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+                                    console.log('当前级别:', data.level);
+                                    setTimeout(() => {
+                                        const resolution = getVideoResolution(video);
+                                        if (resolution) {
+                                            showResolution(resolution.width, resolution.height);
+                                        }
+                                    }, 2000);
+                                });
+
+                                // 错误处理 - 禁止断线重连，仅记录错误不恢复
+                                hls.on(Hls.Events.ERROR, function (event, data) {
+                                    console.error('HLS错误:', data);
+                                    // 禁止任何重连/恢复操作，直接销毁
+                                    if (data.fatal) {
+                                        console.log('发生致命错误，停止播放');
+                                        hls.destroy();
+                                        hlsInstance = null;
+                                        // 可选：显示错误状态，但不弹窗
+                                        video.style.opacity = '0.5';
+                                    }
+                                });
+
+                            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                                video.src = url;
+                                video.addEventListener('loadedmetadata', function () {
+                                    const resolution = getVideoResolution(video);
+                                    if (resolution) {
+                                        showResolution(resolution.width, resolution.height);
+                                    }
+                                });
+                            } else {
+                                console.error('Unsupported playback format: m3u8');
+                            }
+                        },
+                    }
+                });
+
+                // 禁用播放器所有通知
+                window.player.notice = {
+                    show: () => {},
+                    hide: () => {}
+                };
+
+                // 视频元数据加载完成后显示分辨率
+                window.player.on('video:loadedmetadata', function () {
+                    const videoElement = window.player.video;
+                    if (videoElement) {
+                        const resolution = getVideoResolution(videoElement);
+                        if (resolution) {
+                            setTimeout(() => {
+                                showResolution(resolution.width, resolution.height);
+                            }, 1000);
+                        }
+                    }
+                });
+
+                // 播放器销毁时清理资源
+                window.player.on('destroy', () => {
+                    if (hlsInstance) {
+                        try {
+                            hlsInstance.destroy();
+                        } catch (e) {
+                            console.warn('销毁HLS实例:', e);
+                        }
+                        hlsInstance = null;
+                    }
+                });
+
+                // 禁止错误弹窗，仅记录日志
+                window.player.on('error', (e) => {
+                    console.error('播放器错误:', e);
+                    e.preventDefault();
+                    // 禁止显示错误通知
+                    return false;
+                });
+
+                // 禁止网络错误提示
+                window.player.on('networkError', (e) => {
+                    console.error('网络错误:', e);
+                    e.preventDefault();
+                    return false;
+                });
+
+                // 禁止解码错误提示
+                window.player.on('decodeError', (e) => {
+                    console.error('解码错误:', e);
+                    e.preventDefault();
+                    return false;
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
