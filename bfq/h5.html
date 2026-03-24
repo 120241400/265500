@@ -1,149 +1,40 @@
+
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <!-- 禁止页面缓存 -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <!-- 跨域支持 -->
-    <meta http-equiv="Access-Control-Allow-Origin" content="*">
-    <meta name="referrer" content="no-referrer">
-    <title>直连播放器</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
-            font-family: 'Microsoft YaHei', Arial, sans-serif;
-        }
-        video {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background-color: #000;
-        }
-        /* 错误提示样式 */
-        .error-message {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #888;
-            font-size: 16px;
-            text-align: center;
-            padding: 20px;
-            display: none; /* 默认隐藏 */
-        }
+<title>直连播放器</title>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-language" content="zh-CN">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta name="msapplication-tap-highlight" content="no">
+<meta name="HandheldFriendly" content="true"><!--<meta name="x5-page-mode" content="app"/>-->
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">	
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Access-Control-Allow-Origin" content="*" />
+<meta http-equiv="Access-Control-Allow-Credentials" content="*" />
+<style>
+    body,html {
+    	font: 24px 'Microsoft YaHei', Arial, Lucida Grande, Tahoma, sans-serif;
+    	width: 100%;
+    	height: 100%;
+    	padding: 0;
+    	margin: 0;
+    	overflow-x: hidden;
+    	overflow-y: hidden;
+    	background-color: black;
+    }
+   
     </style>
 </head>
 <body>
-    <!-- 错误提示（当无视频地址时显示） -->
-    <div id="errorMessage" class="error-message">
-        请在URL中以"<strong>?url=视频地址</strong>"格式传入视频地址
-    </div>
-    
-    <video
-        id="video"
-        controls
-        autoplay
-        preload="auto"
-        poster="https://picsum.photos/1400/1000"
-        playsinline
-        webkit-playsinline
-        x5-playsinline
-        x5-video-player-type="h5"
-        x5-video-player-fullscreen="true"
-    >
-        您的浏览器不支持 video 标签。
-    </video>
-
-    <script>
-        (function() {
-            'use strict';
-            var video = document.getElementById('video');
-            var errorMessage = document.getElementById('errorMessage');
-            
-            // 解析URL参数
-            function getUrlParam(name) {
-                var search = window.location.search.substring(1);
-                var params = search.split('&');
-                for (var i = 0; i < params.length; i++) {
-                    var pair = params[i].split('=');
-                    if (pair[0] === name) {
-                        return decodeURIComponent(pair[1] || '');
-                    }
-                }
-                return null;
-            }
-            
-            // 获取视频地址参数
-            var videoUrl = getUrlParam('url');
-            
-            if (videoUrl) {
-                // 设置视频源
-                video.src = videoUrl;
-                
-                // 监听错误事件
-                video.addEventListener('error', function(e) {
-                    switch(video.error.code) {
-                        case 1: // MEDIA_ERR_ABORTED
-                        case 2: // MEDIA_ERR_NETWORK
-                        case 3: // MEDIA_ERR_DECODE
-                        case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
-                        default:
-                            // 视频加载失败时显示错误提示
-                            errorMessage.textContent = '视频加载失败，请检查地址格式或网络连接';
-                            errorMessage.style.display = 'flex';
-                            video.style.display = 'none';
-                            break;
-                    }
-                });
-                
-                // 监听加载成功事件
-                video.addEventListener('loadeddata', function() {
-                    // 确保视频正常播放
-                    video.play().catch(function(e) {
-                        // 自动播放被阻止，但视频已加载
-                        console.log('自动播放被阻止，需要用户交互');
-                    });
-                });
-            } else {
-                // 无视频地址参数，显示错误提示
-                errorMessage.style.display = 'flex';
-                video.style.display = 'none';
-            }
-            
-            // 页面可见性变化处理
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
-                    video.pause();
-                } else if (video.paused) {
-                    // 如果页面重新可见且视频被暂停，尝试播放
-                    video.play().catch(function(e) {
-                        // 需要用户交互才能播放
-                    });
-                }
-            });
-            
-            // 防止页面滚动
-            document.body.addEventListener('touchmove', function(e) {
-                e.preventDefault();
-            }, { passive: false });
-        })();
-    </script>
+<video id="video" src controls="controls" autoplay="autoplay" preload="preload" poster="https://picsum.photos/1400/1000" width="100%" height="100%" webkit-playsinline="true" playsinline="true" x5-playsinline="true"></video>
+<script>
+     var url1=window.location.href;
+if(url1.indexOf('?url=')>0) {var url_adress=url1.split('?url=')[1];}else {var url_adress="./wu.html";}
+document.getElementById("video").src =url_adress;
+</script>
 </body>
 </html>
