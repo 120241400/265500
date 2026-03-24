@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <meta name="x5-fullscreen" content="true">
-<meta name="x5-orientation" content="landscape|portrait">
+<meta name="x5-orientation" "landscape|portrait">
 <meta name="x5-page-mode" content="app">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -27,100 +27,85 @@ html,body{width:100%;height:100%;background:#000}
 <script>
 const cdnList = [
   "https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js",
-  "https://jsd.onmicrosoft.cn/npm/hls.js@1.4.12/dist/hls.min.js",
+  "https://lf6-cdn-tos.bytecdntp.com/cdn/expire-10-M/hls.js/1.4.12/hls.min.js",
   "https://unpkg.com/hls.js@1.4.12/dist/hls.min.js"
 ];
 
 function getUrlParam(){
-  let m = new RegExp('[?&]url=([^&#]*)').exec(location.href);
-  return m ? decodeURIComponent(m[1]) : '';
+  let m=new RegExp('[?&]url=([^&#]*)').exec(location.href);
+  return m?decodeURIComponent(m[1]):''
 }
 
-function loadScript(idx, cb){
-  if(idx >= cdnList.length) return;
-  let s = document.createElement('script');
-  s.src = cdnList[idx];
-  s.onload = cb;
-  s.onerror = () => loadScript(idx+1, cb);
-  document.head.appendChild(s);
+function loadScript(idx,cb){
+  if(idx>=cdnList.length)return
+  let s=document.createElement('script')
+  s.src=cdnList[idx]
+  s.onload=cb
+  s.onerror=()=>loadScript(idx+1,cb)
+  document.head.appendChild(s)
 }
 
-const video = document.getElementById('video');
-const m3u8Url = getUrlParam();
-if (!m3u8Url) throw new Error('no url');
+const video=document.getElementById('video')
+const m3u8Url=getUrlParam()
+if(!m3u8Url)throw new Error('no url')
 
-// 长按 2倍速
-let pressTimer = null;
-let isPress = false;
+// 长按2倍速
+let pressTimer=null
+video.addEventListener('touchstart',()=>{
+  pressTimer=setTimeout(()=>video.playbackRate=2,200)
+})
+video.addEventListener('touchend',()=>{
+  clearTimeout(pressTimer)
+  video.playbackRate=1
+})
+video.addEventListener('touchcancel',()=>{
+  clearTimeout(pressTimer)
+  video.playbackRate=1
+})
 
-video.addEventListener('touchstart', () => {
-  isPress = true;
-  pressTimer = setTimeout(() => {
-    if (isPress) video.playbackRate = 2;
-  }, 200);
-});
+let hls=null
 
-video.addEventListener('touchend', () => {
-  isPress = false;
-  clearTimeout(pressTimer);
-  video.playbackRate = 1;
-});
+loadScript(0,()=>{
+  if(Hls.isSupported()){
+    hls=new Hls({
+      maxBufferLength:120,
+      maxMaxBufferLength:300,
+      enableWorker:true,
+      preload:true
+    })
+    hls.loadSource(m3u8Url)
+    hls.attachMedia(video)
 
-video.addEventListener('touchcancel', () => {
-  isPress = false;
-  clearTimeout(pressTimer);
-  video.playbackRate = 1;
-});
+    hls.on(Hls.Events.MANIFEST_PARSED,()=>{
+      video.play().catch(()=>{})
+    })
 
-let hls = null;
-
-loadScript(0, () => {
-  if (Hls.isSupported()) {
-    hls = new Hls({
-      maxBufferLength: 120,
-      maxMaxBufferLength: 300,
-      backBufferLength: 120,
-      maxBufferSize: 256 * 1024 * 1024,
-      enableWorker: true,
-      preload: true
-    });
-
-    hls.loadSource(m3u8Url);
-    hls.attachMedia(video);
-
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      video.play().catch(() => {});
-    });
-
-    // ✅ 内嵌 iframe 核心修复：X5 劫持后强制支持拖动
-    video.addEventListener('seeking', () => {
-      if (!hls) return;
-      try {
-        hls.startLoad(video.currentTime);
-      } catch (e) {}
-    });
-
-    // ✅ 额外修复 X5 进度条不更新
-    setInterval(() => {
-      if (video.readyState > 2 && hls) {
-        video._seeked = true;
+    // ==============================
+    // 内嵌 iframe 终极修复：强制同步拖动
+    // ==============================
+    let lastSeekTime=0
+    setInterval(()=>{
+      if(!hls)return
+      if(Math.abs(video.currentTime-lastSeekTime)>0.5){
+        try{
+          hls.startLoad(video.currentTime)
+        }catch(e){}
+        lastSeekTime=video.currentTime
       }
-    }, 500);
-
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = m3u8Url;
-    video.play().catch(() => {});
+    },100)
+  }else{
+    video.src=m3u8Url
+    video.play().catch(()=>{})
   }
-});
+})
 
-// 微信环境自动激活
-document.addEventListener('WeixinJSBridgeReady', () => {
-  video.play().catch(() => {});
-});
+document.addEventListener('WeixinJSBridgeReady',()=>{
+  video.play().catch(()=>{})
+})
 
-document.body.addEventListener('touchstart', () => {
-  video.play().catch(() => {});
-}, { once: true });
+document.body.addEventListener('touchstart',()=>{
+  video.play().catch(()=>{})
+},{once:true})
 </script>
 </body>
 </html>
