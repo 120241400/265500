@@ -17,84 +17,104 @@
             width: 100vw;
             height: 100vh;
             position: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
-        #videoContainer {
+        .video-wrapper {
             width: 100%;
             height: 100%;
             position: relative;
             overflow: hidden;
         }
         
-        #myVideo {
+        /* 播放器容器 */
+        .video-player {
             width: 100%;
             height: 100%;
-            object-fit: contain;
             background-color: #000;
         }
         
-        /* 隐藏所有播放器控件 */
-        #myVideo::-webkit-media-controls {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-enclosure {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-panel {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-play-button {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-timeline {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-current-time-display {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-time-remaining-display {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-timeline-container {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-volume-slider-container {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-volume-slider {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-mute-button {
-            display: none !important;
-        }
-        
-        #myVideo::-webkit-media-controls-fullscreen-button {
-            display: none !important;
-        }
-        
-        /* 加载提示 */
-        #loading {
+        /* 自定义播放器控制栏 */
+        .custom-controls {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
             color: white;
-            font-size: 16px;
-            z-index: 10;
+            padding: 15px 10px 10px;
+            display: none;
+            z-index: 100;
+        }
+        
+        /* 控制按钮 */
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .progress-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .progress-filled {
+            position: absolute;
+            height: 100%;
+            background: #ff4444;
+            border-radius: 2px;
+            width: 0;
+        }
+        
+        /* 倍速选择 */
+        .speed-selector {
+            position: absolute;
+            bottom: 50px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            border: 1px solid #333;
+            display: none;
+            z-index: 101;
+        }
+        
+        .speed-option {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        
+        .speed-option:hover {
+            background: #333;
+        }
+        
+        /* 音量控制 */
+        .volume-slider {
+            width: 60px;
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            display: none;
         }
         
         /* 错误提示 */
-        #error {
+        .error-message {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -102,22 +122,131 @@
             color: #ff4444;
             font-size: 16px;
             text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 8px;
             display: none;
-            z-index: 10;
+        }
+        
+        /* 微信播放器样式 */
+        .wechat-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
+        
+        /* 微信播放器全屏按钮 */
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 1001;
+        }
+        
+        /* 微信播放器控件容器 */
+        .wechat-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            display: none;
+        }
+        
+        /* 播放/暂停按钮 */
+        .play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 100;
         }
     </style>
 </head>
 <body>
-    <div id="videoContainer">
-        <div id="loading">正在加载视频...</div>
-        <div id="error"></div>
+    <!-- 标准播放器模式 -->
+    <div class="video-wrapper" id="standardMode">
         <video 
-            id="myVideo"
-            playsinline 
+            id="videoPlayer"
+            class="video-player"
+            playsinline
             webkit-playsinline
             preload="auto"
-            muted
         ></video>
+        
+        <button class="play-btn" id="playBtn">▶</button>
+        
+        <!-- 自定义控制栏 -->
+        <div class="custom-controls" id="customControls">
+            <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                <button class="control-btn" id="playPauseBtn">⏸</button>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-filled" id="progressFilled"></div>
+                    </div>
+                </div>
+                <div style="margin-left: 10px;">
+                    <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <button class="control-btn" id="speedBtn">倍速</button>
+                    <button class="control-btn" id="volumeBtn">音量</button>
+                </div>
+                <button class="control-btn" id="fullscreenBtn">⛶</button>
+            </div>
+        </div>
+        
+        <!-- 倍速选择 -->
+        <div class="speed-selector" id="speedSelector">
+            <div class="speed-option" data-speed="0.5">0.5x</div>
+            <div class="speed-option" data-speed="0.75">0.75x</div>
+            <div class="speed-option" data-speed="1">1.0x</div>
+            <div class="speed-option" data-speed="1.25">1.25x</div>
+            <div class="speed-option" data-speed="1.5">1.5x</div>
+            <div class="speed-option" data-speed="2">2.0x</div>
+        </div>
+        
+        <!-- 音量控制 -->
+        <input 
+            type="range" 
+            class="volume-slider" 
+            id="volumeSlider"
+            min="0" 
+            max="1" 
+            step="0.1" 
+            value="1"
+        >
+        
+        <!-- 错误提示 -->
+        <div class="error-message" id="errorMessage"></div>
+    </div>
+    
+    <!-- 微信播放器模式 -->
+    <div class="wechat-mode" id="wechatMode" style="display: none;">
+        <div id="wechatVideoWrapper" style="width: 100%; height: 100%;"></div>
+        <button class="fullscreen-btn" id="wechatFullscreenBtn">全屏</button>
     </div>
 
     <script>
@@ -126,236 +255,329 @@
             return /micromessenger/i.test(navigator.userAgent);
         }
         
-        // 检测iOS系统
-        function isIOS() {
-            return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        }
-        
-        // 检测Android系统
-        function isAndroid() {
-            return /Android/.test(navigator.userAgent);
-        }
-        
         // 获取URL参数
         function getUrlParam(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
         
-        // 初始化播放器
-        function initPlayer() {
+        // 格式化时间
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec.toString().padStart(2, '0')}`;
+        }
+        
+        // 显示错误
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        // 隐藏错误
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        // 初始化标准播放器
+        function initStandardPlayer() {
             const videoUrl = getUrlParam('url');
             if (!videoUrl) {
                 showError('请提供视频URL参数，例如：?url=your_video.m3u8');
                 return;
             }
             
-            const video = document.getElementById('myVideo');
-            const isWechat = isWeChatBrowser();
-            const isIos = isIOS();
-            const isAndroidOS = isAndroid();
+            const video = document.getElementById('videoPlayer');
+            const playBtn = document.getElementById('playBtn');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const speedBtn = document.getElementById('speedBtn');
+            const volumeBtn = document.getElementById('volumeBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const speedSelector = document.getElementById('speedSelector');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const progressBar = document.getElementById('progressBar');
+            const progressFilled = document.getElementById('progressFilled');
+            const currentTimeEl = document.getElementById('currentTime');
+            const durationEl = document.getElementById('duration');
             
             // 设置视频源
             video.src = videoUrl;
             
-            // 微信环境特殊处理
-            if (isWechat) {
-                console.log('检测到微信浏览器，启用微信播放器模式');
-                
-                // 设置微信专用属性
-                video.setAttribute('x5-video-player-type', 'h5');
-                video.setAttribute('x5-video-player-fullscreen', 'true');
-                video.setAttribute('x5-video-orientation', 'portrait');
-                video.setAttribute('x5-playsinline', 'true');
-                
-                // 移除controls属性，让微信播放器接管
-                video.removeAttribute('controls');
-                
-                // 微信自动播放处理
-                setupWechatAutoPlay(video);
-                
-            } else {
-                console.log('非微信浏览器，使用标准播放器');
-                
-                // 非微信环境：添加controls属性
-                video.setAttribute('controls', 'true');
-                
-                // 处理m3u8格式
-                if (videoUrl.includes('.m3u8')) {
-                    setupHlsPlayer(video, videoUrl);
-                } else {
-                    // 其他格式直接播放
-                    setupStandardPlayer(video);
-                }
-            }
+            // 添加controls属性
+            video.setAttribute('controls', 'true');
             
-            // 监听视频加载完成
-            video.addEventListener('loadedmetadata', function() {
-                document.getElementById('loading').style.display = 'none';
-                console.log('视频元数据加载完成');
+            // 播放/暂停控制
+            playBtn.addEventListener('click', () => {
+                video.play();
+                playBtn.style.display = 'none';
             });
             
-            // 监听错误
-            video.addEventListener('error', function(e) {
-                console.error('视频加载错误:', e);
-                showError('视频加载失败，请检查URL是否正确');
+            video.addEventListener('play', () => {
+                playBtn.style.display = 'none';
+                playPauseBtn.textContent = '⏸';
             });
-        }
-        
-        // 微信自动播放设置
-        function setupWechatAutoPlay(video) {
-            // 微信环境使用WeixinJSBridgeReady事件实现自动播放
-            if (typeof WeixinJSBridge !== 'undefined') {
-                WeixinJSBridge.invoke('getNetworkType', {}, function() {
-                    video.play().catch(function(e) {
-                        console.log('微信自动播放失败，需要用户交互:', e);
-                        // 如果自动播放失败，显示点击播放提示
-                        showTapToPlay();
-                    });
-                });
-            } else {
-                document.addEventListener('WeixinJSBridgeReady', function() {
-                    WeixinJSBridge.invoke('getNetworkType', {}, function() {
-                        video.play().catch(function(e) {
-                            console.log('微信自动播放失败，需要用户交互:', e);
-                            showTapToPlay();
-                        });
-                    });
-                }, false);
-                
-                // 如果WeixinJSBridgeReady事件未触发，尝试直接播放
-                setTimeout(function() {
-                    if (video.paused) {
-                        video.play().catch(function(e) {
-                            console.log('备用自动播放失败:', e);
-                            showTapToPlay();
-                        });
-                    }
-                }, 1000);
-            }
             
-            // 添加点击播放支持
-            video.addEventListener('click', function() {
+            video.addEventListener('pause', () => {
+                playPauseBtn.textContent = '▶';
+            });
+            
+            playPauseBtn.addEventListener('click', () => {
                 if (video.paused) {
                     video.play();
                 } else {
                     video.pause();
                 }
             });
-        }
-        
-        // 显示点击播放提示
-        function showTapToPlay() {
-            const errorDiv = document.getElementById('error');
-            errorDiv.innerHTML = '点击屏幕播放视频';
-            errorDiv.style.display = 'block';
-            errorDiv.style.color = '#ffffff';
             
-            // 点击后隐藏提示
-            errorDiv.addEventListener('click', function() {
-                errorDiv.style.display = 'none';
+            // 倍速控制
+            let currentSpeed = 1;
+            speedBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                speedSelector.style.display = speedSelector.style.display === 'block' ? 'none' : 'block';
             });
-        }
-        
-        // 设置HLS播放器（非微信环境）
-        function setupHlsPlayer(video, videoUrl) {
-            // 检查浏览器是否原生支持HLS
-            if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // Safari等原生支持HLS的浏览器
-                video.src = videoUrl;
-                video.play().catch(function(e) {
-                    console.log('HLS自动播放失败:', e);
+            
+            document.querySelectorAll('.speed-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    const speed = parseFloat(e.target.dataset.speed);
+                    video.playbackRate = speed;
+                    currentSpeed = speed;
+                    speedBtn.textContent = `${speed}x`;
+                    speedSelector.style.display = 'none';
                 });
-            } else if (typeof Hls !== 'undefined' && Hls.isSupported()) {
-                // 使用hls.js
-                const hls = new Hls({
-                    enableWorker: true,
-                    lowLatencyMode: true,
-                    backBufferLength: 90
-                });
-                
-                hls.loadSource(videoUrl);
-                hls.attachMedia(video);
-                
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play().catch(function(e) {
-                        console.log('hls.js自动播放失败:', e);
+            });
+            
+            // 音量控制
+            volumeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                volumeSlider.style.display = volumeSlider.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            volumeSlider.addEventListener('input', (e) => {
+                video.volume = e.target.value;
+            });
+            
+            // 全屏控制
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.log(`全屏请求失败: ${err.message}`);
                     });
-                });
-                
-                hls.on(Hls.Events.ERROR, function(event, data) {
-                    console.error('HLS错误:', data);
-                    if (data.fatal) {
-                        switch(data.type) {
-                            case Hls.ErrorTypes.NETWORK_ERROR:
-                                showError('网络错误，请检查网络连接');
-                                break;
-                            case Hls.ErrorTypes.MEDIA_ERROR:
-                                showError('视频格式错误，请检查视频源');
-                                break;
-                            default:
-                                showError('视频播放错误');
-                                break;
-                        }
-                    }
-                });
-            } else {
-                showError('您的浏览器不支持HLS视频播放，请使用Chrome、Firefox或Safari等现代浏览器');
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+            
+            // 进度条控制
+            function updateProgress() {
+                const percent = (video.currentTime / video.duration) * 100;
+                progressFilled.style.width = `${percent}%`;
+                currentTimeEl.textContent = formatTime(video.currentTime);
             }
-        }
-        
-        // 设置标准播放器
-        function setupStandardPlayer(video) {
-            video.play().catch(function(e) {
-                console.log('标准播放器自动播放失败:', e);
+            
+            video.addEventListener('timeupdate', updateProgress);
+            
+            video.addEventListener('loadedmetadata', () => {
+                durationEl.textContent = formatTime(video.duration);
+            });
+            
+            progressBar.addEventListener('click', (e) => {
+                const rect = progressBar.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                video.currentTime = pos * video.duration;
+            });
+            
+            // 显示/隐藏控制栏
+            let controlsTimeout;
+            const customControls = document.getElementById('customControls');
+            
+            function showControls() {
+                customControls.style.display = 'block';
+                clearTimeout(controlsTimeout);
+                controlsTimeout = setTimeout(() => {
+                    if (!video.paused) {
+                        customControls.style.display = 'none';
+                    }
+                }, 3000);
+            }
+            
+            video.addEventListener('click', () => {
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+            });
+            
+            video.addEventListener('mousemove', showControls);
+            video.addEventListener('touchstart', showControls);
+            
+            // 监听播放结束
+            video.addEventListener('ended', () => {
+                playBtn.style.display = 'block';
+                playBtn.textContent = '▶';
+            });
+            
+            // 处理HLS视频
+            if (videoUrl.includes('.m3u8')) {
+                if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Safari等原生支持HLS
+                    video.src = videoUrl;
+                } else if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+                    // 使用hls.js
+                    const hls = new Hls();
+                    hls.loadSource(videoUrl);
+                    hls.attachMedia(video);
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        console.log('HLS视频加载完成');
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, (event, data) => {
+                        if (data.fatal) {
+                            showError('视频加载失败，请检查视频源');
+                        }
+                    });
+                } else {
+                    showError('您的浏览器不支持HLS视频播放');
+                }
+            }
+            
+            // 点击其他地方关闭控制菜单
+            document.addEventListener('click', (e) => {
+                if (!speedSelector.contains(e.target) && e.target !== speedBtn) {
+                    speedSelector.style.display = 'none';
+                }
+                if (!volumeSlider.contains(e.target) && e.target !== volumeBtn) {
+                    volumeSlider.style.display = 'none';
+                }
             });
         }
         
-        // 显示错误信息
-        function showError(message) {
-            document.getElementById('loading').style.display = 'none';
-            const errorDiv = document.getElementById('error');
-            errorDiv.innerHTML = message;
-            errorDiv.style.display = 'block';
+        // 初始化微信播放器模式
+        function initWechatPlayer() {
+            const videoUrl = getUrlParam('url');
+            if (!videoUrl) {
+                showError('请提供视频URL参数，例如：?url=your_video.m3u8');
+                return;
+            }
+            
+            const standardMode = document.getElementById('standardMode');
+            const wechatMode = document.getElementById('wechatMode');
+            const videoWrapper = document.getElementById('wechatVideoWrapper');
+            const fullscreenBtn = document.getElementById('wechatFullscreenBtn');
+            
+            // 切换到微信模式
+            standardMode.style.display = 'none';
+            wechatMode.style.display = 'block';
+            
+            // 创建微信专用video元素
+            const video = document.createElement('video');
+            video.id = 'wechatVideo';
+            video.src = videoUrl;
+            video.style.width = '100%';
+            video.style.height = '100%';
+            video.style.objectFit = 'contain';
+            video.style.backgroundColor = '#000';
+            
+            // 微信专用属性
+            video.setAttribute('playsinline', 'true');
+            video.setAttribute('webkit-playsinline', 'true');
+            video.setAttribute('x5-playsinline', 'true');
+            video.setAttribute('x5-video-player-type', 'h5');
+            video.setAttribute('x5-video-player-fullscreen', 'true');
+            video.setAttribute('controls', 'true');
+            
+            // 添加到页面
+            videoWrapper.innerHTML = '';
+            videoWrapper.appendChild(video);
+            
+            // 全屏按钮
+            fullscreenBtn.addEventListener('click', () => {
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen();
+                } else if (video.mozRequestFullScreen) {
+                    video.mozRequestFullScreen();
+                }
+            });
+            
+            // 自动播放处理
+            video.play().catch(e => {
+                console.log('自动播放失败，用户需点击播放');
+                // 显示播放按钮
+                const playBtn = document.createElement('button');
+                playBtn.textContent = '播放视频';
+                playBtn.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    padding: 15px 30px;
+                    background: #ff4444;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    cursor: pointer;
+                `;
+                playBtn.addEventListener('click', () => {
+                    video.play();
+                    playBtn.remove();
+                });
+                videoWrapper.appendChild(playBtn);
+            });
+            
+            // 监听播放状态
+            video.addEventListener('play', () => {
+                fullscreenBtn.style.display = 'none';
+            });
+            
+            video.addEventListener('pause', () => {
+                fullscreenBtn.style.display = 'block';
+            });
         }
         
         // 页面加载完成
         window.addEventListener('DOMContentLoaded', function() {
-            // 非微信环境动态加载hls.js
-            if (!isWeChatBrowser()) {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
-                script.onload = initPlayer;
-                script.onerror = function() {
-                    console.warn('hls.js加载失败，尝试使用原生播放');
-                    initPlayer();
-                };
-                document.head.appendChild(script);
-            } else {
-                // 微信环境直接初始化
-                initPlayer();
+            const videoUrl = getUrlParam('url');
+            if (!videoUrl) {
+                showError('请提供视频URL参数，例如：?url=your_video.m3u8');
+                return;
             }
+            
+            if (isWeChatBrowser()) {
+                // 微信环境
+                console.log('微信浏览器，启用微信播放器模式');
+                
+                // 创建微信专用video
+                initWechatPlayer();
+                
+            } else {
+                // 非微信环境
+                console.log('非微信浏览器，使用标准播放器');
+                
+                // 加载hls.js库
+                if (videoUrl.includes('.m3u8')) {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+                    script.onload = initStandardPlayer;
+                    script.onerror = function() {
+                        console.warn('hls.js加载失败，尝试使用原生播放');
+                        initStandardPlayer();
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    initStandardPlayer();
+                }
+            }
+            
+            // 防止页面滚动
+            document.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
         });
-        
-        // 防止页面滚动
-        document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
-        
-        // 处理全屏变化
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-        
-        function handleFullscreenChange() {
-            const video = document.getElementById('myVideo');
-            if (document.fullscreenElement || document.webkitFullscreenElement) {
-                // 全屏时
-                video.style.objectFit = 'contain';
-            } else {
-                // 退出全屏
-                video.style.objectFit = 'contain';
-            }
-        }
     </script>
 </body>
 </html>
