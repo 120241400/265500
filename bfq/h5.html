@@ -2,205 +2,64 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <meta name="x5-fullscreen" content="true">
-<meta name="x5-video-player-type" content="h5">
-<title>QQ浏览器播放器</title>
+<meta name="x5-orientation" content="landscape|portrait">
+<meta name="x5-page-mode" content="app">
+<title>X5 Player</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none }
-html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif }
-video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; background: #000; z-index: 1 }
-/* 中央提示层 */
-#tip { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px; border-radius: 8px; z-index: 999; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; backdrop-filter: blur(8px); font-weight: 500 }
-#tip.show { opacity: 1 }
-/* 倍速提示 - 右上角黑色背景 */
-#speedTip { position: fixed; right: 20px; top: 20px; background: rgba(0,0,0,0.85); color: #fff; padding: 8px 16px; border-radius: 20px; z-index: 1000; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 12px rgba(0,0,0,0.5) }
-#speedTip.show { opacity: 1 }
-/* 加载动画 */
-#loader { position: fixed; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 998; display: none; flex-direction: column; align-items: center; gap: 12px }
-#loader.show { display: flex }
-.spinner { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.15); border-top-color: #00BFFF; border-radius: 50%; animation: spin 0.8s linear infinite }
-@keyframes spin { to { transform: rotate(360deg) } }
-/* 中心播放按钮 */
-#centerPlay { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background: rgba(0,0,0,0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 5; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(8px); border: 2px solid rgba(255,255,255,0.2) }
-#centerPlay:hover { transform: translate(-50%, -50%) scale(1.1); background: rgba(0,0,0,0.8) }
-#centerPlay.hide { opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0.8) }
-/* 播放图标 */
-.icon-play { width: 0; height: 0; border-left: 28px solid #fff; border-top: 16px solid transparent; border-bottom: 16px solid transparent; margin-left: 6px }
-.icon-pause { width: 24px; height: 28px; display: flex; gap: 6px }
-.icon-pause::before, .icon-pause::after { content: ''; width: 8px; height: 100%; background: #fff; border-radius: 2px }
-/* 控制栏 */
-.controls { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; gap: 12px; z-index: 10; opacity: 0; transition: opacity 0.3s }
-.controls.show { opacity: 1 }
-/* 播放/暂停按钮 */
-.btn-play { width: 40px; height: 40px; background: rgba(255,255,255,0.15); border: none; color: #fff; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0 }
-.btn-play:hover { background: rgba(255,255,255,0.25); transform: scale(1.1) }
-.btn-play:active { transform: scale(0.95) }
-.btn-play .icon-play { margin-left: 4px; border-left-width: 14px; border-top-width: 8px; border-bottom-width: 8px }
-.btn-play .icon-pause { width: 12px; height: 14px; gap: 3px }
-.btn-play .icon-pause::before, .btn-play .icon-pause::after { width: 4px }
-/* 进度条 */
-.progress { flex: 1; height: 24px; display: flex; align-items: center; cursor: pointer; position: relative }
-.track { width: 100%; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; position: relative; overflow: hidden; transition: height 0.2s }
-.progress:hover .track { height: 8px }
-.buf { position: absolute; left: 0; top: 0; height: 100%; background: rgba(255,255,255,0.3); width: 0; transition: width 0.3s }
-.bar { position: absolute; left: 0; top: 0; height: 100%; background: #00BFFF; width: 0; transition: width 0.1s linear }
-.thumb { position: absolute; right: -8px; top: 50%; transform: translateY(-50%) scale(0); width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.4); border: 2px solid #00BFFF }
-.progress:hover .thumb, .progress:active .thumb { transform: translateY(-50%) scale(1) }
-.time { font-size: 13px; color: #fff; min-width: 110px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.5) }
-.btns { display: flex; gap: 8px; align-items: center }
-.btn-speed { height: 32px; padding: 0 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s; font-weight: 500 }
-.btn-speed:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4) }
-.btn-fullscreen { width: 36px; height: 36px; background: rgba(255,255,255,0.1); border: none; color: #fff; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s }
-.btn-fullscreen:hover { background: rgba(255,255,255,0.2); transform: scale(1.1) }
-.btn-fullscreen svg { width: 18px; height: 18px; fill: currentColor }
-@media (hover: hover) and (pointer: fine) {
-.controls { padding: 20px 24px }
-.progress { height: 28px }
-.track { height: 6px }
-.btn-play { width: 44px; height: 44px }
-.time { font-size: 14px }
-}
-video::-webkit-media-controls { display: none !important }
-video::-webkit-media-controls-enclosure { display: none !important }
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#000;overflow:hidden}
+#video{width:100%;height:100%;object-fit:contain;background:#000}
 </style>
-<base target="_blank">
 </head>
 <body>
-<video id="v" playsinline webkit-playsinline preload="auto" x5-video-player-type="h5" controlslist="nodownload noremoteplayback" crossorigin="anonymous"></video>
-<div id="tip"></div>
-<div id="speedTip">2.0X</div>
-<div id="loader"><div class="spinner"></div></div>
-<div id="centerPlay"><div class="icon-play"></div></div>
-<div class="controls" id="ctrl">
-<button class="btn-play" id="play">
-<div class="icon-play" id="playIcon"></div>
-</button>
-<div class="progress" id="prog">
-<div class="track">
-<div class="buf" id="buf"></div>
-<div class="bar" id="bar"><div class="thumb"></div></div>
-</div>
-</div>
-<div class="time" id="time">00:00 / 00:00</div>
-<div class="btns">
-<button class="btn-speed" id="spd">1.0x</button>
-<button class="btn-fullscreen" id="full" title="全屏">
-<svg viewBox="0 0 24 24" id="fullIcon">
-<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-</svg>
-</button>
-</div>
-</div>
+
+<video id="video" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="landscape|portrait" playsinline webkit-playsinline controls crossorigin="anonymous"></video>
+
 <script>
-const $ = id => document.getElementById(id);
-const v = $('v'), tip = $('tip'), speedTip = $('speedTip'), loader = $('loader'), centerPlay = $('centerPlay');
-const ctrl = $('ctrl'), prog = $('prog'), bar = $('bar'), buf = $('buf'), time = $('time');
-const playBtn = $('play'), playIcon = $('playIcon'), spdBtn = $('spd'), fullBtn = $('full'), fullIcon = $('fullIcon');
+const cdnList = [
+  "https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js",
+  "https://lf6-cdn-tos.bytecdntp.com/cdn/expire-10-M/hls.js/1.4.12/hls.min.js",
+  "https://lf26-cdn-tos.bytecdntp.com/cdn/expire-10-M/hls.js/1.4.12/hls.min.js",
+  "https://unpkg.com/hls.js@1.4.12/dist/hls.min.js"
+];
 
-// 状态管理
-const state = {
-isLongPress: false, isDragging: false, isVertical: false,
-startX: 0, startY: 0, startTime: 0,
-startVolume: 1, startBrightness: 1,
-currentVolume: 1, currentBrightness: 1,
-origRate: 1, pressTimer: null, ctrlTimer: null,
-isFullscreen: false, speedIdx: 0, touchStartTime: 0, isPlaying: false
-};
-const speeds = [1, 1.25, 1.5, 2, 0.5];
-const LONG_PRESS_DELAY = 400;
-const SEEK_SENSITIVITY = 0.15;
-const GESTURE_STEP = 30;
+function getUrlParam(){let m=new RegExp('[?&]url=([^&#]*)').exec(location.href);return m?decodeURIComponent(m[1]):''}
+function loadScript(idx, cb){if(idx>=cdnList.length)return;let s=document.createElement('script');s.src=cdnList[idx];s.onload=cb;s.onerror=()=>loadScript(idx+1,cb);document.head.appendChild(s)}
 
-// 工具函数
-const fmt = t => {
-if(!t||isNaN(t)) return '00:00';
-const m=Math.floor(t/60), s=Math.floor(t%60);
-return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-};
-const showTip = (t, d=1500) => {
-tip.textContent=t;
-tip.classList.add('show');
-clearTimeout(window.tipTimer);
-window.tipTimer=setTimeout(()=>tip.classList.remove('show'), d);
-};
-const showSpeedTip = () => {
-speedTip.classList.add('show');
-};
-const hideSpeedTip = () => {
-speedTip.classList.remove('show');
-};
-const showLoader = () => loader.classList.add('show');
-const hideLoader = () => loader.classList.remove('show');
-const showCtrl = () => {
-ctrl.classList.add('show');
-clearTimeout(state.ctrlTimer);
-state.ctrlTimer=setTimeout(()=>v.paused||ctrl.classList.remove('show'), 3000);
-};
+const video=document.getElementById('video');
+const m3u8Url=getUrlParam();
+if(!m3u8Url)throw new Error('no url');
 
-// 更新播放按钮图标
-const updatePlayIcon = (playing) => {
-playIcon.className = playing ? 'icon-pause' : 'icon-play';
-centerPlay.innerHTML = playing ? '' : '<div class="icon-play"></div>';
-if(!playing) centerPlay.classList.remove('hide');
-else centerPlay.classList.add('hide');
-state.isPlaying = playing;
-};
+loadScript(0,()=>{
+  if(Hls.isSupported()){
+    const hls=new Hls({
+      maxBufferLength:60,
+      maxMaxBufferLength:180,
+      backBufferLength:90,
+      maxBufferSize:200*1000*1000,
+      maxLoadingDelay:3,
+      minAutoBitrate:0,
+      enableWorker:!0,
+      lowLatencyMode:!1,
+      preload:!0
+    })
+    hls.loadSource(m3u8Url)
+    hls.attachMedia(video)
+    hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play().catch(()=>{}))
+  }else if(video.canPlayType('application/vnd.apple.mpegurl')){
+    video.src=m3u8Url
+    video.play().catch(()=>{})
+  }
+})
 
-// 更新全屏按钮图标
-const updateFullIcon = (fullscreen) => {
-fullIcon.innerHTML = fullscreen ?
-'<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>' :
-'<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>';
-};
-
-// 更新时长显示
-const updateTimeDisplay = () => {
-if(v.duration && !isNaN(v.duration)) {
-const current = fmt(v.currentTime);
-const total = fmt(v.duration);
-time.textContent = `${current} / ${total}`;
-return true;
-}
-return false;
-};
-
-// 视频加载 - 优化版本
-const loadVideo = () => {
-const url = new URLSearchParams(location.search).get('url');
-if (url) {
-const decodedUrl = decodeURIComponent(url);
-showLoader();
-    
-// 创建临时视频元素预加载元数据
-const tempVideo = document.createElement('video');
-tempVideo.preload = 'metadata';
-tempVideo.src = decodedUrl;
-tempVideo.crossOrigin = 'anonymous';
-tempVideo.style.display = 'none';
-document.body.appendChild(tempVideo);
-    
-tempVideo.onloadedmetadata = () => {
-// 立即显示总时长
-if (tempVideo.duration && !isNaN(tempVideo.duration)) {
-const total = fmt(tempVideo.duration);
-time.textContent = `00:00 / ${total}`;
-}
-hideLoader();
-      
-// 主视频设置
-v.src = decodedUrl;
-v.load();
-      
-// 尝试自动播放
-v.play().then(() => {
-console.log('自动播放成功');
-}).catch(() => {
-console.log('自动播放被阻止，等待用户交互');
-updatePlayIcon(false);
-showCtrl();
-});
-      
+document.addEventListener('WeixinJSBridgeReady',()=>{video.play().catch(()=>{})})
+document.body.addEventListener('touchstart',()=>{video.play().catch(()=>{})},{once:!0})
+</script>
+</body>
+</html>
+  
 // 清理临时视频
 setTimeout(() => {
 document.body.removeChild(tempVideo);
