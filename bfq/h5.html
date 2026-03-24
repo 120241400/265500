@@ -1,22 +1,69 @@
+
+
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<title>NO解析</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body {margin:0; background:#000; height:100vh;}
-iframe {width:100%; height:100%; border:none;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Video Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+        
+        #player-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
 </head>
 <body>
-<iframe id="player" allowfullscreen></iframe>
-<script>
-var url = new URLSearchParams(window.location.search).get('url');
-if(url) {
-var player = document.getElementById('player');
-player.src = url.includes('share') ? url : 'https://nojx.cc/bfq/muiplayer?url=' + url;
-}
-</script>
+    <div id="player-container">
+        <iframe id="video-frame" allowfullscreen allow="fullscreen; autoplay; encrypted-media"></iframe>
+    </div>
+
+    <script>
+        // 获取URL参数
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+        
+        // 设置iframe的src
+        function loadVideo() {
+            const videoUrl = getQueryParam('url');
+            const iframe = document.getElementById('video-frame');
+            
+            if (videoUrl) {
+                // 解码URL参数并构建播放器URL
+                const decodedUrl = decodeURIComponent(videoUrl);
+                iframe.src = `https://nojx.cc/bfq/muiplayer?url=${encodeURIComponent(decodedUrl)}`;
+            } else {
+                // 如果没有提供url参数，显示提示
+                iframe.src = 'about:blank';
+                iframe.contentDocument.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#fff;font-family:Arial;">请通过 ?url= 参数提供视频地址</div>';
+            }
+        }
+        
+        // 页面加载完成后执行
+        window.addEventListener('DOMContentLoaded', loadVideo);
+    </script>
 </body>
 </html>
