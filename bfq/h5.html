@@ -1,25 +1,99 @@
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
-<title>HTML5</title>
-<style type="text/css">
-       body,html{width:100%;height:100%;background:#000;padding:0;margin:0;overflow-x:hidden;overflow-y:hidden}
-	   #player{position:inherit}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频播放器</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #000;
+        }
+        #videoContainer {
+            width: 100%;
+            max-width: 100%;
+        }
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
     </style>
-<link rel="stylesheet" href="https://cdn.staticfile.org/video.js/7.18.1/alt/video-js-cdn.min.css">
-<script type="text/javascript" charset="utf-8" src="https://cdn.staticfile.org/video.js/7.18.1/video.min.js"></script>
-<script type="text/javascript" charset="utf-8" src="https://cdn.staticfile.org/video.js/7.18.1/lang/zh-CN.js"></script>
-<style type="text/css">
-body{margin:0;padding:0px;}
-</style>
 </head>
 <body>
-<script type="text/javascript">
-var lurl=window.location.href;
-if(lurl.indexOf('?url=')>0) lurl=lurl.split('?url=')[1];
-document.write('<video style="height:100%;width:100%;" poster="" id="player" class="video-js vjs-16-9 vjs-big-play-centered my-3" controls preload="auto" poster1="" data-setup="{}" autoplay="autoplay" fluid="true"><source src="'+lurl+'" type="application/x-mpegURL"></video>');
-</script>
+    <div id="videoContainer">
+        <video id="myVideo" playsinline webkit-playsinline></video>
+    </div>
+
+    <script>
+        // 检测微信浏览器
+        function isWeChat() {
+            return /micromessenger/i.test(navigator.userAgent);
+        }
+
+        // 获取URL参数
+        function getVideoUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('url');
+        }
+
+        // 初始化播放器
+        function initPlayer() {
+            const videoUrl = getVideoUrl();
+            if (!videoUrl) {
+                document.body.innerHTML = '<p style="color:white;">请提供视频URL，例如：?url=your_video.m3u8</p>';
+                return;
+            }
+
+            const video = document.getElementById('myVideo');
+            const isWechat = isWeChat();
+
+            if (isWechat) {
+                // 微信环境：启用微信播放器接管
+                video.setAttribute('x5-video-player-type', 'h5');
+                video.setAttribute('x5-video-player-fullscreen', 'true');
+                video.removeAttribute('controls');
+                video.src = videoUrl;
+                // 自动播放（微信可能限制，但点击后可全屏播放）
+                video.play().catch(e => console.log('自动播放被阻止，用户需点击'));
+            } else {
+                // 非微信环境：使用标准播放器，支持HLS
+                video.setAttribute('controls', 'true');
+                if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // 原生支持HLS（如Safari）
+                    video.src = videoUrl;
+                } else if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+                    // 使用hls.js
+                    const hls = new Hls();
+                    hls.loadSource(videoUrl);
+                    hls.attachMedia(video);
+                } else {
+                    video.innerHTML = '<p style="color:white;">浏览器不支持HLS视频播放，请使用现代浏览器。</p>';
+                }
+            }
+        }
+
+        // 页面加载
+        window.addEventListener('load', function() {
+            if (!isWeChat()) {
+                // 非微信时动态加载hls.js
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdmirror.cn/npm/hls.js@latest';
+                script.onload = initPlayer;
+                script.onerror = function() {
+                    initPlayer();
+                };
+                document.head.appendChild(script);
+            } else {
+                initPlayer();
+            }
+        });
+    </script>
 </body>
 </html>
