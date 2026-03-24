@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自识别播放器</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft YaHei", sans-serif;
+}
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #121212;
+}
+.nav-box {
+    width: 100%;
+    background: linear-gradient(to bottom, #1e1e1e, #000000);
+    padding: 4px 6px;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+}
+.footer-box {
+    width: 100%;
+    height: 26px;
+    background: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.nav-scroll {
+    width: 100%;
+    max-width: 1200px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.nav-scroll::-webkit-scrollbar {
+    display: none;
+}
+.nav-list {
+    display: flex;
+    gap: 9px;
+    width: max-content;
+    margin: 0 auto;
+}
+.nav-btn {
+    padding: 4px 10px;
+    background: linear-gradient(to top, #3a3a3a, #4a4a4a);
+    border: 1px solid #555555;
+    border-radius: 2px;
+    font-size: 11px;
+    color: #e0e0e0;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+}
+.nav-btn:hover {
+    background: linear-gradient(to top, #4a4a4a, #5a5a5a);
+}
+.nav-btn.active {
+    background: linear-gradient(to top, #3a3a3a, #4a4a4a);
+    color: #e0e0e0;
+    font-weight: normal;
+    box-shadow: none;
+    border-color: #555555;
+}
+.search-container {
+    width: 100%;
+    height: calc(100vh - 26px - 26px);
+    background: #ffffff;
+    position: relative;
+}
+#search-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+@media (max-width: 768px) {
+    .nav-box { padding: 3px 4px; }
+    .footer-box { height: 20px; }
+    .nav-btn { padding: 3px 8px; font-size: 11px; }
+    .search-container { height: calc(100vh - 20px - 20px); background: #ffffff; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav-box">
+    <div class="nav-scroll">
+        <div class="nav-list">
+            <button class="nav-btn" data-prefix="./ffplayer.html?url=">主播放器</button>
+            <button class="nav-btn" data-prefix="./h5.html?url=">备播放器</button>
+            <button class="nav-btn" data-url="./lingquan.html">淘宝领券</button>
+            <button class="nav-btn" data-url="">勿信广告</button>
+        </div>
+    </div>
+</div>
+
+<div class="search-container" id="playerContainer">
+    <iframe id="search-iframe"
+            src="about:blank"
+            allowfullscreen="true"
+            webkitallowfullscreen="true"
+            mozallowfullscreen="true"
+            allow="fullscreen; autoplay; encrypted-media; picture-in-picture; web-share"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-presentation">
+    </iframe>
+</div>
+
+<div class="footer-box"></div>
+
+<script>
+function getUrlKeyword() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('url') || '';
+}
+function cleanUrl(rawUrl) {
+    if (!rawUrl) return null;
+    const httpsStartIndex = rawUrl.indexOf('https');
+    if (httpsStartIndex !== -1) {
+        return rawUrl.substring(httpsStartIndex);
+    }
+    const httpStartIndex = rawUrl.indexOf('http');
+    if (httpStartIndex !== -1) {
+        return rawUrl.substring(httpStartIndex);
+    }
+    return rawUrl;
+}
+function parseM3u8Url(cleanedUrl) {
+    if (!cleanedUrl) return null;
+    if ((cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) && cleanedUrl.includes('.m3u8')) {
+        const m3u8EndIndex = cleanedUrl.indexOf('.m3u8');
+        if (m3u8EndIndex !== -1) {
+            return cleanedUrl.substring(0, m3u8EndIndex + 5);
+        }
+    }
+    return null;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const iframe = document.getElementById('search-iframe');
+    const btns = document.querySelectorAll('.nav-btn');
+    const playerBtn = btns[0];
+    const rawKeyword = getUrlKeyword();
+    const cleanedUrl = cleanUrl(rawKeyword);
+
+    if (cleanedUrl) {
+        const m3u8Url = parseM3u8Url(cleanedUrl);
+        if (m3u8Url) {
+            iframe.src = `./ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
+        } else {
+            if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
+                iframe.src = cleanedUrl;
+            } else {
+                const defaultPrefix = playerBtn.getAttribute('data-prefix');
+                iframe.src = defaultPrefix + encodeURIComponent(cleanedUrl);
+            }
+        }
+    } else {
+        iframe.src = 'about:blank';
+    }
+
+    btns.forEach((btn) => {
+        btn.addEventListener('click', function () {
+            const kw = getUrlKeyword();
+            const cleanedUrl = cleanUrl(kw);
+            const prefix = this.getAttribute('data-prefix');
+            const targetUrl = this.getAttribute('data-url');
+
+            if (prefix) {
+                if (!kw || !cleanedUrl) return;
+                const m3u8Url = parseM3u8Url(cleanedUrl);
+                if (m3u8Url) {
+                    if (prefix === './ffplayer.html?url=') {
+                        iframe.src = `./ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
+                    } else {
+                        iframe.src = `./h5.html?url=${encodeURIComponent(m3u8Url)}`;
+                    }
+                } else {
+                    if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
+                        iframe.src = cleanedUrl;
+                    } else {
+                        iframe.src = prefix + encodeURIComponent(cleanedUrl);
+                    }
+                }
+            } else if (targetUrl) {
+                window.open(targetUrl, '_blank');
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>
