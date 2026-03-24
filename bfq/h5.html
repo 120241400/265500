@@ -1,40 +1,25 @@
 
-<!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>直连播放器</title>
-<meta charset="UTF-8">
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta http-equiv="Content-language" content="zh-CN">
-<meta http-equiv="pragma" content="no-cache">
-<meta http-equiv="expires" content="0">
-<meta name="msapplication-tap-highlight" content="no">
-<meta name="HandheldFriendly" content="true"><!--<meta name="x5-page-mode" content="app"/>-->
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">	
-<meta name="referrer" content="no-referrer">
-<meta http-equiv="Access-Control-Allow-Origin" content="*" />
-<meta http-equiv="Access-Control-Allow-Credentials" content="*" />
-<style>
-    body,html {
-    	font: 24px 'Microsoft YaHei', Arial, Lucida Grande, Tahoma, sans-serif;
-    	width: 100%;
-    	height: 100%;
-    	padding: 0;
-    	margin: 0;
-    	overflow-x: hidden;
-    	overflow-y: hidden;
-    	background-color: black;
-    }
-   
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+<title>HTML5</title>
+<style type="text/css">
+       body,html{width:100%;height:100%;background:#000;padding:0;margin:0;overflow-x:hidden;overflow-y:hidden}
+	   #player{position:inherit}
     </style>
+<link rel="stylesheet" href="https://cdn.staticfile.org/video.js/7.18.1/alt/video-js-cdn.min.css">
+<script type="text/javascript" charset="utf-8" src="https://cdn.staticfile.org/video.js/7.18.1/video.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="https://cdn.staticfile.org/video.js/7.18.1/lang/zh-CN.js"></script>
+<style type="text/css">
+body{margin:0;padding:0px;}
+</style>
 </head>
 <body>
-<video id="video" src controls="controls" autoplay="autoplay" preload="preload" poster="https://picsum.photos/1400/1000" width="100%" height="100%" webkit-playsinline="true" playsinline="true" x5-playsinline="true"></video>
-<script>
-     var url1=window.location.href;
-if(url1.indexOf('?url=')>0) {var url_adress=url1.split('?url=')[1];}else {var url_adress="./wu.html";}
-document.getElementById("video").src =url_adress;
+<script type="text/javascript">
+var lurl=window.location.href;
+if(lurl.indexOf('?url=')>0) lurl=lurl.split('?url=')[1];
+document.write('<video style="height:100%;width:100%;" poster="" id="player" class="video-js vjs-16-9 vjs-big-play-centered my-3" controls preload="auto" poster1="" data-setup="{}" autoplay="autoplay" fluid="true"><source src="'+lurl+'" type="application/x-mpegURL"></video>');
 </script>
 </body>
 </html>
