@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -180,24 +181,30 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', function () {
             const kw = getUrlKeyword();
             const cleanedUrl = cleanUrl(kw);
-            if (this === playerBtn) {
+            const prefix = this.getAttribute('data-prefix');
+            const targetUrl = this.getAttribute('data-url');
+            
+            // 如果有 data-prefix 属性，说明是播放器按钮
+            if (prefix) {
                 if (!kw || !cleanedUrl) return;
                 const m3u8Url = parseM3u8Url(cleanedUrl);
                 if (m3u8Url) {
-                    iframe.src = `./ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
+                    if (prefix === './ffplayer.html?url=') {
+                        iframe.src = `./ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
+                    } else {
+                        iframe.src = `./h5.html?url=${encodeURIComponent(m3u8Url)}`;
+                    }
                 } else {
                     if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
                         iframe.src = cleanedUrl;
                     } else {
-                        const prefix = this.getAttribute('data-prefix');
                         iframe.src = prefix + encodeURIComponent(cleanedUrl);
                     }
                 }
-            } else {
-                const targetUrl = this.getAttribute('data-url');
-                if (targetUrl) {
-                    window.open(targetUrl, '_blank');
-                }
+            } 
+            // 如果有 data-url 属性，说明是链接按钮
+            else if (targetUrl) {
+                window.open(targetUrl, '_blank');
             }
         });
     });
