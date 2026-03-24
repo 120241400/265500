@@ -6,7 +6,6 @@
 <meta name="x5-fullscreen" content="true">
 <meta name="x5-orientation" content="landscape|portrait">
 <meta name="x5-page-mode" content="app">
-<title>X5 Player</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;background:#000;overflow:hidden}
@@ -20,324 +19,70 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden}
 <script>
 const cdnList = [
   "https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js",
-  "https://gcore.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js",
   "https://jsd.onmicrosoft.cn/npm/hls.js@1.4.12/dist/hls.min.js",
+  "https://gcore.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js",
   "https://unpkg.com/hls.js@1.4.12/dist/hls.min.js"
 ];
 
 function getUrlParam(){let m=new RegExp('[?&]url=([^&#]*)').exec(location.href);return m?decodeURIComponent(m[1]):''}
 function loadScript(idx, cb){if(idx>=cdnList.length)return;let s=document.createElement('script');s.src=cdnList[idx];s.onload=cb;s.onerror=()=>loadScript(idx+1,cb);document.head.appendChild(s)}
 
-const video=document.getElementById('video');
-const m3u8Url=getUrlParam();
-if(!m3u8Url)throw new Error('no url');
+const video = document.getElementById('video');
+const m3u8Url = getUrlParam();
+if (!m3u8Url) throw new Error('no url');
 
-loadScript(0,()=>{
-  if(Hls.isSupported()){
-    const hls=new Hls({
-      maxBufferLength:60,
-      maxMaxBufferLength:180,
-      backBufferLength:90,
-      maxBufferSize:200*1000*1000,
-      maxLoadingDelay:3,
-      minAutoBitrate:0,
-      enableWorker:!0,
-      lowLatencyMode:!1,
-      preload:!0
-    })
-    hls.loadSource(m3u8Url)
-    hls.attachMedia(video)
-    hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play().catch(()=>{}))
-  }else if(video.canPlayType('application/vnd.apple.mpegurl')){
-    video.src=m3u8Url
-    video.play().catch(()=>{})
+// 长按倍速
+let longPressTimer = null;
+let isPress = false;
+
+video.addEventListener('touchstart', () => {
+  isPress = true;
+  longPressTimer = setTimeout(() => {
+    if (isPress) video.playbackRate = 2;
+  }, 200);
+});
+
+video.addEventListener('touchend', () => {
+  isPress = false;
+  clearTimeout(longPressTimer);
+  video.playbackRate = 1;
+});
+
+video.addEventListener('touchcancel', () => {
+  isPress = false;
+  clearTimeout(longPressTimer);
+  video.playbackRate = 1;
+});
+
+loadScript(0, () => {
+  if (Hls.isSupported()) {
+    const hls = new Hls({
+      maxBufferLength: 120,
+      maxMaxBufferLength: 300,
+      backBufferLength: 120,
+      maxBufferSize: 256 * 1024 * 1024,
+      enableWorker: true,
+      preload: true
+    });
+    hls.loadSource(m3u8Url);
+    hls.attachMedia(video);
+
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play().catch(() => {});
+    });
+
+    // 拖动快进修复
+    video.onseeking = () => {
+      if (hls) hls.startLoad(video.currentTime);
+    };
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = m3u8Url;
+    video.play().catch(() => {});
   }
-})
+});
 
-document.addEventListener('WeixinJSBridgeReady',()=>{video.play().catch(()=>{})})
-document.body.addEventListener('touchstart',()=>{video.play().catch(()=>{})},{once:!0})
+document.addEventListener('WeixinJSBridgeReady', () => video.play().catch(() => {}));
+document.body.addEventListener('touchstart', () => video.play().catch(() => {}), { once: true });
 </script>
 </body>
 </html>
-  
-// 清理临时视频
-setTimeout(() => {
-document.body.removeChild(tempVideo);
-}, 100);
-};
-    
-tempVideo.onerror = () => {
-console.log('元数据加载失败，回退到主视频');
-hideLoader();
-v.src = decodedUrl;
-v.load();
-document.body.removeChild(tempVideo);
-};
-    
-tempVideo.load();
-}
-};
-
-// 视频事件绑定
-const bindVideoEvents = () => {
-v.addEventListener('loadedmetadata', () => {
-console.log('视频元数据加载完成，时长:', fmt(v.duration));
-if (v.duration && !isNaN(v.duration)) {
-const current = fmt(v.currentTime || 0);
-const total = fmt(v.duration);
-time.textContent = `${current} / ${total}`;
-}
-hideLoader();
-});
-  
-v.addEventListener('durationchange', () => {
-if (v.duration && !isNaN(v.duration)) {
-const current = fmt(v.currentTime || 0);
-const total = fmt(v.duration);
-time.textContent = `${current} / ${total}`;
-}
-});
-  
-v.addEventListener('loadeddata', () => {
-updateTimeDisplay();
-});
-  
-v.onplay = () => {
-updatePlayIcon(true);
-showCtrl();
-};
-  
-v.onpause = () => {
-updatePlayIcon(false);
-showCtrl();
-};
-  
-v.onwaiting = showLoader;
-v.onplaying = hideLoader;
-v.onended = () => {
-updatePlayIcon(false);
-showTip('播放结束');
-};
-  
-v.ontimeupdate = () => {
-if(!v.duration) return;
-const pct = (v.currentTime/v.duration)*100;
-bar.style.width=pct+'%';
-updateTimeDisplay();
-};
-  
-v.onprogress = () => {
-if(!v.duration) return;
-let max=0;
-for(let i=0;i<v.buffered.length;i++)max=Math.max(max,v.buffered.end(i));
-buf.style.width=(max/v.duration*100)+'%';
-};
-  
-v.onerror = () => {
-showTip('视频加载失败，请检查链接');
-showLoader();
-};
-  
-v.onstalled = () => showLoader();
-};
-
-// 播放控制
-const togglePlay = () => {
-if(v.paused) {
-v.play().catch(() => showTip('点击播放'));
-} else {
-v.pause();
-}
-};
-
-// 倍速切换
-const toggleSpeed = () => {
-state.speedIdx=(state.speedIdx+1)%speeds.length;
-const s=speeds[state.speedIdx];
-v.playbackRate=s;
-spdBtn.textContent=s.toFixed(1)+'x';
-showTip(s.toFixed(1)+'倍速');
-};
-
-// 全屏切换
-const toggleFullscreen = async () => {
-try {
-if(!document.fullscreenElement) {
-await document.documentElement.requestFullscreen();
-state.isFullscreen = true;
-} else {
-await document.exitFullscreen();
-state.isFullscreen = false;
-}
-updateFullIcon(state.isFullscreen);
-} catch(err) {
-showTip('全屏失败');
-}
-};
-
-// 进度条控制
-const bindProgressControl = () => {
-const seek = (e) => {
-if(!v.duration) return;
-const r=prog.getBoundingClientRect();
-const x = e.clientX || (e.touches && e.touches[0].clientX);
-const pct = Math.max(0, Math.min(1, (x-r.left)/r.width));
-v.currentTime = pct * v.duration;
-bar.style.width = (pct*100)+'%';
-updateTimeDisplay();
-};
-prog.onclick = seek;
-prog.ontouchstart = (e) => {
-state.isDragging = true;
-seek(e);
-};
-prog.ontouchmove = (e) => {
-if(state.isDragging) {
-e.preventDefault();
-seek(e);
-}
-};
-prog.ontouchend = () => {
-state.isDragging = false;
-};
-prog.onmousedown = (e) => {
-state.isDragging = true;
-seek(e);
-};
-document.onmousemove = (e) => {
-if(state.isDragging) seek(e);
-};
-document.onmouseup = () => {
-state.isDragging = false;
-};
-};
-
-// 触摸手势
-const bindTouchGestures = () => {
-v.ontouchstart = e => {
-state.touchStartTime = Date.now();
-state.startX = e.touches[0].clientX;
-state.startY = e.touches[0].clientY;
-state.startTime = v.currentTime;
-state.isVertical = false;
-state.isLongPress = false;
-state.startVolume = state.currentVolume;
-state.startBrightness = state.currentBrightness;
-state.pressTimer = setTimeout(() => {
-state.isLongPress = true;
-state.origRate = v.playbackRate;
-v.playbackRate = 2;
-speedTip.textContent = '2.0X';
-showSpeedTip();
-}, LONG_PRESS_DELAY);
-};
-v.ontouchmove = e => {
-if(state.isLongPress) {
-e.preventDefault();
-return;
-}
-const dx = e.touches[0].clientX - state.startX;
-const dy = state.startY - e.touches[0].clientY;
-if(!state.isVertical && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
-if(Math.abs(dx) > Math.abs(dy)) {
-clearTimeout(state.pressTimer);
-state.isVertical = false;
-} else {
-state.isVertical = true;
-clearTimeout(state.pressTimer);
-}
-}
-if(state.isVertical) {
-e.preventDefault();
-const steps = dy / GESTURE_STEP;
-if(state.startX < innerWidth/2) {
-let newBright = state.startBrightness + (steps * 0.1);
-newBright = Math.max(0.1, Math.min(1.0, newBright));
-state.currentBrightness = newBright;
-document.body.style.filter = `brightness(${newBright})`;
-showTip(`亮度 ${Math.round(newBright*100)}%`, 800);
-} else {
-let newVol = state.startVolume + (steps * 0.1);
-newVol = Math.max(0, Math.min(1, newVol));
-state.currentVolume = newVol;
-v.volume = newVol;
-showTip(`音量 ${Math.round(newVol*100)}%`, 800);
-}
-} else if(Math.abs(dx) > 10 && !state.isLongPress) {
-e.preventDefault();
-const dur = v.duration || 0;
-const t = Math.max(0, Math.min(dur, state.startTime + dx * SEEK_SENSITIVITY));
-v.currentTime = t;
-bar.style.width = (t/dur*100)+'%';
-updateTimeDisplay();
-showTip(fmt(t), 800);
-}
-};
-v.ontouchend = e => {
-clearTimeout(state.pressTimer);
-if(state.isLongPress) {
-v.playbackRate = state.origRate;
-hideSpeedTip();
-} else {
-const touchDuration = Date.now() - state.touchStartTime;
-const moveDistance = Math.sqrt(
-Math.pow(e.changedTouches[0].clientX - state.startX, 2) +
-Math.pow(e.changedTouches[0].clientY - state.startY, 2)
-);
-if(touchDuration < 300 && moveDistance < 10) {
-togglePlay();
-}
-}
-setTimeout(()=>tip.classList.remove('show'), 200);
-};
-};
-
-// 键盘快捷键
-const bindKeyboardShortcuts = () => {
-document.onkeydown = (e) => {
-switch(e.code) {
-case 'Space':
-e.preventDefault();
-togglePlay();
-break;
-case 'ArrowLeft':
-v.currentTime = Math.max(0, v.currentTime - 5);
-showTip('快退 5s');
-updateTimeDisplay();
-break;
-case 'ArrowRight':
-v.currentTime = Math.min(v.duration || 0, v.currentTime + 5);
-showTip('快进 5s');
-updateTimeDisplay();
-break;
-case 'KeyF':
-toggleFullscreen();
-break;
-}
-};
-};
-
-// 初始化
-const init = () => {
-state.currentVolume = v.volume || 1;
-playBtn.onclick = togglePlay;
-centerPlay.onclick = togglePlay;
-spdBtn.onclick = toggleSpeed;
-fullBtn.onclick = toggleFullscreen;
-bindVideoEvents();
-bindProgressControl();
-bindTouchGestures();
-bindKeyboardShortcuts();
-loadVideo();
-document.onclick = e => {
-if(!e.target.closest('.controls') && !e.target.closest('#centerPlay')) {
-showCtrl();
-}
-};
-document.ontouchmove = e => e.preventDefault();
-setTimeout(showCtrl, 100);
-};
-init();
-</script>
-</body>
-  </html>
