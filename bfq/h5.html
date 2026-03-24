@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scalecale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <meta name="x5-fullscreen" content="true">
 <meta name="x5-orientation" content="landscape|portrait">
 <meta name="x5-page-mode" content="app">
@@ -31,6 +31,29 @@ const video = document.getElementById('video');
 const m3u8Url = getUrlParam();
 if (!m3u8Url) throw new Error('no url');
 
+// 长按倍速
+let longPressTimer = null;
+let isPress = false;
+
+video.addEventListener('touchstart', () => {
+  isPress = true;
+  longPressTimer = setTimeout(() => {
+    if (isPress) video.playbackRate = 2;
+  }, 200);
+});
+
+video.addEventListener('touchend', () => {
+  isPress = false;
+  clearTimeout(longPressTimer);
+  video.playbackRate = 1;
+});
+
+video.addEventListener('touchcancel', () => {
+  isPress = false;
+  clearTimeout(longPressTimer);
+  video.playbackRate = 1;
+});
+
 loadScript(0, () => {
   if (Hls.isSupported()) {
     const hls = new Hls({
@@ -41,28 +64,25 @@ loadScript(0, () => {
       enableWorker: true,
       preload: true
     });
-
     hls.loadSource(m3u8Url);
     hls.attachMedia(video);
 
-    // 关键修复：允许拖动快进
     hls.on(Hls.Events.MANIFEST_PARSED, () => {
       video.play().catch(() => {});
     });
 
-    video.ontimeupdate = function(){};
-    video.onseeking = function(){
+    // 拖动快进修复
+    video.onseeking = () => {
       if (hls) hls.startLoad(video.currentTime);
     };
-  }
-  else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = m3u8Url;
     video.play().catch(() => {});
   }
 });
 
-document.addEventListener('WeixinJSBridgeReady', () => { video.play().catch(() => {}); });
-document.body.addEventListener('touchstart', () => { video.play().catch(() => {}); }, { once: true });
+document.addEventListener('WeixinJSBridgeReady', () => video.play().catch(() => {}));
+document.body.addEventListener('touchstart', () => video.play().catch(() => {}), { once: true });
 </script>
 </body>
 </html>
