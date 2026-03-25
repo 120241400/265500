@@ -1,111 +1,40 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<meta name="x5-fullscreen" content="true">
-<meta name="x5-orientation" "landscape|portrait">
-<meta name="x5-page-mode" content="app">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>播放器</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;background:#000}
-#video{width:100%;height:100%;object-fit:contain;background:#000}
+html,body{width:100%;height:100%;background:#000;overflow:hidden}
+video{
+  position:fixed;top:0;left:0;
+  width:100vw;height:100vh;
+  object-fit:contain;
+  background:#000;
+}
 </style>
 </head>
 <body>
+<video id="video" controls autoplay playsinline></video>
 
-<video id="video"
-  x5-video-player-type="h5"
-  x5-video-player-fullscreen="true"
-  x5-video-orientation="landscape|portrait"
-  playsinline
-  webkit-playsinline
-  controls
-  crossorigin="anonymous"
-></video>
-
+<script src="https://cdn.staticfile.org/hls.js/1.4.14/hls.min.js"></script>
 <script>
-const cdnList = [
-  "https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js",
-  "https://lf6-cdn-tos.bytecdntp.com/cdn/expire-10-M/hls.js/1.4.12/hls.min.js",
-  "https://unpkg.com/hls.js@1.4.12/dist/hls.min.js"
-];
+const v = document.getElementById('video');
+const url = new URLSearchParams(location.search).get('url');
 
-function getUrlParam(){
-  let m=new RegExp('[?&]url=([^&#]*)').exec(location.href);
-  return m?decodeURIComponent(m[1]):''
-}
-
-function loadScript(idx,cb){
-  if(idx>=cdnList.length)return
-  let s=document.createElement('script')
-  s.src=cdnList[idx]
-  s.onload=cb
-  s.onerror=()=>loadScript(idx+1,cb)
-  document.head.appendChild(s)
-}
-
-const video=document.getElementById('video')
-const m3u8Url=getUrlParam()
-if(!m3u8Url)throw new Error('no url')
-
-// 长按2倍速
-let pressTimer=null
-video.addEventListener('touchstart',()=>{
-  pressTimer=setTimeout(()=>video.playbackRate=2,200)
-})
-video.addEventListener('touchend',()=>{
-  clearTimeout(pressTimer)
-  video.playbackRate=1
-})
-video.addEventListener('touchcancel',()=>{
-  clearTimeout(pressTimer)
-  video.playbackRate=1
-})
-
-let hls=null
-
-loadScript(0,()=>{
-  if(Hls.isSupported()){
-    hls=new Hls({
-      maxBufferLength:120,
-      maxMaxBufferLength:300,
-      enableWorker:true,
-      preload:true
-    })
-    hls.loadSource(m3u8Url)
-    hls.attachMedia(video)
-
-    hls.on(Hls.Events.MANIFEST_PARSED,()=>{
-      video.play().catch(()=>{})
-    })
-
-    // ==============================
-    // 内嵌 iframe 终极修复：强制同步拖动
-    // ==============================
-    let lastSeekTime=0
-    setInterval(()=>{
-      if(!hls)return
-      if(Math.abs(video.currentTime-lastSeekTime)>0.5){
-        try{
-          hls.startLoad(video.currentTime)
-        }catch(e){}
-        lastSeekTime=video.currentTime
-      }
-    },100)
+if(!url){
+  alert('使用方式：?url=视频地址\n支持 mp4 / m3u8');
+}else{
+  if(url.includes('.m3u8') && Hls.isSupported()){
+    const hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(v);
   }else{
-    video.src=m3u8Url
-    video.play().catch(()=>{})
+    v.src = url;
   }
-})
-
-document.addEventListener('WeixinJSBridgeReady',()=>{
-  video.play().catch(()=>{})
-})
-
-document.body.addEventListener('touchstart',()=>{
-  video.play().catch(()=>{})
-},{once:true})
+}
 </script>
 </body>
 </html>
