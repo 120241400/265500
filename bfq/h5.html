@@ -1,17 +1,48 @@
-﻿
-<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<!-- 优化视口配置：确保全屏适配，禁止缩放 -->
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
+<!-- 强化X5全屏配置 -->
 <meta name="x5-fullscreen" content="true">
-<meta name="x5-orientation" "landscape|portrait">
+<meta name="x5-orientation" content="landscape|portrait">
 <meta name="x5-page-mode" content="app">
 <title>增强版 X5 播放器</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;background:#000}
-#video{width:100%;height:100%;object-fit:contain;background:#000}
+/* 1. 彻底清除滚动条，重置所有元素的溢出 */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  /* 清除滚动条（兼容多浏览器） */
+  scrollbar-width: none; /* 火狐 */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+/* 清除webkit内核滚动条 */
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* 2. 强制html/body全屏，无溢出 */
+html,body{
+  width:100vw; /* 视口宽度，替代100%避免滚动 */
+  height:100vh; /* 视口高度，替代100% */
+  background:#000;
+  overflow: hidden !important; /* 核心：禁止溢出产生滚动条 */
+  position: fixed; /* 固定视口，防止位移 */
+  top: 0;
+  left: 0;
+}
+
+/* 3. 视频容器强制全屏，适配父容器 */
+#video{
+  width:100vw !important; /* 强制视口宽度 */
+  height:100vh !important; /* 强制视口高度 */
+  object-fit: cover; /* 改为cover（铺满），contain会留黑边；如需保持比例用contain则保留 */
+  background:#000;
+  display: block; /* 清除行内元素默认间距 */
+}
 </style>
 </head>
 <body>
@@ -82,9 +113,7 @@ loadScript(0,()=>{
       video.play().catch(()=>{})
     })
 
-    // ==============================
     // 内嵌 iframe 终极修复：强制同步拖动
-    // ==============================
     let lastSeekTime=0
     setInterval(()=>{
       if(!hls)return
@@ -108,6 +137,12 @@ document.addEventListener('WeixinJSBridgeReady',()=>{
 document.body.addEventListener('touchstart',()=>{
   video.play().catch(()=>{})
 },{once:true})
+
+// 额外：监听窗口大小变化，强制适配
+window.addEventListener('resize', () => {
+  video.style.width = `${window.innerWidth}px`;
+  video.style.height = `${window.innerHeight}px`;
+});
 </script>
 </body>
 </html>
