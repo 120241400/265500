@@ -1,148 +1,616 @@
-﻿﻿<!DOCTYPE html>
+
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<!-- 优化视口配置：确保全屏适配，禁止缩放 -->
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
-<!-- 强化X5全屏配置 -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="x5-fullscreen" content="true">
-<meta name="x5-orientation" content="landscape|portrait">
+<meta name="x5-video-player-type" content="h5">
+<meta name="x5-video-player-fullscreen" content="true">
+<meta name="x5-video-orientation" content="landscape|portrait">
 <meta name="x5-page-mode" content="app">
-<title>增强版 X5 播放器</title>
+<title>增强版 H5 播放器</title>
 <style>
-/* 1. 彻底清除滚动条，重置所有元素的溢出 */
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  /* 清除滚动条（兼容多浏览器） */
-  scrollbar-width: none; /* 火狐 */
-  -ms-overflow-style: none; /* IE/Edge */
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none }
+html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif }
+video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; background: #000; z-index: 1 }
+/* 中央提示层 */
+#tip { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px; border-radius: 8px; z-index: 999; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; backdrop-filter: blur(8px); font-weight: 500 }
+#tip.show { opacity: 1 }
+/* 倍速提示 - 右上角 */
+#speedTip { position: fixed; right: 20px; top: 20px; background: rgba(0,0,0,0.85); color: #fff; padding: 8px 16px; border-radius: 20px; z-index: 1000; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 12px rgba(0,0,0,0.5) }
+#speedTip.show { opacity: 1 }
+/* 加载动画 */
+#loader { position: fixed; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 998; display: none; flex-direction: column; align-items: center; gap: 12px }
+#loader.show { display: flex }
+.spinner { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.15); border-top-color: #00BFFF; border-radius: 50%; animation: spin 0.8s linear infinite }
+@keyframes spin { to { transform: rotate(360deg) } }
+/* 中心播放按钮 */
+#centerPlay { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background: rgba(0,0,0,0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 5; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(8px); border: 2px solid rgba(255,255,255,0.2) }
+#centerPlay:hover { transform: translate(-50%, -50%) scale(1.1); background: rgba(0,0,0,0.8) }
+#centerPlay.hide { opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0.8) }
+/* 播放图标 */
+.icon-play { width: 0; height: 0; border-left: 28px solid #fff; border-top: 16px solid transparent; border-bottom: 16px solid transparent; margin-left: 6px }
+.icon-pause { width: 24px; height: 28px; display: flex; gap: 6px }
+.icon-pause::before, .icon-pause::after { content: ''; width: 8px; height: 100%; background: #fff; border-radius: 2px }
+/* 控制栏 */
+.controls { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; gap: 12px; z-index: 10; opacity: 0; transition: opacity 0.3s }
+.controls.show { opacity: 1 }
+/* 播放/暂停按钮 */
+.btn-play { width: 40px; height: 40px; background: rgba(255,255,255,0.15); border: none; color: #fff; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0 }
+.btn-play:hover { background: rgba(255,255,255,0.25); transform: scale(1.1) }
+.btn-play:active { transform: scale(0.95) }
+.btn-play .icon-play { margin-left: 4px; border-left-width: 14px; border-top-width: 8px; border-bottom-width: 8px }
+.btn-play .icon-pause { width: 12px; height: 14px; gap: 3px }
+.btn-play .icon-pause::before, .btn-play .icon-pause::after { width: 4px }
+/* 进度条 */
+.progress { flex: 1; height: 24px; display: flex; align-items: center; cursor: pointer; position: relative }
+.track { width: 100%; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; position: relative; overflow: hidden; transition: height 0.2s }
+.progress:hover .track { height: 8px }
+.buf { position: absolute; left: 0; top: 0; height: 100%; background: rgba(255,255,255,0.3); width: 0; transition: width 0.3s }
+.bar { position: absolute; left: 0; top: 0; height: 100%; background: #00BFFF; width: 0; transition: width 0.1s linear }
+.thumb { position: absolute; right: -8px; top: 50%; transform: translateY(-50%) scale(0); width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.4); border: 2px solid #00BFFF }
+.progress:hover .thumb, .progress:active .thumb { transform: translateY(-50%) scale(1) }
+.time { font-size: 13px; color: #fff; min-width: 110px; text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.5) }
+.btns { display: flex; gap: 8px; align-items: center }
+.btn-speed { height: 32px; padding: 0 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s; font-weight: 500 }
+.btn-speed:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4) }
+.btn-fullscreen { width: 36px; height: 36px; background: rgba(255,255,255,0.1); border: none; color: #fff; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s }
+.btn-fullscreen:hover { background: rgba(255,255,255,0.2); transform: scale(1.1) }
+.btn-fullscreen svg { width: 18px; height: 18px; fill: currentColor }
+@media (hover: hover) and (pointer: fine) {
+.controls { padding: 20px 24px }
+.progress { height: 28px }
+.track { height: 6px }
+.btn-play { width: 44px; height: 44px }
+.time { font-size: 14px }
 }
-/* 清除webkit内核滚动条 */
-*::-webkit-scrollbar {
-  display: none;
-}
-
-/* 2. 强制html/body全屏，无溢出 */
-html,body{
-  width:100vw; /* 视口宽度，替代100%避免滚动 */
-  height:100vh; /* 视口高度，替代100% */
-  background:#000;
-  overflow: hidden !important; /* 核心：禁止溢出产生滚动条 */
-  position: fixed; /* 固定视口，防止位移 */
-  top: 0;
-  left: 0;
-}
-
-/* 3. 视频容器强制全屏，适配父容器 */
-#video{
-  width:100vw !important; /* 强制视口宽度 */
-  height:100vh !important; /* 强制视口高度 */
-  object-fit: cover; /* 改为cover（铺满），contain会留黑边；如需保持比例用contain则保留 */
-  background:#000;
-  display: block; /* 清除行内元素默认间距 */
-}
+video::-webkit-media-controls { display: none !important }
+video::-webkit-media-controls-enclosure { display: none !important }
 </style>
+<base target="_blank">
 </head>
 <body>
-
-<video id="video"
-  x5-video-player-type="h5"
-  x5-video-player-fullscreen="true"
-  x5-video-orientation="landscape|portrait"
-  playsinline
-  webkit-playsinline
-  controls
-  crossorigin="anonymous"
-></video>
-
+<video id="v" playsinline webkit-playsinline preload="auto" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="landscape|portrait" controlslist="nodownload noremoteplayback" crossorigin="anonymous"></video>
+<div id="tip"></div>
+<div id="speedTip">2.0X</div>
+<div id="loader"><div class="spinner"></div></div>
+<div id="centerPlay"><div class="icon-play"></div></div>
+<div class="controls" id="ctrl">
+<button class="btn-play" id="play">
+<div class="icon-play" id="playIcon"></div>
+</button>
+<div class="progress" id="prog">
+<div class="track">
+<div class="buf" id="buf"></div>
+<div class="bar" id="bar"><div class="thumb"></div></div>
+</div>
+</div>
+<div class="time" id="time">00:00 / 00:00</div>
+<div class="btns">
+<button class="btn-speed" id="spd">1.0x</button>
+<button class="btn-fullscreen" id="full" title="全屏">
+<svg viewBox="0 0 24 24" id="fullIcon">
+<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+</svg>
+</button>
+</div>
+</div>
 <script>
+// ==================== HLS.js 多 CDN 加载（X5 功能）====================
 const cdnList = [
-  "https://gcore.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js",
+  "https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js",
   "https://cdn.jsdmirror.cn/npm/hls.js@1.4.12/dist/hls.min.js",
   "https://unpkg.com/hls.js@1.4.12/dist/hls.min.js"
 ];
 
-function getUrlParam(){
-  let m=new RegExp('[?&]url=([^&#]*)').exec(location.href);
-  return m?decodeURIComponent(m[1]):''
+function loadScript(idx, cb){
+  if(idx >= cdnList.length) return;
+  let s = document.createElement('script');
+  s.src = cdnList[idx];
+  s.onload = cb;
+  s.onerror = () => loadScript(idx + 1, cb);
+  document.head.appendChild(s);
 }
 
-function loadScript(idx,cb){
-  if(idx>=cdnList.length)return
-  let s=document.createElement('script')
-  s.src=cdnList[idx]
-  s.onload=cb
-  s.onerror=()=>loadScript(idx+1,cb)
-  document.head.appendChild(s)
-}
+// ==================== DOM 元素获取 ====================
+const $ = id => document.getElementById(id);
+const v = $('v'), tip = $('tip'), speedTip = $('speedTip'), loader = $('loader'), centerPlay = $('centerPlay');
+const ctrl = $('ctrl'), prog = $('prog'), bar = $('bar'), buf = $('buf'), time = $('time');
+const playBtn = $('play'), playIcon = $('playIcon'), spdBtn = $('spd'), fullBtn = $('full'), fullIcon = $('fullIcon');
 
-const video=document.getElementById('video')
-const m3u8Url=getUrlParam()
-if(!m3u8Url)throw new Error('no url')
+// ==================== 状态管理 ====================
+const state = {
+  isLongPress: false, isDragging: false, isVertical: false,
+  startX: 0, startY: 0, startTime: 0,
+  startVolume: 1, startBrightness: 1,
+  currentVolume: 1, currentBrightness: 1,
+  origRate: 1, pressTimer: null, ctrlTimer: null,
+  isFullscreen: false, speedIdx: 0, touchStartTime: 0, isPlaying: false,
+  hls: null, isHls: false
+};
 
-// 长按2倍速
-let pressTimer=null
-video.addEventListener('touchstart',()=>{
-  pressTimer=setTimeout(()=>video.playbackRate=2,200)
-})
-video.addEventListener('touchend',()=>{
-  clearTimeout(pressTimer)
-  video.playbackRate=1
-})
-video.addEventListener('touchcancel',()=>{
-  clearTimeout(pressTimer)
-  video.playbackRate=1
-})
+const speeds = [1, 1.25, 1.5, 2, 0.5];
+// 采用 X5 的 200ms 长按延迟（更快响应）
+const LONG_PRESS_DELAY = 200;
+const SEEK_SENSITIVITY = 0.15;
+const GESTURE_STEP = 30;
 
-let hls=null
+// ==================== 工具函数 ====================
+const fmt = t => {
+  if(!t || isNaN(t)) return '00:00';
+  const m = Math.floor(t/60), s = Math.floor(t%60);
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+};
 
-loadScript(0,()=>{
-  if(Hls.isSupported()){
-    hls=new Hls({
-      maxBufferLength:120,
-      maxMaxBufferLength:300,
-      enableWorker:true,
-      preload:true
-    })
-    hls.loadSource(m3u8Url)
-    hls.attachMedia(video)
+const showTip = (t, d=1500) => {
+  tip.textContent = t;
+  tip.classList.add('show');
+  clearTimeout(window.tipTimer);
+  window.tipTimer = setTimeout(() => tip.classList.remove('show'), d);
+};
 
-    hls.on(Hls.Events.MANIFEST_PARSED,()=>{
-      video.play().catch(()=>{})
-    })
+const showSpeedTip = () => {
+  speedTip.classList.add('show');
+};
 
-    // 内嵌 iframe 终极修复：强制同步拖动
-    let lastSeekTime=0
-    setInterval(()=>{
-      if(!hls)return
-      if(Math.abs(video.currentTime-lastSeekTime)>0.5){
-        try{
-          hls.startLoad(video.currentTime)
-        }catch(e){}
-        lastSeekTime=video.currentTime
-      }
-    },100)
-  }else{
-    video.src=m3u8Url
-    video.play().catch(()=>{})
+const hideSpeedTip = () => {
+  speedTip.classList.remove('show');
+};
+
+const showLoader = () => loader.classList.add('show');
+const hideLoader = () => loader.classList.remove('show');
+
+const showCtrl = () => {
+  ctrl.classList.add('show');
+  clearTimeout(state.ctrlTimer);
+  state.ctrlTimer = setTimeout(() => v.paused || ctrl.classList.remove('show'), 3000);
+};
+
+// ==================== UI 更新函数（H5 外观）====================
+const updatePlayIcon = (playing) => {
+  playIcon.className = playing ? 'icon-pause' : 'icon-play';
+  centerPlay.innerHTML = playing ? '' : '<div class="icon-play"></div>';
+  if(!playing) centerPlay.classList.remove('hide');
+  else centerPlay.classList.add('hide');
+  state.isPlaying = playing;
+};
+
+const updateFullIcon = (fullscreen) => {
+  fullIcon.innerHTML = fullscreen ?
+    '<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>' :
+    '<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>';
+};
+
+const updateTimeDisplay = () => {
+  if(v.duration && !isNaN(v.duration)) {
+    const current = fmt(v.currentTime);
+    const total = fmt(v.duration);
+    time.textContent = `${current} / ${total}`;
+    return true;
   }
-})
+  return false;
+};
 
-document.addEventListener('WeixinJSBridgeReady',()=>{
-  video.play().catch(()=>{})
-})
+// ==================== 视频加载（H5 + X5 整合）====================
+const loadVideo = () => {
+  const url = new URLSearchParams(location.search).get('url');
+  if (!url) {
+    showTip('请提供视频 URL 参数');
+    return;
+  }
+  
+  const decodedUrl = decodeURIComponent(url);
+  showLoader();
+  
+  state.isHls = decodedUrl.includes('.m3u8') || decodedUrl.includes('application/x-mpegURL');
+  
+  if (state.isHls) {
+    loadScript(0, () => {
+      if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+        state.hls = new Hls({
+          maxBufferLength: 120,
+          maxMaxBufferLength: 300,
+          enableWorker: true,
+          preload: true
+        });
+        
+        state.hls.loadSource(decodedUrl);
+        state.hls.attachMedia(v);
+        
+        state.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          hideLoader();
+          v.play().catch(() => {
+            updatePlayIcon(false);
+            showCtrl();
+          });
+        });
+        
+        state.hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            showTip('视频加载失败');
+            hideLoader();
+          }
+        });
+        
+        // iframe 拖动同步修复（X5 功能）
+        let lastSeekTime = 0;
+        setInterval(() => {
+          if (!state.hls) return;
+          if (Math.abs(v.currentTime - lastSeekTime) > 0.5) {
+            try {
+              state.hls.startLoad(v.currentTime);
+            } catch(e) {}
+            lastSeekTime = v.currentTime;
+          }
+        }, 100);
+        
+      } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
+        v.src = decodedUrl;
+        v.load();
+        hideLoader();
+        v.play().catch(() => {
+          updatePlayIcon(false);
+          showCtrl();
+        });
+      } else {
+        showTip('您的浏览器不支持 HLS 播放');
+        hideLoader();
+      }
+    });
+  } else {
+    // 普通视频预加载（H5 优化）
+    const tempVideo = document.createElement('video');
+    tempVideo.preload = 'metadata';
+    tempVideo.src = decodedUrl;
+    tempVideo.crossOrigin = 'anonymous';
+    tempVideo.style.display = 'none';
+    document.body.appendChild(tempVideo);
+    
+    tempVideo.onloadedmetadata = () => {
+      if (tempVideo.duration && !isNaN(tempVideo.duration)) {
+        time.textContent = `00:00 / ${fmt(tempVideo.duration)}`;
+      }
+      hideLoader();
+      
+      v.src = decodedUrl;
+      v.load();
+      
+      v.play().then(() => {
+        console.log('自动播放成功');
+      }).catch(() => {
+        console.log('自动播放被阻止');
+        updatePlayIcon(false);
+        showCtrl();
+      });
+      
+      setTimeout(() => {
+        document.body.removeChild(tempVideo);
+      }, 100);
+    };
+    
+    tempVideo.onerror = () => {
+      console.log('元数据加载失败，回退到主视频');
+      hideLoader();
+      v.src = decodedUrl;
+      v.load();
+      document.body.removeChild(tempVideo);
+    };
+    
+    tempVideo.load();
+  }
+};
 
-document.body.addEventListener('touchstart',()=>{
-  video.play().catch(()=>{})
-},{once:true})
+// ==================== 视频事件绑定（H5）====================
+const bindVideoEvents = () => {
+  v.addEventListener('loadedmetadata', () => {
+    console.log('视频元数据加载完成，时长:', fmt(v.duration));
+    if (v.duration && !isNaN(v.duration)) {
+      updateTimeDisplay();
+    }
+    hideLoader();
+  });
+  
+  v.addEventListener('durationchange', () => {
+    if (v.duration && !isNaN(v.duration)) {
+      updateTimeDisplay();
+    }
+  });
+  
+  v.addEventListener('loadeddata', () => {
+    updateTimeDisplay();
+  });
+  
+  v.onplay = () => {
+    updatePlayIcon(true);
+    showCtrl();
+  };
+  
+  v.onpause = () => {
+    updatePlayIcon(false);
+    showCtrl();
+  };
+  
+  v.onwaiting = showLoader;
+  v.onplaying = hideLoader;
+  v.onended = () => {
+    updatePlayIcon(false);
+    showTip('播放结束');
+  };
+  
+  v.ontimeupdate = () => {
+    if(!v.duration) return;
+    const pct = (v.currentTime/v.duration)*100;
+    bar.style.width = pct + '%';
+    updateTimeDisplay();
+  };
+  
+  v.onprogress = () => {
+    if(!v.duration) return;
+    let max = 0;
+    for(let i = 0; i < v.buffered.length; i++) max = Math.max(max, v.buffered.end(i));
+    buf.style.width = (max/v.duration*100) + '%';
+  };
+  
+  v.onerror = () => {
+    showTip('视频加载失败，请检查链接');
+    hideLoader();
+  };
+  
+  v.onstalled = () => showLoader();
+};
 
-// 额外：监听窗口大小变化，强制适配
-window.addEventListener('resize', () => {
-  video.style.width = `${window.innerWidth}px`;
-  video.style.height = `${window.innerHeight}px`;
-});
+// ==================== 播放控制 ====================
+const togglePlay = () => {
+  if(v.paused) {
+    v.play().catch(() => showTip('点击播放'));
+  } else {
+    v.pause();
+  }
+};
+
+// ==================== 倍速切换 ====================
+const toggleSpeed = () => {
+  state.speedIdx = (state.speedIdx + 1) % speeds.length;
+  const s = speeds[state.speedIdx];
+  v.playbackRate = s;
+  spdBtn.textContent = s.toFixed(1) + 'x';
+  showTip(s.toFixed(1) + '倍速');
+};
+
+// ==================== 全屏切换 ====================
+const toggleFullscreen = async () => {
+  try {
+    if(!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+      state.isFullscreen = true;
+    } else {
+      await document.exitFullscreen();
+      state.isFullscreen = false;
+    }
+    updateFullIcon(state.isFullscreen);
+  } catch(err) {
+    showTip('全屏失败');
+  }
+};
+
+// ==================== 进度条控制 ====================
+const bindProgressControl = () => {
+  const seek = (e) => {
+    if(!v.duration) return;
+    const r = prog.getBoundingClientRect();
+    const x = e.clientX || (e.touches && e.touches[0].clientX);
+    const pct = Math.max(0, Math.min(1, (x - r.left) / r.width));
+    v.currentTime = pct * v.duration;
+    bar.style.width = (pct * 100) + '%';
+    updateTimeDisplay();
+  };
+  
+  prog.onclick = seek;
+  prog.ontouchstart = (e) => {
+    state.isDragging = true;
+    seek(e);
+  };
+  prog.ontouchmove = (e) => {
+    if(state.isDragging) {
+      e.preventDefault();
+      seek(e);
+    }
+  };
+  prog.ontouchend = () => {
+    state.isDragging = false;
+  };
+  prog.onmousedown = (e) => {
+    state.isDragging = true;
+    seek(e);
+  };
+  document.onmousemove = (e) => {
+    if(state.isDragging) seek(e);
+  };
+  document.onmouseup = () => {
+    state.isDragging = false;
+  };
+};
+
+// ==================== 触摸手势（用户要求的四项）====================
+const bindTouchGestures = () => {
+  // touchstart
+  v.addEventListener('touchstart', (e) => {
+    state.touchStartTime = Date.now();
+    state.startX = e.touches[0].clientX;
+    state.startY = e.touches[0].clientY;
+    state.startTime = v.currentTime;
+    state.isVertical = false;
+    state.isLongPress = false;
+    state.startVolume = state.currentVolume;
+    state.startBrightness = state.currentBrightness;
+    
+    // 长按2倍速（X5 风格 200ms）
+    state.pressTimer = setTimeout(() => {
+      state.isLongPress = true;
+      state.origRate = v.playbackRate;
+      v.playbackRate = 2;
+      speedTip.textContent = '2.0X';
+      showSpeedTip();
+    }, LONG_PRESS_DELAY);
+  }, {passive: false});
+  
+  // touchmove - 处理四项手势
+  v.addEventListener('touchmove', (e) => {
+    if(state.isLongPress) {
+      e.preventDefault();
+      return;
+    }
+    
+    const dx = e.touches[0].clientX - state.startX;
+    const dy = state.startY - e.touches[0].clientY;
+    
+    // 判断滑动方向（首次超过阈值时确定）
+    if(!state.isVertical && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      if(Math.abs(dy) > Math.abs(dx)) {
+        state.isVertical = true;
+        clearTimeout(state.pressTimer); // 垂直滑动取消长按
+      } else {
+        state.isVertical = false;
+        clearTimeout(state.pressTimer); // 水平滑动也取消长按
+      }
+    }
+    
+    if(state.isVertical) {
+      // 垂直滑动：左侧亮度，右侧音量
+      e.preventDefault();
+      const steps = dy / GESTURE_STEP;
+      
+      if(state.startX < innerWidth/2) {
+        // 左侧 - 亮度调节
+        let newBright = state.startBrightness + (steps * 0.1);
+        newBright = Math.max(0.1, Math.min(1.0, newBright));
+        state.currentBrightness = newBright;
+        document.body.style.filter = `brightness(${newBright})`;
+        showTip(`亮度 ${Math.round(newBright*100)}%`, 800);
+      } else {
+        // 右侧 - 音量调节
+        let newVol = state.startVolume + (steps * 0.1);
+        newVol = Math.max(0, Math.min(1, newVol));
+        state.currentVolume = newVol;
+        v.volume = newVol;
+        showTip(`音量 ${Math.round(newVol*100)}%`, 800);
+      }
+    } else if(Math.abs(dx) > 10) {
+      // 水平滑动：调节播放进度
+      e.preventDefault();
+      const dur = v.duration || 0;
+      const t = Math.max(0, Math.min(dur, state.startTime + dx * SEEK_SENSITIVITY));
+      v.currentTime = t;
+      bar.style.width = (t/dur*100) + '%';
+      updateTimeDisplay();
+      showTip(fmt(t), 800);
+    }
+  }, {passive: false});
+  
+  // touchend - 处理轻触播放/暂停
+  v.addEventListener('touchend', (e) => {
+    clearTimeout(state.pressTimer);
+    
+    if(state.isLongPress) {
+      // 长按结束，恢复倍速
+      v.playbackRate = state.origRate;
+      hideSpeedTip();
+    } else {
+      // 判断是否为轻触（时间短 + 位移小）
+      const touchDuration = Date.now() - state.touchStartTime;
+      const moveDistance = Math.sqrt(
+        Math.pow(e.changedTouches[0].clientX - state.startX, 2) +
+        Math.pow(e.changedTouches[0].clientY - state.startY, 2)
+      );
+      
+      // 轻触：播放/暂停切换
+      if(touchDuration < 300 && moveDistance < 10) {
+        togglePlay();
+      }
+    }
+    
+    setTimeout(() => tip.classList.remove('show'), 200);
+  });
+  
+  // touchcancel - X5 风格处理
+  v.addEventListener('touchcancel', () => {
+    clearTimeout(state.pressTimer);
+    if(state.isLongPress) {
+      v.playbackRate = state.origRate;
+      hideSpeedTip();
+    }
+    state.isDragging = false;
+    state.isVertical = false;
+  });
+};
+
+// ==================== 键盘快捷键（H5）====================
+const bindKeyboardShortcuts = () => {
+  document.onkeydown = (e) => {
+    switch(e.code) {
+      case 'Space':
+        e.preventDefault();
+        togglePlay();
+        break;
+      case 'ArrowLeft':
+        v.currentTime = Math.max(0, v.currentTime - 5);
+        showTip('快退 5s');
+        updateTimeDisplay();
+        break;
+      case 'ArrowRight':
+        v.currentTime = Math.min(v.duration || 0, v.currentTime + 5);
+        showTip('快进 5s');
+        updateTimeDisplay();
+        break;
+      case 'KeyF':
+        toggleFullscreen();
+        break;
+    }
+  };
+};
+
+// ==================== X5 浏览器优化 ====================
+const bindX5Optimizations = () => {
+  // WeixinJSBridgeReady 支持
+  document.addEventListener('WeixinJSBridgeReady', () => {
+    v.play().catch(() => {});
+  });
+  
+  // 首次触摸自动播放
+  document.body.addEventListener('touchstart', () => {
+    v.play().catch(() => {});
+  }, {once:true});
+};
+
+// ==================== 初始化 ====================
+const init = () => {
+  state.currentVolume = v.volume || 1;
+  
+  playBtn.onclick = togglePlay;
+  centerPlay.onclick = togglePlay;
+  spdBtn.onclick = toggleSpeed;
+  fullBtn.onclick = toggleFullscreen;
+  
+  bindVideoEvents();
+  bindProgressControl();
+  bindTouchGestures();
+  bindKeyboardShortcuts();
+  bindX5Optimizations();
+  
+  loadVideo();
+  
+  document.onclick = e => {
+    if(!e.target.closest('.controls') && !e.target.closest('#centerPlay')) {
+      showCtrl();
+    }
+  };
+  
+  document.ontouchmove = e => e.preventDefault();
+  setTimeout(showCtrl, 100);
+};
+
+init();
 </script>
 </body>
 </html>
