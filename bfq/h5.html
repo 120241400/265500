@@ -8,41 +8,27 @@
 <meta name="x5-video-player-fullscreen" content="true">
 <meta name="x5-video-orientation" content="landscape|portrait">
 <meta name="x5-page-mode" content="app">
-<title>增强版 H5 播放器（预加载优化）</title>
+<meta name="background-play" content="true">
+<title>增强版 H5 播放器</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none }
 html, body { position: fixed; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif }
 video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; background: #000; z-index: 1 }
-/* 中央提示层 */
-#tip { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px; border-radius: 8px; z-index: 999; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; backdrop-filter: blur(8px); font-weight: 500 }
-#tip.show { opacity: 1 }
-/* 倍速提示 - 右上角 */
-#speedTip { position: fixed; right: 20px; top: 20px; background: rgba(0,0,0,0.85); color: #fff; padding: 8px 16px; border-radius: 20px; z-index: 1000; font-size: 14px; opacity: 0; transition: opacity 0.2s; pointer-events: none; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 12px rgba(0,0,0,0.5) }
-#speedTip.show { opacity: 1 }
-/* 加载动画 */
-#loader { position: fixed; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 998; display: none; flex-direction: column; align-items: center; gap: 12px }
-#loader.show { display: flex }
-.spinner { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.15); border-top-color: #00BFFF; border-radius: 50%; animation: spin 0.8s linear infinite }
-@keyframes spin { to { transform: rotate(360deg) } }
-/* 中心播放按钮 */
+#tip,#speedTip,#loader { display: none !important; }
 #centerPlay { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background: rgba(0,0,0,0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 5; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(8px); border: 2px solid rgba(255,255,255,0.2) }
 #centerPlay:hover { transform: translate(-50%, -50%) scale(1.1); background: rgba(0,0,0,0.8) }
 #centerPlay.hide { opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0.8) }
-/* 播放图标 */
 .icon-play { width: 0; height: 0; border-left: 28px solid #fff; border-top: 16px solid transparent; border-bottom: 16px solid transparent; margin-left: 6px }
 .icon-pause { width: 24px; height: 28px; display: flex; gap: 6px }
 .icon-pause::before, .icon-pause::after { content: ''; width: 8px; height: 100%; background: #fff; border-radius: 2px }
-/* 控制栏 */
 .controls { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; gap: 12px; z-index: 10; opacity: 0; transition: opacity 0.3s }
 .controls.show { opacity: 1 }
-/* 播放/暂停按钮 */
 .btn-play { width: 40px; height: 40px; background: rgba(255,255,255,0.15); border: none; color: #fff; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0 }
 .btn-play:hover { background: rgba(255,255,255,0.25); transform: scale(1.1) }
 .btn-play:active { transform: scale(0.95) }
 .btn-play .icon-play { margin-left: 4px; border-left-width: 14px; border-top-width: 8px; border-bottom-width: 8px }
 .btn-play .icon-pause { width: 12px; height: 14px; gap: 3px }
 .btn-play .icon-pause::before, .btn-play .icon-pause::after { width: 4px }
-/* 进度条 */
 .progress { flex: 1; height: 24px; display: flex; align-items: center; cursor: pointer; position: relative }
 .track { width: 100%; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; position: relative; overflow: hidden; transition: height 0.2s }
 .progress:hover .track { height: 8px }
@@ -57,14 +43,6 @@ video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-f
 .btn-fullscreen { width: 36px; height: 36px; background: rgba(255,255,255,0.1); border: none; color: #fff; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s }
 .btn-fullscreen:hover { background: rgba(255,255,255,0.2); transform: scale(1.1) }
 .btn-fullscreen svg { width: 18px; height: 18px; fill: currentColor }
-/* 预加载状态指示器 */
-#preloadStatus { position: fixed; left: 20px; top: 20px; background: rgba(0,0,0,0.7); color: #00BFFF; padding: 6px 12px; border-radius: 4px; font-size: 12px; z-index: 1000; opacity: 0; transition: opacity 0.3s; pointer-events: none }
-#preloadStatus.show { opacity: 1 }
-#preloadStatus::before { content: ''; display: inline-block; width: 8px; height: 8px; background: #00BFFF; border-radius: 50%; margin-right: 6px; animation: pulse 1.5s infinite }
-@keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.3 } }
-/* 缓冲进度条（顶部） */
-#bufferBar { position: fixed; left: 0; top: 0; height: 3px; background: linear-gradient(90deg, #00BFFF, #00FFFF); z-index: 1001; width: 0%; transition: width 0.3s, opacity 0.3s; opacity: 0 }
-#bufferBar.show { opacity: 1 }
 @media (hover: hover) and (pointer: fine) {
 .controls { padding: 20px 24px }
 .progress { height: 28px }
@@ -78,11 +56,9 @@ video::-webkit-media-controls-enclosure { display: none !important }
 <base target="_blank">
 </head>
 <body>
-<video id="v" playsinline webkit-playsinline preload="auto" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="landscape|portrait" controlslist="nodownload noremoteplayback" crossorigin="anonymous"></video>
+<video id="v" playsinline webkit-playsinline preload="auto" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="landscape|portrait" controlslist="nodownload noremoteplayback" crossorigin="anonymous" webkit-background-play="true" x5-video-background-play="true"></video>
 <div id="tip"></div>
 <div id="speedTip">2.0X</div>
-<div id="preloadStatus">预加载中...</div>
-<div id="bufferBar"></div>
 <div id="loader"><div class="spinner"></div></div>
 <div id="centerPlay"><div class="icon-play"></div></div>
 <div class="controls" id="ctrl">
@@ -106,7 +82,7 @@ video::-webkit-media-controls-enclosure { display: none !important }
 </div>
 </div>
 <script>
-// ==================== HLS.js 多 CDN 加载（X5 功能）====================
+// ==================== HLS.js 多 CDN 加载（保留）====================
 const cdnList = [
   "https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js",
   "https://cdn.jsdmirror.cn/npm/hls.js@1.4.12/dist/hls.min.js",
@@ -127,7 +103,6 @@ const $ = id => document.getElementById(id);
 const v = $('v'), tip = $('tip'), speedTip = $('speedTip'), loader = $('loader'), centerPlay = $('centerPlay');
 const ctrl = $('ctrl'), prog = $('prog'), bar = $('bar'), buf = $('buf'), time = $('time');
 const playBtn = $('play'), playIcon = $('playIcon'), spdBtn = $('spd'), fullBtn = $('full'), fullIcon = $('fullIcon');
-const preloadStatus = $('preloadStatus'), bufferBar = $('bufferBar');
 
 // ==================== 状态管理 ====================
 const state = {
@@ -137,14 +112,7 @@ const state = {
   currentVolume: 1, currentBrightness: 1,
   origRate: 1, pressTimer: null, ctrlTimer: null,
   isFullscreen: false, speedIdx: 0, touchStartTime: 0, isPlaying: false,
-  hls: null, isHls: false,
-  // 预加载相关状态
-  preloadMeta: null,        // 预加载的元数据视频
-  isPreloading: false,      // 是否正在预加载
-  networkType: '4g',        // 网络类型
-  bufferLength: 30,         // 缓冲长度（秒）
-  firstFrameLoaded: false,  // 首帧是否已加载
-  nextVideoUrl: null        // 下一个视频URL
+  hls: null, isHls: false
 };
 
 const speeds = [1, 1.25, 1.5, 2, 0.5];
@@ -159,187 +127,16 @@ const fmt = t => {
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 };
 
-const showTip = (t, d=1500) => {
-  tip.textContent = t;
-  tip.classList.add('show');
-  clearTimeout(window.tipTimer);
-  window.tipTimer = setTimeout(() => tip.classList.remove('show'), d);
-};
-
-const showSpeedTip = () => speedTip.classList.add('show');
-const hideSpeedTip = () => speedTip.classList.remove('show');
-const showLoader = () => loader.classList.add('show');
-const hideLoader = () => loader.classList.remove('show');
+const showTip = () => {};
+const showSpeedTip = () => {};
+const hideSpeedTip = () => {};
+const showLoader = () => {};
+const hideLoader = () => {};
 
 const showCtrl = () => {
   ctrl.classList.add('show');
   clearTimeout(state.ctrlTimer);
   state.ctrlTimer = setTimeout(() => v.paused || ctrl.classList.remove('show'), 3000);
-};
-
-// ==================== 预加载功能 ====================
-
-/**
- * 检测网络状态并调整预加载策略
- */
-const detectNetwork = () => {
-  if ('connection' in navigator) {
-    const conn = navigator.connection;
-    state.networkType = conn.effectiveType || '4g';
-    
-    // 根据网络类型调整缓冲策略
-    switch(state.networkType) {
-      case '4g':
-        state.bufferLength = 60;  // 强网：预加载60秒
-        break;
-      case '3g':
-        state.bufferLength = 30;  // 中等网络：预加载30秒
-        break;
-      case '2g':
-      case 'slow-2g':
-        state.bufferLength = 10;  // 弱网：仅预加载10秒
-        break;
-      default:
-        state.bufferLength = 30;
-    }
-    
-    console.log(`网络类型: ${state.networkType}, 缓冲长度: ${state.bufferLength}s`);
-    
-    // 监听网络变化
-    conn.addEventListener('change', () => {
-      const newType = conn.effectiveType;
-      if (newType !== state.networkType) {
-        state.networkType = newType;
-        showTip(`网络切换至 ${newType.toUpperCase()}`);
-        // 动态调整HLS配置
-        if (state.hls) {
-          adjustHlsBuffer();
-        }
-      }
-    });
-  }
-};
-
-/**
- * 调整HLS缓冲配置
- */
-const adjustHlsBuffer = () => {
-  if (!state.hls) return;
-  
-  const config = state.hls.config;
-  config.maxBufferLength = state.bufferLength;
-  config.maxMaxBufferLength = state.bufferLength * 2;
-  
-  // 弱网时启用低延迟模式
-  if (state.networkType === '2g' || state.networkType === 'slow-2g') {
-    config.lowLatencyMode = true;
-  }
-};
-
-/**
- * 首帧预加载 - 提前加载视频元数据和第一帧
- */
-const preloadFirstFrame = (url) => {
-  return new Promise((resolve) => {
-    const tempVideo = document.createElement('video');
-    tempVideo.preload = 'auto';
-    tempVideo.muted = true;
-    tempVideo.playsInline = true;
-    tempVideo.crossOrigin = 'anonymous';
-    tempVideo.style.display = 'none';
-    
-    // 设置src前添加时间戳防止缓存问题
-    tempVideo.src = url;
-    
-    tempVideo.onloadeddata = () => {
-      console.log('首帧预加载完成');
-      state.firstFrameLoaded = true;
-      document.body.removeChild(tempVideo);
-      resolve(true);
-    };
-    
-    tempVideo.onerror = () => {
-      console.log('首帧预加载失败');
-      document.body.removeChild(tempVideo);
-      resolve(false);
-    };
-    
-    // 超时处理
-    setTimeout(() => {
-      if (!state.firstFrameLoaded) {
-        document.body.removeChild(tempVideo);
-        resolve(false);
-      }
-    }, 10000);
-    
-    document.body.appendChild(tempVideo);
-    tempVideo.load();
-  });
-};
-
-/**
- * 显示缓冲进度
- */
-const updateBufferProgress = () => {
-  if (!v.duration || !state.hls) return;
-  
-  const buffered = v.buffered;
-  if (buffered.length > 0) {
-    const end = buffered.end(buffered.length - 1);
-    const duration = v.duration;
-    const pct = (end / duration) * 100;
-    
-    bufferBar.style.width = pct + '%';
-    bufferBar.classList.add('show');
-    
-    // 缓冲完成时隐藏
-    if (pct >= 95) {
-      setTimeout(() => bufferBar.classList.remove('show'), 1000);
-    }
-  }
-};
-
-/**
- * 预加载下一个视频（用于播放列表场景）
- */
-const preloadNextVideo = (nextUrl) => {
-  if (!nextUrl || state.isPreloading) return;
-  
-  state.isPreloading = true;
-  state.nextVideoUrl = nextUrl;
-  
-  // 使用 link preload 预加载视频资源
-  const link = document.createElement('link');
-  link.rel = 'preload';
-  link.as = 'video';
-  link.href = nextUrl;
-  document.head.appendChild(link);
-  
-  console.log('已预加载下一个视频:', nextUrl);
-  
-  // 3秒后清理
-  setTimeout(() => {
-    if (link.parentNode) link.parentNode.removeChild(link);
-    state.isPreloading = false;
-  }, 30000);
-};
-
-/**
- * 智能预加载策略 - 根据播放进度预加载
- */
-const smartPreload = () => {
-  if (!v.duration) return;
-  
-  const currentTime = v.currentTime;
-  const duration = v.duration;
-  const remaining = duration - currentTime;
-  
-  // 播放到80%时预加载下一个视频
-  if (remaining < duration * 0.2 && state.nextVideoUrl && !state.isPreloading) {
-    const params = new URLSearchParams(location.search);
-    const next = params.get('next');
-    if (next) preloadNextVideo(decodeURIComponent(next));
-  }
 };
 
 // ==================== UI 更新函数 ====================
@@ -367,69 +164,33 @@ const updateTimeDisplay = () => {
   return false;
 };
 
-// ==================== 视频加载（增强预加载版）====================
+// ==================== 视频加载（强制预加载240秒）====================
 const loadVideo = () => {
   const url = new URLSearchParams(location.search).get('url');
-  const preload = new URLSearchParams(location.search).get('preload'); // 预加载模式参数
-  
-  if (!url) {
-    showTip('请提供视频 URL 参数');
-    return;
-  }
+  if (!url) return;
   
   const decodedUrl = decodeURIComponent(url);
-  showLoader();
-  preloadStatus.classList.add('show');
-  
-  // 检测网络状态
-  detectNetwork();
-  
   state.isHls = decodedUrl.includes('.m3u8') || decodedUrl.includes('application/x-mpegURL');
-  
-  // 首帧预加载（非HLS视频）
-  if (!state.isHls && preload !== 'none') {
-    preloadFirstFrame(decodedUrl).then(success => {
-      if (success) console.log('首帧预加载成功');
-    });
-  }
   
   if (state.isHls) {
     loadScript(0, () => {
       if (typeof Hls !== 'undefined' && Hls.isSupported()) {
-        // HLS.js 预加载优化配置
-        const hlsConfig = {
-          maxBufferLength: state.bufferLength,
-          maxMaxBufferLength: state.bufferLength * 2,
+        state.hls = new Hls({
+          // 强制预加载240秒，无论网速
+          maxBufferLength: 240,
+          maxMaxBufferLength: 300,
+          // 关闭网络智能分配/ABR自适应
           enableWorker: true,
           preload: true,
-          lowLatencyMode: state.networkType === '4g', // 强网启用低延迟
-          backBufferLength: 90,
-          startLevel: -1, // 自动选择码率
-          // 预加载优化
-          maxBufferHole: 0.5,
-          highBufferWatchdogPeriod: 2,
-          nudgeOffset: 0.1,
-          nudgeMaxRetry: 5,
-          // 片段预加载
-          maxFragLookUpTolerance: 0.25,
-          liveSyncDurationCount: 3,
-          // 启用AES-128解密缓存
-          enableSoftwareAES: true
-        };
-        
-        state.hls = new Hls(hlsConfig);
+          testBandwidth: false,
+          abrEnabled: false,
+          startLevel: 0
+        });
         
         state.hls.loadSource(decodedUrl);
         state.hls.attachMedia(v);
         
-        // 监听缓冲事件
-        state.hls.on(Hls.Events.BUFFER_APPENDED, () => {
-          updateBufferProgress();
-        });
-        
         state.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          hideLoader();
-          preloadStatus.classList.remove('show');
           v.play().catch(() => {
             updatePlayIcon(false);
             showCtrl();
@@ -437,21 +198,14 @@ const loadVideo = () => {
         });
         
         state.hls.on(Hls.Events.ERROR, (event, data) => {
-          if (data.fatal) {
-            showTip('视频加载失败');
-            hideLoader();
-            preloadStatus.classList.remove('show');
-          }
+          if (data.fatal) {}
         });
         
-        // iframe 拖动同步修复
         let lastSeekTime = 0;
         setInterval(() => {
           if (!state.hls) return;
           if (Math.abs(v.currentTime - lastSeekTime) > 0.5) {
-            try {
-              state.hls.startLoad(v.currentTime);
-            } catch(e) {}
+            try { state.hls.startLoad(v.currentTime); } catch(e) {}
             lastSeekTime = v.currentTime;
           }
         }, 100);
@@ -459,86 +213,33 @@ const loadVideo = () => {
       } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
         v.src = decodedUrl;
         v.load();
-        hideLoader();
-        preloadStatus.classList.remove('show');
         v.play().catch(() => {
           updatePlayIcon(false);
           showCtrl();
         });
-      } else {
-        showTip('您的浏览器不支持 HLS 播放');
-        hideLoader();
-        preloadStatus.classList.remove('show');
       }
     });
   } else {
-    // 普通视频预加载优化
-    const tempVideo = document.createElement('video');
-    tempVideo.preload = 'metadata';
-    tempVideo.src = decodedUrl;
-    tempVideo.crossOrigin = 'anonymous';
-    tempVideo.style.display = 'none';
-    document.body.appendChild(tempVideo);
-    
-    tempVideo.onloadedmetadata = () => {
-      if (tempVideo.duration && !isNaN(tempVideo.duration)) {
-        time.textContent = `00:00 / ${fmt(tempVideo.duration)}`;
-      }
-      hideLoader();
-      preloadStatus.classList.remove('show');
-      
-      // 主视频加载
-      v.src = decodedUrl;
-      v.load();
-      
-      // 尝试自动播放
-      v.play().then(() => {
-        console.log('自动播放成功');
-      }).catch(() => {
-        console.log('自动播放被阻止');
-        updatePlayIcon(false);
-        showCtrl();
-      });
-      
-      setTimeout(() => {
-        if (tempVideo.parentNode) document.body.removeChild(tempVideo);
-      }, 100);
-    };
-    
-    tempVideo.onerror = () => {
-      console.log('元数据加载失败，回退到主视频');
-      hideLoader();
-      preloadStatus.classList.remove('show');
-      v.src = decodedUrl;
-      v.load();
-      if (tempVideo.parentNode) document.body.removeChild(tempVideo);
-    };
-    
-    tempVideo.load();
+    v.src = decodedUrl;
+    v.load();
+    v.play().catch(() => {
+      updatePlayIcon(false);
+      showCtrl();
+    });
   }
 };
 
 // ==================== 视频事件绑定 ====================
 const bindVideoEvents = () => {
   v.addEventListener('loadedmetadata', () => {
-    console.log('视频元数据加载完成，时长:', fmt(v.duration));
-    if (v.duration && !isNaN(v.duration)) {
-      updateTimeDisplay();
-    }
-    hideLoader();
-    preloadStatus.classList.remove('show');
+    if (v.duration && !isNaN(v.duration)) updateTimeDisplay();
   });
   
   v.addEventListener('durationchange', () => {
-    if (v.duration && !isNaN(v.duration)) {
-      updateTimeDisplay();
-    }
+    if (v.duration && !isNaN(v.duration)) updateTimeDisplay();
   });
   
-  v.addEventListener('loadeddata', () => {
-    updateTimeDisplay();
-    state.firstFrameLoaded = true;
-  });
+  v.addEventListener('loadeddata', updateTimeDisplay);
   
   v.onplay = () => {
     updatePlayIcon(true);
@@ -550,37 +251,15 @@ const bindVideoEvents = () => {
     showCtrl();
   };
   
-  v.onwaiting = () => {
-    showLoader();
-    preloadStatus.textContent = '缓冲中...';
-    preloadStatus.classList.add('show');
-  };
-  
-  v.onplaying = () => {
-    hideLoader();
-    preloadStatus.classList.remove('show');
-    preloadStatus.textContent = '预加载中...';
-  };
-  
-  v.onended = () => {
-    updatePlayIcon(false);
-    showTip('播放结束');
-    // 尝试自动播放下一个
-    if (state.nextVideoUrl) {
-      setTimeout(() => {
-        location.href = `?url=${encodeURIComponent(state.nextVideoUrl)}`;
-      }, 2000);
-    }
-  };
+  v.onwaiting = () => {};
+  v.onplaying = () => {};
+  v.onended = () => updatePlayIcon(false);
   
   v.ontimeupdate = () => {
     if(!v.duration) return;
     const pct = (v.currentTime/v.duration)*100;
     bar.style.width = pct + '%';
     updateTimeDisplay();
-    
-    // 智能预加载检查
-    smartPreload();
   };
   
   v.onprogress = () => {
@@ -588,39 +267,16 @@ const bindVideoEvents = () => {
     let max = 0;
     for(let i = 0; i < v.buffered.length; i++) max = Math.max(max, v.buffered.end(i));
     buf.style.width = (max/v.duration*100) + '%';
-    
-    // 更新缓冲进度条
-    updateBufferProgress();
   };
   
-  v.onerror = () => {
-    showTip('视频加载失败，请检查链接');
-    hideLoader();
-    preloadStatus.classList.remove('show');
-  };
-  
-  v.onstalled = () => {
-    showLoader();
-    preloadStatus.textContent = '加载停滞...';
-    preloadStatus.classList.add('show');
-  };
-  
-  v.oncanplay = () => {
-    hideLoader();
-    preloadStatus.classList.remove('show');
-  };
-  
-  v.oncanplaythrough = () => {
-    hideLoader();
-    preloadStatus.classList.remove('show');
-    bufferBar.classList.remove('show');
-  };
+  v.onerror = () => {};
+  v.onstalled = () => {};
 };
 
 // ==================== 播放控制 ====================
 const togglePlay = () => {
   if(v.paused) {
-    v.play().catch(() => showTip('点击播放'));
+    v.play().catch(() => {});
   } else {
     v.pause();
   }
@@ -632,7 +288,6 @@ const toggleSpeed = () => {
   const s = speeds[state.speedIdx];
   v.playbackRate = s;
   spdBtn.textContent = s.toFixed(1) + 'x';
-  showTip(s.toFixed(1) + '倍速');
 };
 
 // ==================== 全屏切换 ====================
@@ -646,9 +301,7 @@ const toggleFullscreen = async () => {
       state.isFullscreen = false;
     }
     updateFullIcon(state.isFullscreen);
-  } catch(err) {
-    showTip('全屏失败');
-  }
+  } catch(err) {}
 };
 
 // ==================== 进度条控制 ====================
@@ -705,8 +358,6 @@ const bindTouchGestures = () => {
       state.isLongPress = true;
       state.origRate = v.playbackRate;
       v.playbackRate = 2;
-      speedTip.textContent = '2.0X';
-      showSpeedTip();
     }, LONG_PRESS_DELAY);
   }, {passive: false});
   
@@ -738,13 +389,11 @@ const bindTouchGestures = () => {
         newBright = Math.max(0.1, Math.min(1.0, newBright));
         state.currentBrightness = newBright;
         document.body.style.filter = `brightness(${newBright})`;
-        showTip(`亮度 ${Math.round(newBright*100)}%`, 800);
       } else {
         let newVol = state.startVolume + (steps * 0.1);
         newVol = Math.max(0, Math.min(1, newVol));
         state.currentVolume = newVol;
         v.volume = newVol;
-        showTip(`音量 ${Math.round(newVol*100)}%`, 800);
       }
     } else if(Math.abs(dx) > 10) {
       e.preventDefault();
@@ -753,7 +402,6 @@ const bindTouchGestures = () => {
       v.currentTime = t;
       bar.style.width = (t/dur*100) + '%';
       updateTimeDisplay();
-      showTip(fmt(t), 800);
     }
   }, {passive: false});
   
@@ -762,7 +410,6 @@ const bindTouchGestures = () => {
     
     if(state.isLongPress) {
       v.playbackRate = state.origRate;
-      hideSpeedTip();
     } else {
       const touchDuration = Date.now() - state.touchStartTime;
       const moveDistance = Math.sqrt(
@@ -774,15 +421,12 @@ const bindTouchGestures = () => {
         togglePlay();
       }
     }
-    
-    setTimeout(() => tip.classList.remove('show'), 200);
   });
   
   v.addEventListener('touchcancel', () => {
     clearTimeout(state.pressTimer);
     if(state.isLongPress) {
       v.playbackRate = state.origRate;
-      hideSpeedTip();
     }
     state.isDragging = false;
     state.isVertical = false;
@@ -799,12 +443,10 @@ const bindKeyboardShortcuts = () => {
         break;
       case 'ArrowLeft':
         v.currentTime = Math.max(0, v.currentTime - 5);
-        showTip('快退 5s');
         updateTimeDisplay();
         break;
       case 'ArrowRight':
         v.currentTime = Math.min(v.duration || 0, v.currentTime + 5);
-        showTip('快进 5s');
         updateTimeDisplay();
         break;
       case 'KeyF':
@@ -814,7 +456,7 @@ const bindKeyboardShortcuts = () => {
   };
 };
 
-// ==================== X5 浏览器优化 ====================
+// ==================== X5 优化 ====================
 const bindX5Optimizations = () => {
   document.addEventListener('WeixinJSBridgeReady', () => {
     v.play().catch(() => {});
