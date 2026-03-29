@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -129,7 +129,6 @@
         }
     </style>
 <base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <div id="player-container">
@@ -176,6 +175,7 @@
         let currentBrightness = 100;  // 默认亮度100%
         let lastSetVolume = 0.8;  // 上次设置的音量
         let lastSetBrightness = 100;  // 上次设置的亮度
+        let dragStartValue = 0; // 拖动起始值（音量/亮度）
 
         if (!videoUrl) {
             errorTip.textContent = '请提供视频地址，格式: ?url=视频地址';
@@ -418,18 +418,34 @@
                     const video = getVideoElement();
 
                     if (dragType === 'progress') {
-                        // 滑动快进/快退 - 显示目标时间点
+                        // 滑动快进/快退 - 实时更新进度条和时间显示
                         const duration = player && player.getDuration ? player.getDuration() : (video ? video.duration : 0);
                         const seekRatio = (deltaX / window.innerWidth) * 0.5;
                         const newTime = Math.max(0, Math.min(duration, dragStartTime + seekRatio * duration));
                         
-                        // 显示目标时间，如 "05:40 / 20:00"
-                        const currentTimeStr = formatTime(newTime);
-                        const durationStr = formatTime(duration);
-                        const direction = deltaX > 0 ? '快进至' : '快退至';
+                        // 实时更新进度条
+                        const progressBar = document.querySelector('.prism-progress-played');
+                        const progressDot = document.querySelector('.prism-progress-dot');
+                        if (progressBar && duration > 0) {
+                            const progressPercent = (newTime / duration) * 100;
+                            progressBar.style.width = `${progressPercent}%`;
+                            if (progressDot) {
+                                progressDot.style.left = `${progressPercent}%`;
+                            }
+                        }
                         
+                        // 实时更新时间显示
+                        const timeDisplay = document.querySelector('.prism-time-display');
+                        if (timeDisplay) {
+                            const currentTimeStr = formatTime(newTime);
+                            const durationStr = formatTime(duration);
+                            timeDisplay.textContent = `${currentTimeStr}/${durationStr}`;
+                        }
+                        
+                        // 简化提示文案，仅显示目标时间
+                        const currentTimeStr = formatTime(newTime);
                         if (Math.abs(deltaX) > 20) {
-                            showHint(`${direction} ${currentTimeStr} / ${durationStr}`);
+                            showHint(currentTimeStr);
                         }
                     } else if (dragType === 'volume') {
                         // 滑动调节音量 - 基于上次设置的值
