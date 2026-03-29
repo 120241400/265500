@@ -150,7 +150,7 @@
             return null;
         }
 
-        // 格式化时间为 HH:MM:SS
+        // 格式化时间为 HH:MM:SS 或 MM:SS
         function formatTime(seconds) {
             if (isNaN(seconds) || seconds < 0) return "00:00";
 
@@ -313,7 +313,7 @@
             let longPressTimer = null;
             let isDragging = false;
             let dragType = null; // 'progress', 'volume', 'brightness'
-            let dragStartValue = 0; // 拖动开始时的基准值
+            let dragStartTime = 0; // 拖动开始时的播放时间（秒）
 
             // 双击检测
             let lastTapTime = 0;
@@ -398,8 +398,8 @@
                     if (absX > absY) {
                         // 水平滑动 - 快进/快退
                         dragType = 'progress';
-                        const video = getVideoElement();
-                        dragStartValue = video ? video.currentTime : 0;
+                        // 使用 Aliplayer API 获取当前播放时间
+                        dragStartTime = player && player.getCurrentTime ? player.getCurrentTime() : 0;
                     } else {
                         // 垂直滑动 - 根据位置判断音量或亮度
                         if (touchStartX < screenWidth / 2) {
@@ -416,17 +416,19 @@
                     e.preventDefault();
                     const video = getVideoElement();
 
-                    if (dragType === 'progress' && video) {
-                        // 滑动快进/快退
-                        const duration = video.duration || 0;
+                    if (dragType === 'progress') {
+                        // 滑动快进/快退 - 显示目标时间点
+                        const duration = player && player.getDuration ? player.getDuration() : (video ? video.duration : 0);
                         const seekRatio = (deltaX / window.innerWidth) * 0.5;
-                        const newTime = Math.max(0, Math.min(duration, dragStartValue + seekRatio * duration));
-                        const seekSeconds = Math.abs(seekRatio * duration);
-
+                        const newTime = Math.max(0, Math.min(duration, dragStartTime + seekRatio * duration));
+                        
+                        // 显示目标时间，如 "05:40 / 20:00"
+                        const currentTimeStr = formatTime(newTime);
+                        const durationStr = formatTime(duration);
+                        const direction = deltaX > 0 ? '快进至' : '快退至';
+                        
                         if (Math.abs(deltaX) > 20) {
-                            const direction = deltaX > 0 ? '快进' : '快退';
-                            const timeStr = formatTime(seekSeconds);
-                            showHint(`${direction} ${timeStr}`);
+                            showHint(`${direction} ${currentTimeStr} / ${durationStr}`);
                         }
                     } else if (dragType === 'volume') {
                         // 滑动调节音量 - 基于上次设置的值
@@ -466,14 +468,16 @@
                     }
                 }
 
-                if (isDragging && dragType === 'progress' && video) {
-                    // 应用进度跳转
+                if (isDragging && dragType === 'progress' && player) {
+                    // 应用进度跳转 - 使用 Aliplayer seek 方法
                     const touch = e.changedTouches[0];
                     const deltaX = touch.clientX - touchStartX;
-                    const duration = video.duration || 0;
+                    const duration = player.getDuration ? player.getDuration() : 0;
                     const seekRatio = (deltaX / window.innerWidth) * 0.5;
-                    const newTime = Math.max(0, Math.min(duration, dragStartValue + seekRatio * duration));
-                    video.currentTime = newTime;
+                    const newTime = Math.max(0, Math.min(duration, dragStartTime + seekRatio * duration));
+                    
+                    // 使用 player.seek() 跳转到目标时间
+                    player.seek(newTime);
                 }
 
                 // 保存最终设置的值作为下次的基准
