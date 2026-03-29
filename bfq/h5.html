@@ -11,7 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         html, body {
             width: 100%;
             height: 100%;
@@ -19,18 +19,18 @@
             overflow: hidden;
             touch-action: none;
         }
-        
+
         #player-container {
             width: 100%;
             height: 100%;
             position: relative;
         }
-        
+
         /* 隐藏字幕按钮 */
         .prism-cc-btn {
             display: none !important;
         }
-        
+
         /* 错误提示样式 - 文字形式，无弹窗 */
         .error-tip {
             position: absolute;
@@ -46,11 +46,11 @@
             padding: 20px;
             border-radius: 8px;
         }
-        
+
         .error-tip.show {
             display: block;
         }
-        
+
         /* 手势提示 */
         .gesture-hint {
             position: absolute;
@@ -67,11 +67,11 @@
             transition: opacity 0.3s;
             z-index: 999;
         }
-        
+
         .gesture-hint.show {
             opacity: 1;
         }
-        
+
         /* 短剧竖屏适配 */
         .short-video-mode video {
             object-fit: contain !important;
@@ -79,28 +79,28 @@
             width: auto !important;
             max-width: 100% !important;
         }
-        
+
         /* 全屏时的竖屏短剧样式 */
         .prism-fullscreen.short-video-mode video {
             object-fit: contain !important;
         }
-        
+
         /* 进度条自动隐藏 */
         .prism-controlbar {
             transition: opacity 0.3s ease;
         }
-        
+
         .prism-controlbar.hide {
             opacity: 0;
             pointer-events: none;
         }
-        
+
         /* 进度条hover时不隐藏 */
         .prism-controlbar:hover {
             opacity: 1 !important;
             pointer-events: auto !important;
         }
-        
+
         /* 双击时的视觉反馈 */
         .double-tap-indicator {
             position: absolute;
@@ -116,18 +116,19 @@
             transition: opacity 0.2s;
             z-index: 998;
         }
-        
+
         .double-tap-indicator.show {
             opacity: 1;
             animation: tapPulse 0.3s ease;
         }
-        
+
         @keyframes tapPulse {
             0% { transform: translate(-50%, -50%) scale(0.8); }
             50% { transform: translate(-50%, -50%) scale(1.1); }
             100% { transform: translate(-50%, -50%) scale(1); }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div id="player-container">
@@ -139,7 +140,7 @@
 
     <script src="https://g.alicdn.com/de/prismplayer/2.9.3/aliplayer-min.js"></script>
     <script src="https://player.alicdn.com/aliplayer/presentation/js/aliplayercomponents.min.js"></script>
-    
+
     <script>
         // 获取URL参数
         function getUrlParam(name) {
@@ -148,18 +149,33 @@
             if (r != null) return decodeURIComponent(r[2]);
             return null;
         }
-        
+
+        // 格式化时间为 HH:MM:SS
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) return "00:00";
+
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+
+            if (hours > 0) {
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            } else {
+                return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+        }
+
         const videoUrl = getUrlParam('url');
         const errorTip = document.getElementById('errorTip');
         const gestureHint = document.getElementById('gestureHint');
         const tapIndicator = document.getElementById('tapIndicator');
-        
+
         // 全局状态变量 - 用于记忆音量和亮度
         let currentVolume = 0.8;  // 默认音量80%
         let currentBrightness = 100;  // 默认亮度100%
         let lastSetVolume = 0.8;  // 上次设置的音量
         let lastSetBrightness = 100;  // 上次设置的亮度
-        
+
         if (!videoUrl) {
             errorTip.textContent = '请提供视频地址，格式: ?url=视频地址';
             errorTip.classList.add('show');
@@ -196,13 +212,14 @@
                             {name: "playButton", align: "tl", x: 15, y: 12},
                             {name: "timeDisplay", align: "tl", x: 10, y: 7},
                             {name: "fullScreenButton", align: "tr", x: 10, y: 12},
+                            {name: "setting", align: "tr", x: 15, y: 12},  // 设置按钮
                             {name: "volume", align: "tr", x: 5, y: 10}
                         ]
                     }
                 ]
             }, function(player) {
                 console.log('播放器创建成功');
-                
+
                 // 检测是否为短剧（竖屏视频）
                 player.on('loadedmetadata', function() {
                     const video = player._el.querySelector('video');
@@ -215,18 +232,18 @@
                         video.volume = currentVolume;
                     }
                 });
-                
+
                 // 错误处理 - 显示文字提示，无弹窗
                 player.on('error', function(e) {
                     errorTip.classList.add('show');
                     console.error('播放错误:', e);
                 });
-                
+
                 // 隐藏错误提示当播放正常时
                 player.on('play', function() {
                     errorTip.classList.remove('show');
                 });
-                
+
                 // 音量变化时更新记忆值
                 player.on('volumechange', function() {
                     const video = getVideoElement();
@@ -236,13 +253,13 @@
                     }
                 });
             });
-            
+
             // 获取或创建视频元素引用
             function getVideoElement() {
                 return document.querySelector('.prism-player video') || 
                        document.querySelector('#player video');
             }
-            
+
             // 显示手势提示
             function showHint(text) {
                 gestureHint.textContent = text;
@@ -251,7 +268,7 @@
                     gestureHint.classList.remove('show');
                 }, 1000);
             }
-            
+
             // 显示双击反馈
             function showTapFeedback() {
                 tapIndicator.classList.add('show');
@@ -259,11 +276,11 @@
                     tapIndicator.classList.remove('show');
                 }, 300);
             }
-            
+
             // 进度条自动隐藏控制
             let controlBarHideTimer = null;
             const controlBar = document.querySelector('.prism-controlbar');
-            
+
             function showControlBar() {
                 if (controlBar) {
                     controlBar.classList.remove('hide');
@@ -280,14 +297,14 @@
                     }
                 }, 3000);
             }
-            
+
             // 监听播放器交互来显示控制条
             const playerEl = document.getElementById('player');
-            
+
             // 鼠标/触摸移动时显示控制条
             playerEl.addEventListener('mousemove', showControlBar);
             playerEl.addEventListener('touchstart', showControlBar);
-            
+
             // 移动端手势控制
             let touchStartX = 0;
             let touchStartY = 0;
@@ -297,23 +314,23 @@
             let isDragging = false;
             let dragType = null; // 'progress', 'volume', 'brightness'
             let dragStartValue = 0; // 拖动开始时的基准值
-            
+
             // 双击检测
             let lastTapTime = 0;
             let lastTapX = 0;
             let lastTapY = 0;
-            
+
             // 触摸开始
             playerEl.addEventListener('touchstart', function(e) {
                 if (e.touches.length !== 1) return;
-                
+
                 const touch = e.touches[0];
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
                 touchStartTime = Date.now();
                 isDragging = false;
                 dragType = null;
-                
+
                 // 双击检测 (300ms内，距离小于40px)
                 const now = Date.now();
                 const timeDiff = now - lastTapTime;
@@ -321,14 +338,14 @@
                     Math.pow(touch.clientX - lastTapX, 2) + 
                     Math.pow(touch.clientY - lastTapY, 2)
                 );
-                
+
                 if (timeDiff < 300 && distance < 40) {
                     // 双击 - 暂停/播放
                     e.preventDefault();
                     clearTimeout(longPressTimer);
-                    
+
                     showTapFeedback();
-                    
+
                     if (player) {
                         if (player.paused && player.paused()) {
                             player.play();
@@ -338,15 +355,15 @@
                             showHint('暂停');
                         }
                     }
-                    
+
                     lastTapTime = 0; // 重置，防止三连击误判
                     return;
                 }
-                
+
                 lastTapTime = now;
                 lastTapX = touch.clientX;
                 lastTapY = touch.clientY;
-                
+
                 // 长按检测（2倍速）
                 isLongPress = false;
                 longPressTimer = setTimeout(() => {
@@ -357,27 +374,27 @@
                     }
                 }, 500);
             }, {passive: false});
-            
+
             // 触摸移动
             playerEl.addEventListener('touchmove', function(e) {
                 if (e.touches.length !== 1) return;
-                
+
                 const touch = e.touches[0];
                 const deltaX = touch.clientX - touchStartX;
                 const deltaY = touch.clientY - touchStartY;
                 const absX = Math.abs(deltaX);
                 const absY = Math.abs(deltaY);
-                
+
                 // 取消长按
                 if (absX > 10 || absY > 10) {
                     clearTimeout(longPressTimer);
                 }
-                
+
                 // 确定拖动类型
                 if (!isDragging && (absX > 30 || absY > 30)) {
                     isDragging = true;
                     const screenWidth = window.innerWidth;
-                    
+
                     if (absX > absY) {
                         // 水平滑动 - 快进/快退
                         dragType = 'progress';
@@ -394,60 +411,61 @@
                         }
                     }
                 }
-                
+
                 if (isDragging) {
                     e.preventDefault();
                     const video = getVideoElement();
-                    
+
                     if (dragType === 'progress' && video) {
                         // 滑动快进/快退
                         const duration = video.duration || 0;
                         const seekRatio = (deltaX / window.innerWidth) * 0.5;
                         const newTime = Math.max(0, Math.min(duration, dragStartValue + seekRatio * duration));
-                        
+                        const seekSeconds = Math.abs(seekRatio * duration);
+
                         if (Math.abs(deltaX) > 20) {
                             const direction = deltaX > 0 ? '快进' : '快退';
-                            const seconds = Math.abs(Math.floor(seekRatio * duration));
-                            showHint(`${direction} ${seconds}秒`);
+                            const timeStr = formatTime(seekSeconds);
+                            showHint(`${direction} ${timeStr}`);
                         }
                     } else if (dragType === 'volume') {
                         // 滑动调节音量 - 基于上次设置的值
                         const deltaPercent = -(deltaY / window.innerHeight) * 1.5;
                         const newVolume = Math.max(0, Math.min(1, dragStartValue + deltaPercent));
-                        
+
                         if (video) {
                             video.volume = newVolume;
                             currentVolume = newVolume;
                         }
                         showHint(`音量 ${Math.round(newVolume * 100)}%`);
                     } else if (dragType === 'brightness') {
-                        // 滑动调节亮度 - 基于上次设置的值
-                        const deltaPercent = -(deltaY / window.innerHeight) * 150;
-                        const newBrightness = Math.max(0, Math.min(200, dragStartValue + deltaPercent));
-                        
-                        // 通过CSS filter调节亮度
+                        // 滑动调节亮度 - 基于上次设置的值，最高100%
+                        const deltaPercent = -(deltaY / window.innerHeight) * 100;
+                        const newBrightness = Math.max(0, Math.min(100, dragStartValue + deltaPercent));
+
+                        // 通过CSS filter调节亮度，最低30%保证可见
                         const brightnessValue = Math.max(0.3, newBrightness / 100);
                         playerEl.style.filter = `brightness(${brightnessValue})`;
-                        
+
                         currentBrightness = newBrightness;
                         showHint(`亮度 ${Math.round(newBrightness)}%`);
                     }
                 }
             }, {passive: false});
-            
+
             // 触摸结束
             playerEl.addEventListener('touchend', function(e) {
                 clearTimeout(longPressTimer);
-                
+
                 const video = getVideoElement();
-                
+
                 if (isLongPress) {
                     // 恢复倍速
                     if (player && player.setSpeed) {
                         player.setSpeed(1);
                     }
                 }
-                
+
                 if (isDragging && dragType === 'progress' && video) {
                     // 应用进度跳转
                     const touch = e.changedTouches[0];
@@ -457,14 +475,14 @@
                     const newTime = Math.max(0, Math.min(duration, dragStartValue + seekRatio * duration));
                     video.currentTime = newTime;
                 }
-                
+
                 // 保存最终设置的值作为下次的基准
                 if (dragType === 'volume') {
                     lastSetVolume = currentVolume;
                 } else if (dragType === 'brightness') {
                     lastSetBrightness = currentBrightness;
                 }
-                
+
                 // 延迟重置拖动状态，让控制条有机会保持显示
                 setTimeout(() => {
                     isDragging = false;
@@ -473,7 +491,7 @@
                     showControlBar();
                 }, 100);
             });
-            
+
             // 监听全屏变化，自动适配短剧
             player.on('requestFullScreen', function() {
                 const video = getVideoElement();
@@ -484,21 +502,21 @@
                     }
                 }
             });
-            
+
             player.on('cancelFullScreen', function() {
                 // 退出全屏时解锁方向
                 if (screen.orientation && screen.orientation.unlock) {
                     screen.orientation.unlock();
                 }
             });
-            
+
             // 重力感应支持
             if (window.DeviceOrientationEvent) {
                 window.addEventListener('deviceorientation', function(e) {
                     // Aliplayer 内部已处理重力感应全屏切换
                 });
             }
-            
+
             // 预加载处理 - 设置视频预加载属性
             setTimeout(() => {
                 const video = getVideoElement();
