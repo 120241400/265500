@@ -1,3 +1,4 @@
+﻿
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -97,8 +98,8 @@ html, body {
 <div class="nav-box">
     <div class="nav-scroll">
         <div class="nav-list">
-            <button class="nav-btn" data-prefix="./ffplayer.html?url=">主播放器</button>
-            <button class="nav-btn" data-prefix="./bfq2.html?url=">备播放器</button>
+            <button class="nav-btn" data-player="main">主播放器</button>
+            <button class="nav-btn" data-player="backup">备播放器</button>
             <button class="nav-btn" data-url="./lingquan.html">淘宝领券</button>
             <button class="nav-btn" data-url="">勿信广告</button>
         </div>
@@ -119,10 +120,19 @@ html, body {
 <div class="footer-box"></div>
 
 <script>
+// ============================================
+// 播放器配置 - 只需修改这里的路径
+// ============================================
+const PLAYER_CONFIG = {
+    main: './ffplayer.html?url=',      // 主播放器路径
+    backup: './aliplayer.html?url='         // 备播放器路径
+};
+
 function getUrlKeyword() {
     const params = new URLSearchParams(window.location.search);
     return params.get('url') || '';
 }
+
 function cleanUrl(rawUrl) {
     if (!rawUrl) return null;
     const httpsStartIndex = rawUrl.indexOf('https');
@@ -135,6 +145,7 @@ function cleanUrl(rawUrl) {
     }
     return rawUrl;
 }
+
 function parseM3u8Url(cleanedUrl) {
     if (!cleanedUrl) return null;
     if ((cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) && cleanedUrl.includes('.m3u8')) {
@@ -144,6 +155,12 @@ function parseM3u8Url(cleanedUrl) {
         }
     }
     return null;
+}
+
+// 获取播放器URL（根据配置和M3U8状态）
+function getPlayerUrl(playerKey, m3u8Url) {
+    const baseUrl = PLAYER_CONFIG[playerKey];
+    return `${baseUrl}${encodeURIComponent(m3u8Url)}`;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -156,13 +173,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (cleanedUrl) {
         const m3u8Url = parseM3u8Url(cleanedUrl);
         if (m3u8Url) {
-            iframe.src = `./ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
+            iframe.src = getPlayerUrl('main', m3u8Url);
         } else {
             if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
                 iframe.src = cleanedUrl;
             } else {
-                const defaultPrefix = playerBtn.getAttribute('data-prefix');
-                iframe.src = defaultPrefix + encodeURIComponent(cleanedUrl);
+                iframe.src = getPlayerUrl('main', cleanedUrl);
             }
         }
     } else {
@@ -173,23 +189,19 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', function () {
             const kw = getUrlKeyword();
             const cleanedUrl = cleanUrl(kw);
-            const prefix = this.getAttribute('data-prefix');
+            const playerKey = this.getAttribute('data-player');
             const targetUrl = this.getAttribute('data-url');
 
-            if (prefix) {
+            if (playerKey) {
                 if (!kw || !cleanedUrl) return;
                 const m3u8Url = parseM3u8Url(cleanedUrl);
                 if (m3u8Url) {
-                    if (prefix === './ffplayer.html?url=') {
-                        iframe.src = `./ffplayer.html?url=${encodeURIComponent(m3u8Url)}`;
-                    } else {
-                        iframe.src = `./bfq2.html?url=${encodeURIComponent(m3u8Url)}`;
-                    }
+                    iframe.src = getPlayerUrl(playerKey, m3u8Url);
                 } else {
                     if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
                         iframe.src = cleanedUrl;
                     } else {
-                        iframe.src = prefix + encodeURIComponent(cleanedUrl);
+                        iframe.src = getPlayerUrl(playerKey, cleanedUrl);
                     }
                 }
             } else if (targetUrl) {
