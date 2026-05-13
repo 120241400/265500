@@ -1,4 +1,5 @@
-﻿
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -454,6 +455,69 @@
             width: 100%;
             height: 100%;
         }
+
+        /* 搜索结果加载提示 */
+        .search-loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 15, 29, 0.92);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .search-loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .search-loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(59, 130, 246, 0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .search-loading-text {
+            color: var(--color-text-primary);
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .search-loading-subtext {
+            color: var(--color-text-secondary);
+            font-size: 0.85rem;
+            margin-top: -8px;
+        }
+
+        .search-loading-tip {
+            margin-top: 12px;
+            padding: 8px 20px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 20px;
+            color: #f87171;
+            font-size: 0.8rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -498,6 +562,13 @@
                 sandbox="allow-scripts allow-same-origin allow-popups allow-fullscreen allow-forms"
                 frameborder="0"
             ></iframe>
+        <!-- 搜索结果加载提示 -->
+            <div class="search-loading-overlay" id="searchLoadingOverlay">
+                <div class="search-loading-spinner"></div>
+                <div class="search-loading-text">正在搜索影片资源...</div>
+                <div class="search-loading-subtext">请稍后，或更换线路</div>
+                <div class="search-loading-tip">💡 若长时间无响应，可尝试切换「一线」或「二线」</div>
+            </div>
         </div>
 
         <div class="footer-box"></div>
@@ -516,6 +587,31 @@
     </div>
 
     <script>
+        // 搜索加载提示管理器
+        const SearchLoadingManager = {
+            overlay: null,
+            timer: null,
+            init() {
+                this.overlay = document.getElementById('searchLoadingOverlay');
+            },
+            show() {
+                if (this.overlay) {
+                    this.overlay.classList.add('show');
+                    // 8秒后自动隐藏（防止卡住）
+                    this.timer = setTimeout(() => this.hide(), 8000);
+                }
+            },
+            hide() {
+                if (this.overlay) {
+                    this.overlay.classList.remove('show');
+                }
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                    this.timer = null;
+                }
+            }
+        };
+
         const CONSTANTS = {
             SOGOU_URL: '/bfq/lingquan.html',
             DEFAULT_PREFIX: '/yingshi/2/1907.html?url=',
@@ -648,8 +744,13 @@
                     // 点击气泡：跳转搜索模式（与原有热门影片行为一致）
                     bubble.onclick = () => {
                         if (title) {
-                            // 编码并跳转至带url参数的页面，触发播放搜索
-                            window.location.href = `?url=${encodeURIComponent(title)}`;
+                            // 先显示加载提示再跳转
+                            SearchLoadingManager.init();
+                            SearchLoadingManager.show();
+                            // 短暂延迟后跳转，让用户看到加载提示
+                            setTimeout(() => {
+                                window.location.href = `?url=${encodeURIComponent(title)}`;
+                            }, 300);
                         }
                     };
                     this.container.appendChild(bubble);
@@ -691,6 +792,10 @@
             if (keyword) {
                 // 含有搜索关键词 → 显示播放器iframe
                 utils.toggleDisplayMode(true);
+                SearchLoadingManager.init();
+                SearchLoadingManager.show();
+                elements.iframe.onload = () => SearchLoadingManager.hide();
+                elements.iframe.onerror = () => SearchLoadingManager.hide();
                 elements.iframe.src = `${CONSTANTS.DEFAULT_PREFIX}${encodeURIComponent(keyword)}`;
                 // 高亮第一个有效线路按钮（active已经在DOM上）
             } else {
@@ -752,6 +857,9 @@
                     utils.toggleActiveNavBtn(this);
                     const prefix = this.getAttribute('data-prefix');
                     if (prefix && elements.iframe) {
+                        SearchLoadingManager.show();
+                        elements.iframe.onload = () => SearchLoadingManager.hide();
+                        elements.iframe.onerror = () => SearchLoadingManager.hide();
                         elements.iframe.src = `${prefix}${encodeURIComponent(currentKeyword)}`;
                         // 确保显示在iframe容器
                         utils.toggleDisplayMode(true);
@@ -776,7 +884,14 @@
                     val = val.split(' ')[0];
                 }
                 if (val) {
-                    location.href = `?url=${encodeURIComponent(val)}`;
+                    // 关闭搜索模态框，显示加载提示
+                    elements.searchModal.classList.remove('show');
+                    SearchLoadingManager.init();
+                    SearchLoadingManager.show();
+                    // 短暂延迟后跳转，让用户看到加载提示
+                    setTimeout(() => {
+                        location.href = `?url=${encodeURIComponent(val)}`;
+                    }, 300);
                 } else {
                     alert('请输入影片关键词');
                 }
