@@ -456,25 +456,24 @@
             height: 100%;
         }
 
-        /* 搜索结果加载提示 */
+        /* 搜索结果加载提示 - 底层常驻，iframe加载完成后覆盖 */
         .search-loading-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(10, 15, 29, 0.92);
-            z-index: 10;
+            background: var(--color-bg-secondary);
+            z-index: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 16px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
         }
 
-        .search-loading-overlay.show {
-            opacity: 1;
-            visibility: visible;
+        .search-loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
 
         .search-loading-spinner {
@@ -562,7 +561,7 @@
                 sandbox="allow-scripts allow-same-origin allow-popups allow-fullscreen allow-forms"
                 frameborder="0"
             ></iframe>
-        <!-- 搜索结果加载提示 -->
+        <!-- 搜索结果加载提示 - 底层，iframe加载完成后覆盖 -->
             <div class="search-loading-overlay" id="searchLoadingOverlay">
                 <div class="search-loading-spinner"></div>
                 <div class="search-loading-text">正在搜索影片资源...</div>
@@ -587,27 +586,20 @@
     </div>
 
     <script>
-        // 搜索加载提示管理器
+        // 搜索加载提示管理器 - 底层常驻，加载完成后隐藏
         const SearchLoadingManager = {
             overlay: null,
-            timer: null,
             init() {
                 this.overlay = document.getElementById('searchLoadingOverlay');
             },
             show() {
                 if (this.overlay) {
-                    this.overlay.classList.add('show');
-                    // 8秒后自动隐藏（防止卡住）
-                    this.timer = setTimeout(() => this.hide(), 8000);
+                    this.overlay.classList.remove('hidden');
                 }
             },
             hide() {
                 if (this.overlay) {
-                    this.overlay.classList.remove('show');
-                }
-                if (this.timer) {
-                    clearTimeout(this.timer);
-                    this.timer = null;
+                    this.overlay.classList.add('hidden');
                 }
             }
         };
@@ -744,13 +736,8 @@
                     // 点击气泡：跳转搜索模式（与原有热门影片行为一致）
                     bubble.onclick = () => {
                         if (title) {
-                            // 先显示加载提示再跳转
-                            SearchLoadingManager.init();
-                            SearchLoadingManager.show();
-                            // 短暂延迟后跳转，让用户看到加载提示
-                            setTimeout(() => {
-                                window.location.href = `?url=${encodeURIComponent(title)}`;
-                            }, 300);
+                            // 直接跳转，加载提示会在搜索结果页默认显示
+                            window.location.href = `?url=${encodeURIComponent(title)}`;
                         }
                     };
                     this.container.appendChild(bubble);
@@ -793,7 +780,7 @@
                 // 含有搜索关键词 → 显示播放器iframe
                 utils.toggleDisplayMode(true);
                 SearchLoadingManager.init();
-                SearchLoadingManager.show();
+                // 加载提示默认显示（底层），iframe加载完成后覆盖
                 elements.iframe.onload = () => SearchLoadingManager.hide();
                 elements.iframe.onerror = () => SearchLoadingManager.hide();
                 elements.iframe.src = `${CONSTANTS.DEFAULT_PREFIX}${encodeURIComponent(keyword)}`;
@@ -884,14 +871,10 @@
                     val = val.split(' ')[0];
                 }
                 if (val) {
-                    // 关闭搜索模态框，显示加载提示
+                    // 关闭搜索模态框
                     elements.searchModal.classList.remove('show');
-                    SearchLoadingManager.init();
-                    SearchLoadingManager.show();
-                    // 短暂延迟后跳转，让用户看到加载提示
-                    setTimeout(() => {
-                        location.href = `?url=${encodeURIComponent(val)}`;
-                    }, 300);
+                    // 直接跳转，加载提示会在新页面默认显示
+                    location.href = `?url=${encodeURIComponent(val)}`;
                 } else {
                     alert('请输入影片关键词');
                 }
