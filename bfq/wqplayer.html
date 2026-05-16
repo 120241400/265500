@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -43,6 +44,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .top-bar{position:absolute;top:0;left:0;right:0;z-index:20;padding:calc(var(--safe-t) + 10px) 14px 28px;background:linear-gradient(rgba(0,0,0,.72),transparent);transition:opacity .35s,transform .35s}
 .top-bar.hide{opacity:0;transform:translateY(-10px);pointer-events:none}
 .top-bar .tb-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70vw}
+.top-bar .tb-time{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;font-family:"Courier New",monospace;color:var(--fg);text-shadow:0 1px 6px rgba(0,0,0,.8);opacity:0;transition:opacity .3s}
+.top-bar .tb-time.show{opacity:1}
 
 .controls{position:absolute;bottom:0;left:0;right:0;z-index:20;padding-bottom:var(--safe-b);background:linear-gradient(transparent,rgba(0,0,0,.82));transition:opacity .35s,transform .35s}
 .controls.hide{opacity:0;transform:translateY(10px);pointer-events:none}
@@ -103,6 +106,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 <div class="player" id="player">
@@ -129,6 +133,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
   <div class="top-bar hide" id="topBar">
     <span class="tb-title">请勿相信视频中的广告</span>
+    <span class="tb-time" id="tbTime">00:00</span>
   </div>
 
   <div class="controls hide" id="controls">
@@ -603,6 +608,7 @@ let controlsVisible = false;
 function showControls() {
   $('#controls').classList.remove('hide');
   $('#topBar').classList.remove('hide');
+  $('#tbTime').classList.add('show');
   controlsVisible = true;
   resetControlsTimer();
 }
@@ -611,6 +617,7 @@ function hideControls() {
   if (video.paused || isDragging || speedPanel.classList.contains('open')) return;
   $('#controls').classList.add('hide');
   $('#topBar').classList.add('hide');
+  $('#tbTime').classList.remove('show');
   controlsVisible = false;
 }
 
@@ -891,6 +898,19 @@ updatePlayUI();
 
 // 页面关闭/刷新前保存进度
 window.addEventListener('beforeunload', saveProgress);
+
+// 本机时间显示（与进度条同步显示/隐藏）
+function updateLocalTime() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const el = $('#tbTime');
+  if (el) el.textContent = h + ':' + m;
+}
+
+// 每分钟更新本机时间（时/分变化时才需要更新）
+setInterval(updateLocalTime, 1000);
+updateLocalTime(); // 初始化
 </script>
 </body>
 </html>
