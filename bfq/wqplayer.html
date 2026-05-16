@@ -264,7 +264,8 @@ async function initPlayer(url) {
   $('#noUrl').style.display = 'none';
   videoUrl = url;
   retryCount = 0;
-  savedTime = 0;
+  // 恢复该链接上次保存的播放进度
+  savedTime = parseFloat(localStorage.getItem('wq_time_' + url)) || 0;
   hideError();
 
   if (isHlsUrl(url)) {
@@ -277,6 +278,13 @@ async function initPlayer(url) {
 function initMp4(url) {
   video.src = url;
   video.load();
+  if (savedTime > 0) {
+    video.addEventListener('loadedmetadata', function restoreTime() {
+      video.currentTime = savedTime;
+      showToast('已恢复上次播放进度: ' + fmtTime(savedTime));
+      video.removeEventListener('loadedmetadata', restoreTime);
+    });
+  }
 }
 
 async function initHls(url) {
@@ -309,7 +317,10 @@ function createHlsInstance(Hls, url) {
   hlsInstance.on(Hls.Events.MANIFEST_PARSED, (e, data) => {
     isLive = data.levels.some(l => l.details?.live);
     updateLiveUI();
-    if (savedTime > 0 && !isLive) { video.currentTime = savedTime; }
+    if (savedTime > 0 && !isLive) {
+      video.currentTime = savedTime;
+      showToast('已恢复上次播放进度: ' + fmtTime(savedTime));
+    }
   });
 
   hlsInstance.on(Hls.Events.ERROR, (e, data) => {
@@ -332,6 +343,7 @@ function createHlsInstance(Hls, url) {
 }
 
 video.addEventListener('error', () => {
+  saveProgress();
   if (retryCount < MAX_RETRY) tryRetry();
   else showError(`视频加载失败（已重试${MAX_RETRY}次）`);
 });
@@ -339,8 +351,21 @@ video.addEventListener('error', () => {
 function tryRetry() {
   retryCount++;
   savedTime = video.currentTime || savedTime;
+  saveProgress();
   showToast(`加载失败，第${retryCount}次重试...`);
   setTimeout(() => initPlayer(videoUrl), 1500);
+}
+
+function saveProgress() {
+  if (videoUrl && isFinite(video.currentTime) && video.currentTime > 0) {
+    localStorage.setItem('wq_time_' + videoUrl, video.currentTime);
+  }
+}
+
+function clearProgress() {
+  if (videoUrl) {
+    localStorage.removeItem('wq_time_' + videoUrl);
+  }
 }
 
 function showError(msg) {
@@ -366,12 +391,12 @@ function updatePlayUI() {
 }
 
 video.addEventListener('play', updatePlayUI);
-video.addEventListener('pause', updatePlayUI);
-video.addEventListener('ended', () => { updatePlayUI(); showControls(); });
+video.addEventListener('pause', () => { updatePlayUI(); saveProgress(); });
+video.addEventListener('ended', () => { updatePlayUI(); showControls(); clearProgress(); });
 
 $('#centerPlay').addEventListener('click', togglePlay);$('#btnPlay').addEventListener('click', togglePlay);
 
-video.addEventListener('waiting', () => $('#loader').classList.add('show'));
+video.addEventListener('waiting', () => { $('#loader').classList.add('show'); saveProgress(); });
 video.addEventListener('canplay', () => $('#loader').classList.remove('show'));
 video.addEventListener('playing', () => $('#loader').classList.remove('show'));
 
@@ -399,7 +424,13 @@ const updateProgress = throttle(() => {
   $('#timeCur').textContent = fmtTime(video.currentTime);
 }, 200);
 
-video.addEventListener('timeupdate', updateProgress);
+video.addEventListener('timeupdate', () => {
+  updateProgress();
+  // 每5秒保存一次播放进度
+  if (Math.floor(video.currentTime) % 5 === 0 && video.currentTime > 1) {
+    saveProgress();
+  }
+});
 
 video.addEventListener('progress', () => {
   if (!video.duration || !isFinite(video.duration) || !video.buffered.length) return;
@@ -857,6 +888,9 @@ if (url) {
 
 showControls();
 updatePlayUI();
+
+// 页面关闭/刷新前保存进度
+window.addEventListener('beforeunload', saveProgress);
 </script>
 </body>
 </html>
