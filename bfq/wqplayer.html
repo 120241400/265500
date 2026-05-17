@@ -86,7 +86,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 .no-url{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:30}
 .no-url .material-symbols-rounded{font-size:56px;color:rgba(255,255,255,.15)}
-.no-url .nu-hint{color:rgba(255,255,255,.45);font-size:16px;font-weight:500}
+.no-url .nu-hint{color:rgba(255,255,255,.45);font-size:16px;font-weight:700;margin-top:20px}
 
 .toast{position:absolute;top:calc(var(--safe-t) + 54px);left:50%;transform:translateX(-50%) translateY(-16px);background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--fg);padding:7px 18px;border-radius:10px;font-size:12px;opacity:0;transition:opacity .25s,transform .25s;z-index:50;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -114,7 +114,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
     <span class="st-time" id="stTime">00:10 / 01:30:00</span>
   </div>
 
-  <div class="center-play" id="centerPlay">
+  <div class="center-play hide" id="centerPlay">
     <span class="material-symbols-rounded">play_arrow</span>
   </div>
 
@@ -250,6 +250,7 @@ let savedTime = 0;
 let currentSpeed = 1;
 let isLongPress = false;
 let longPressOrigSpeed = 1;
+let isSeeking = false; // 标记是否正在seek操作中
 
 function getStorageKey(url) {
   return 'wq_time_' + url;
@@ -281,9 +282,16 @@ function clearProgress() {
   }
 }
 
+// ========== 修复核心：增强的重连恢复逻辑 ==========
+
 async function initPlayer(url) {
-  if (!url) { $('#noUrl').style.display = 'flex'; return; }
+  if (!url) { 
+    $('#noUrl').style.display = 'flex'; 
+    $('#centerPlay').classList.add('hide');
+    return; 
+  }
   $('#noUrl').style.display = 'none';
+  $('#centerPlay').classList.remove('hide');
   videoUrl = url;
   retryCount = 0;
   savedTime = getStoredTime(url);
@@ -301,14 +309,40 @@ function initMp4(url) {
   video.load();
   const storedTime = getStoredTime(url);
   if (storedTime > 0) {
-    const restoreHandler = function() {
-      video.currentTime = storedTime;
-      showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+    // 使用多重事件监听确保恢复成功
+    const restoreHandler = function(e) {
+      if (isSeeking) return; // 避免重复触发
+      isSeeking = true;
+
+      // 先检查视频是否已准备好seek
+      if (video.readyState >= 1) {
+        video.currentTime = storedTime;
+        showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+      }
+
+      // 清理所有监听器
       video.removeEventListener('loadedmetadata', restoreHandler);
       video.removeEventListener('loadeddata', restoreHandler);
+      video.removeEventListener('canplay', restoreHandler);
+
+      setTimeout(() => { isSeeking = false; }, 500);
     };
+
     video.addEventListener('loadedmetadata', restoreHandler);
     video.addEventListener('loadeddata', restoreHandler);
+    video.addEventListener('canplay', restoreHandler);
+
+    // 备用：如果事件没触发，用轮询检查
+    let checkCount = 0;
+    const checkInterval = setInterval(() => {
+      checkCount++;
+      if (video.readyState >= 2 && !isSeeking && video.currentTime !== storedTime) {
+        video.currentTime = storedTime;
+        showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+        clearInterval(checkInterval);
+      }
+      if (checkCount > 20) clearInterval(checkInterval); // 最多等2秒
+    }, 100);
   }
 }
 
@@ -318,14 +352,36 @@ async function initHls(url) {
     video.load();
     const storedTime = getStoredTime(url);
     if (storedTime > 0) {
-      const restoreHandler = function() {
-        video.currentTime = storedTime;
-        showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+      const restoreHandler = function(e) {
+        if (isSeeking) return;
+        isSeeking = true;
+
+        if (video.readyState >= 1) {
+          video.currentTime = storedTime;
+          showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+        }
+
         video.removeEventListener('loadedmetadata', restoreHandler);
         video.removeEventListener('loadeddata', restoreHandler);
+        video.removeEventListener('canplay', restoreHandler);
+
+        setTimeout(() => { isSeeking = false; }, 500);
       };
+
       video.addEventListener('loadedmetadata', restoreHandler);
       video.addEventListener('loadeddata', restoreHandler);
+      video.addEventListener('canplay', restoreHandler);
+
+      let checkCount = 0;
+      const checkInterval = setInterval(() => {
+        checkCount++;
+        if (video.readyState >= 2 && !isSeeking && video.currentTime !== storedTime) {
+          video.currentTime = storedTime;
+          showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+          clearInterval(checkInterval);
+        }
+        if (checkCount > 20) clearInterval(checkInterval);
+      }, 100);
     }
     return;
   }
@@ -353,10 +409,21 @@ function createHlsInstance(Hls, url) {
   hlsInstance.on(Hls.Events.MANIFEST_PARSED, (e, data) => {
     isLive = data.levels.some(l => l.details?.live);
     updateLiveUI();
+
+    // 增强恢复逻辑
     const storedTime = getStoredTime(videoUrl);
     if (storedTime > 0 && !isLive) {
-      video.currentTime = storedTime;
-      showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+      if (isSeeking) return;
+      isSeeking = true;
+
+      // 延迟一点确保HLS已准备好
+      setTimeout(() => {
+        if (video.readyState >= 1) {
+          video.currentTime = storedTime;
+          showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+        }
+        isSeeking = false;
+      }, 300);
     }
   });
 
@@ -385,13 +452,25 @@ video.addEventListener('error', () => {
   else showError(`视频加载失败（已重试${MAX_RETRY}次）`);
 });
 
+// ========== 修复核心：重试时强制从localStorage读取 ==========
+
 function tryRetry() {
   retryCount++;
+
+  // 先保存当前有效进度到localStorage
   const ct = video.currentTime;
   if (isFinite(ct) && ct > 3) {
+    localStorage.setItem(getStorageKey(videoUrl), ct);
     savedTime = ct;
-    saveProgress();
   }
+
+  // 如果当前时间无效，确保不覆盖localStorage中的有效值
+  // 通过重新读取来确认
+  const stored = getStoredTime(videoUrl);
+  if (stored > 0) {
+    savedTime = stored;
+  }
+
   showToast(`加载失败，第${retryCount}次重试...`);
   setTimeout(() => initPlayer(videoUrl), 1500);
 }
@@ -414,7 +493,7 @@ function updatePlayUI() {
   const icon = video.paused ? 'play_arrow' : 'pause';
   $('#btnPlay span').textContent = icon;
   $('#centerPlay span').textContent = icon;
-  if (video.paused) $('#centerPlay').classList.remove('hide');
+  if (video.paused && videoUrl) $('#centerPlay').classList.remove('hide');
   else $('#centerPlay').classList.add('hide');
 }
 
@@ -427,6 +506,19 @@ $('#centerPlay').addEventListener('click', togglePlay);$('#btnPlay').addEventLis
 video.addEventListener('waiting', () => { $('#loader').classList.add('show'); saveProgress(); });
 video.addEventListener('canplay', () => $('#loader').classList.remove('show'));
 video.addEventListener('playing', () => $('#loader').classList.remove('show'));
+
+// 预加载：当视频可以播放时，尝试预加载更多数据
+video.addEventListener('canplaythrough', () => {
+  // 浏览器会自动处理预加载，这里主要是确保缓冲状态更新
+  if (video.buffered.length > 0) {
+    const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+    const duration = video.duration;
+    if (duration && isFinite(duration)) {
+      const bufferedPercent = (bufferedEnd / duration) * 100;
+      // 可以在这里添加缓冲进度显示逻辑
+    }
+  }
+});
 
 function updateLiveUI() {
   if (isLive) {
@@ -893,6 +985,7 @@ if (url) {
   initPlayer(url);
 } else {
   $('#noUrl').style.display = 'flex';
+  $('#centerPlay').classList.add('hide');
 }
 
 showControls();
