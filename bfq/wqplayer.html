@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -105,7 +104,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
-<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -229,8 +227,8 @@ function isHlsUrl(url) {
 }
 
 const HLS_CDNS = [
-  'https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js' ,
-  'https://unpkg.com/hls.js@1.5.7/dist/hls.min.js' ,
+  'https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js',
+  'https://unpkg.com/hls.js@1.5.7/dist/hls.min.js',
   'https://cdn.bootcdn.net/ajax/libs/hls.js/1.5.7/hls.min.js'
 ];
 
@@ -264,13 +262,48 @@ let currentSpeed = 1;
 let isLongPress = false;
 let longPressOrigSpeed = 1;
 
+// ========== 修复核心：进度存储/读取函数 ==========
+
+function getStorageKey(url) {
+  return 'wq_time_' + url;
+}
+
+function getStoredTime(url) {
+  if (!url) return 0;
+  const val = localStorage.getItem(getStorageKey(url));
+  const t = parseFloat(val);
+  return (isFinite(t) && t > 0) ? t : 0;
+}
+
+function saveProgress() {
+  if (!videoUrl) return;
+  const ct = video.currentTime;
+  // 严格条件：有效、大于3秒、且不超过总时长（如果已知）
+  if (isFinite(ct) && ct > 3) {
+    if (video.duration && isFinite(video.duration)) {
+      if (ct >= video.duration - 3) return; // 快结束时不保存
+    }
+    localStorage.setItem(getStorageKey(videoUrl), ct);
+    savedTime = ct;
+  }
+}
+
+function clearProgress() {
+  if (videoUrl) {
+    localStorage.removeItem(getStorageKey(videoUrl));
+    savedTime = 0;
+  }
+}
+
+// ========== 播放器初始化 ==========
+
 async function initPlayer(url) {
   if (!url) { $('#noUrl').style.display = 'flex'; return; }
   $('#noUrl').style.display = 'none';
   videoUrl = url;
   retryCount = 0;
-  // 恢复该链接上次保存的播放进度
-  savedTime = parseFloat(localStorage.getItem('wq_time_' + url)) || 0;
+  // 每次初始化都从 localStorage 重新读取，不依赖可能被污染的 savedTime
+  savedTime = getStoredTime(url);
   hideError();
 
   if (isHlsUrl(url)) {
@@ -283,12 +316,16 @@ async function initPlayer(url) {
 function initMp4(url) {
   video.src = url;
   video.load();
-  if (savedTime > 0) {
-    video.addEventListener('loadedmetadata', function restoreTime() {
-      video.currentTime = savedTime;
-      showToast('已恢复上次播放进度: ' + fmtTime(savedTime));
-      video.removeEventListener('loadedmetadata', restoreTime);
-    });
+  const storedTime = getStoredTime(url);
+  if (storedTime > 0) {
+    const restoreHandler = function() {
+      video.currentTime = storedTime;
+      showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+      video.removeEventListener('loadedmetadata', restoreHandler);
+      video.removeEventListener('loadeddata', restoreHandler);
+    };
+    video.addEventListener('loadedmetadata', restoreHandler);
+    video.addEventListener('loadeddata', restoreHandler);
   }
 }
 
@@ -296,6 +333,17 @@ async function initHls(url) {
   if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = url;
     video.load();
+    const storedTime = getStoredTime(url);
+    if (storedTime > 0) {
+      const restoreHandler = function() {
+        video.currentTime = storedTime;
+        showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+        video.removeEventListener('loadedmetadata', restoreHandler);
+        video.removeEventListener('loadeddata', restoreHandler);
+      };
+      video.addEventListener('loadedmetadata', restoreHandler);
+      video.addEventListener('loadeddata', restoreHandler);
+    }
     return;
   }
   try {
@@ -322,9 +370,11 @@ function createHlsInstance(Hls, url) {
   hlsInstance.on(Hls.Events.MANIFEST_PARSED, (e, data) => {
     isLive = data.levels.some(l => l.details?.live);
     updateLiveUI();
-    if (savedTime > 0 && !isLive) {
-      video.currentTime = savedTime;
-      showToast('已恢复上次播放进度: ' + fmtTime(savedTime));
+    // 从 localStorage 读取，不依赖内存变量
+    const storedTime = getStoredTime(videoUrl);
+    if (storedTime > 0 && !isLive) {
+      video.currentTime = storedTime;
+      showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
     }
   });
 
@@ -348,29 +398,25 @@ function createHlsInstance(Hls, url) {
 }
 
 video.addEventListener('error', () => {
+  // 错误时先保存当前有效进度
   saveProgress();
   if (retryCount < MAX_RETRY) tryRetry();
   else showError(`视频加载失败（已重试${MAX_RETRY}次）`);
 });
 
+// ========== 修复核心：重试逻辑 ==========
+
 function tryRetry() {
   retryCount++;
-  savedTime = video.currentTime || savedTime;
-  saveProgress();
+  // 保护 savedTime：只在 currentTime 有效且大于 3 秒时才更新
+  const ct = video.currentTime;
+  if (isFinite(ct) && ct > 3) {
+    savedTime = ct;
+    saveProgress();
+  }
+  // 如果 currentTime 无效，保持原有的 savedTime（从 localStorage 读取的）
   showToast(`加载失败，第${retryCount}次重试...`);
   setTimeout(() => initPlayer(videoUrl), 1500);
-}
-
-function saveProgress() {
-  if (videoUrl && isFinite(video.currentTime) && video.currentTime > 0) {
-    localStorage.setItem('wq_time_' + videoUrl, video.currentTime);
-  }
-}
-
-function clearProgress() {
-  if (videoUrl) {
-    localStorage.removeItem('wq_time_' + videoUrl);
-  }
 }
 
 function showError(msg) {
@@ -441,7 +487,6 @@ video.addEventListener('progress', () => {
   if (!video.duration || !isFinite(video.duration) || !video.buffered.length) return;
   const end = video.buffered.end(video.buffered.length - 1);
   progBuf.style.width = (end / video.duration * 100) + '%';
-  // Also update duration display on mobile if not set yet
   if ($('#timeDur').textContent === '00:00' && video.duration > 0) {
     $('#timeDur').textContent = fmtTime(video.duration);
   }
@@ -623,11 +668,11 @@ function hideControls() {
 
 function resetControlsTimer() {
   clearTimeout(controlsTimer);
-  controlsTimer = setTimeout(hideControls, 3000); // 3秒后自动隐藏
+  controlsTimer = setTimeout(hideControls, 3000);
 }
 
 player.addEventListener('mousemove', showControls);
-// 移动端双击检测变量
+
 let touchClickCount = 0;
 let touchClickTimer = null;
 
@@ -638,16 +683,13 @@ player.addEventListener('touchstart', (e) => {
 
     touchClickCount++;
     if (touchClickCount === 1) {
-      // 第一次触摸：显示 controls，启动 3秒定时器
       showControls();
       touchClickTimer = setTimeout(() => {
         touchClickCount = 0;
       }, 280);
-      // 标记为 touch 触发，防止 click 事件重复处理
       player.dataset.touched = '1';
       setTimeout(() => { delete player.dataset.touched; }, 400);
     } else if (touchClickCount === 2) {
-      // 第二次触摸（双击）：暂停/播放
       clearTimeout(touchClickTimer);
       touchClickCount = 0;
       togglePlay();
@@ -663,7 +705,6 @@ player.addEventListener('click', (e) => {
       $('#errPanel').contains(e.target) || $('#noUrl').contains(e.target) ||
       speedPanel.contains(e.target)) return;
 
-  // 如果刚刚有 touch 事件处理过，忽略此次 click（移动端防重复）
   if (player.dataset.touched) return;
 
   clickCount++;
@@ -706,7 +747,6 @@ function showGestureTip(icon, text, val) {
 function hideGestureTip() { gestureTip.classList.remove('show'); }
 
 function showSeekTip(delta, cur, total) {
-  // 只显示目标时间点，不显示快进了多少秒
   $('#stTime').textContent = fmtTime(cur) + ' / ' + fmtTime(total);
   seekTip.classList.add('show');
 }
@@ -733,7 +773,6 @@ player.addEventListener('touchstart', (e) => {
       gesture.isLongPress = true;
       longPressOrigSpeed = video.playbackRate;
       video.playbackRate = 2;
-      // 长按倍速仅显示右上角提示，不显示中间手势提示
       if (currentSpeed !== 2) { $('#speedBadge').textContent = '2.0x';$('#speedBadge').classList.add('show'); }
     }
   }, 800);
@@ -757,7 +796,6 @@ player.addEventListener('touchmove', (e) => {
     if (absDx > absDy) {
       gesture.active = true;
       gesture.type = 'horizontal';
-      // 快进提示窗口固定在屏幕正中间
       seekTip.style.left = '50%';
       seekTip.style.transform = 'translate(-50%, -50%)';
     } else {
@@ -899,7 +937,7 @@ updatePlayUI();
 // 页面关闭/刷新前保存进度
 window.addEventListener('beforeunload', saveProgress);
 
-// 本机时间显示（与进度条同步显示/隐藏）
+// 本机时间显示
 function updateLocalTime() {
   const now = new Date();
   const h = String(now.getHours()).padStart(2, '0');
@@ -908,9 +946,8 @@ function updateLocalTime() {
   if (el) el.textContent = h + ':' + m;
 }
 
-// 每分钟更新本机时间（时/分变化时才需要更新）
 setInterval(updateLocalTime, 1000);
-updateLocalTime(); // 初始化
+updateLocalTime();
 </script>
 </body>
 </html>
