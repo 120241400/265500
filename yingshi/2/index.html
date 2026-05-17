@@ -1,3 +1,5 @@
+﻿
+
 
 
 <!DOCTYPE html>
@@ -448,6 +450,17 @@
             }
         }
 
+        /* 主页搜索框样式 */
+        .home-search-wrap input:focus {
+            border-color: #1d4ed8 !important;
+            background: #273449 !important;
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2) !important;
+        }
+        .home-search-wrap button:hover {
+            background: #2563eb !important;
+            transform: translateY(-1px) !important;
+        }
+
         /* 全屏兼容 */
         :-webkit-full-screen #search-iframe,
         :-moz-full-screen #search-iframe,
@@ -527,7 +540,7 @@
                     <button class="nav-btn home-btn" id="homeBtn">🏠 主页</button>
                     <button class="nav-btn active" data-prefix="/yingshi/2/1907.html?url=">一线</button>
                     <button class="nav-btn" data-prefix="https://video.isyour.love/player/getplayer?url=">二线</button>
-                    <button class="nav-btn" id="openSearch">🔍 搜索</button>
+                    <button class="nav-btn" data-prefix="https://leafy-salmiakki-8e302a.netlify.app/360/maotai.html?url=">三线</button>
                     <button class="nav-btn" id="goHome">🎁 福利</button>
                 </div>
             </div>
@@ -539,6 +552,11 @@
                 <div class="hot-search-title">豆瓣国产剧推荐</div>
                 <div style="text-align: center; margin-bottom: 12px;">
                     <span class="sub-title">✨ 全网热评 · 点击即刻搜索 ✨</span>
+                </div>
+                <!-- 主页搜索框 -->
+                <div class="home-search-wrap" style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    <input type="text" id="homeSearchInput" placeholder="请输入影片关键词..." style="flex: 1; height: 48px; padding: 0 20px; border-radius: 12px; border: 1px solid #2d3748; background: #1e293b; color: #e2e8f0; font-size: 15px; outline: none; transition: all 0.3s ease;">
+                    <button id="homeSearchBtn" style="height: 48px; padding: 0 25px; border-radius: 12px; border: 1px solid #1d4ed8; background: #1d4ed8; color: #fff; font-size: 15px; cursor: pointer; transition: all 0.3s ease; font-weight: 500; white-space: nowrap;">🔍 搜索</button>
                 </div>
                 <!-- 动态气泡列表容器 -->
                 <div class="hot-search-list" id="hotSearchList">
@@ -566,7 +584,7 @@
                 <div class="search-loading-spinner"></div>
                 <div class="search-loading-text">正在搜索影片资源...</div>
                 <div class="search-loading-subtext">请稍后，或更换线路</div>
-                <div class="search-loading-tip">💡 若长时间无响应，可尝试切换「一线」或「二线」</div>
+                <div class="search-loading-tip">💡 若长时间无响应，可尝试切换其他线路</div>
             </div>
         </div>
 
@@ -607,7 +625,7 @@
         const CONSTANTS = {
             SOGOU_URL: '/bfq/lingquan.html',
             DEFAULT_PREFIX: '/yingshi/2/1907.html?url=',
-            NON_ACTIVE_BUTTONS: ['openSearch', 'goHome', 'homeBtn']
+            NON_ACTIVE_BUTTONS: ['goHome', 'homeBtn']
         };
 
         // 豆瓣API代理 (稳定跨域代理，与原豆瓣主页一致)
@@ -814,12 +832,6 @@
                 }
 
                 btn.addEventListener('click', function () {
-                    // 搜索弹窗
-                    if (this.id === 'openSearch') {
-                        elements.searchModal.classList.add('show');
-                        elements.searchInput.focus();
-                        return;
-                    }
                     // 福利（已单独处理过，但防止二次绑定）
                     if (this.id === 'goHome') {
                         // 已在上面绑定过，但避免重复open新窗口
@@ -864,7 +876,7 @@
                 }
             });
 
-            // 执行本地搜索
+            // 执行本地搜索（模态框）
             const doSearch = () => {
                 let val = elements.searchInput.value.trim();
                 if (val.includes(' ')) {
@@ -884,6 +896,33 @@
             elements.searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') doSearch();
             });
+
+            // 主页搜索功能
+            const homeSearchInput = document.getElementById('homeSearchInput');
+            const homeSearchBtn = document.getElementById('homeSearchBtn');
+
+            const doHomeSearch = () => {
+                let val = homeSearchInput.value.trim();
+                if (val.includes(' ')) {
+                    val = val.split(' ')[0];
+                }
+                if (val) {
+                    location.href = `?url=${encodeURIComponent(val)}`;
+                } else {
+                    alert('请输入影片关键词');
+                }
+            };
+
+            if (homeSearchBtn) {
+                homeSearchBtn.addEventListener('click', doHomeSearch);
+            }
+            if (homeSearchInput) {
+                homeSearchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') doHomeSearch();
+                });
+                // 自动聚焦
+                homeSearchInput.focus();
+            }
 
             // 监听hash或popstate细节，保证当从iframe返回或手动清除keyword时回到豆瓣推荐（刷新由主页按钮处理）
             window.addEventListener('popstate', () => {
