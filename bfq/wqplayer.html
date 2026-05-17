@@ -24,10 +24,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .gesture-tip .gt-val{font-size:20px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
 
 .seek-tip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:14px;padding:14px 22px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0;transition:opacity .2s;z-index:12;pointer-events:none}
-.seek-tip .st-delta{display:none}
 .seek-tip.show{opacity:1}
-.seek-tip .st-delta{font-size:18px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
-.seek-tip .st-time{font-size:12px;color:rgba(255,255,255,.7);font-variant-numeric:tabular-nums}
+.seek-tip .st-time{font-size:20px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
 
 .center-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:8;transition:opacity .3s,transform .3s;border:2px solid rgba(255,255,255,.3);box-shadow:0 4px 20px rgba(0,0,0,.3)}
 .center-play .material-symbols-rounded{font-size:42px;color:#000;margin-left:3px}
@@ -88,11 +86,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 .no-url{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:30}
 .no-url .material-symbols-rounded{font-size:56px;color:rgba(255,255,255,.15)}
-.no-url .nu-hint{color:rgba(255,255,255,.45);font-size:13px}
-.no-url .nu-row{display:flex;gap:8px;margin-top:6px}
-.no-url input{width:300px;max-width:65vw;padding:10px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--fg);font-size:13px;outline:none}
-.no-url input:focus{border-color:var(--accent)}
-.no-url .nu-play{background:var(--accent);color:#000;border:none;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer}
+.no-url .nu-hint{color:rgba(255,255,255,.45);font-size:16px;font-weight:500}
 
 .toast{position:absolute;top:calc(var(--safe-t) + 54px);left:50%;transform:translateX(-50%) translateY(-16px);background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--fg);padding:7px 18px;border-radius:10px;font-size:12px;opacity:0;transition:opacity .25s,transform .25s;z-index:50;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -117,7 +111,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
     <span class="gt-val" id="gtVal">80%</span>
   </div>
   <div class="seek-tip" id="seekTip">
-    <span class="st-delta" id="stDelta">+10s</span>
     <span class="st-time" id="stTime">00:10 / 01:30:00</span>
   </div>
 
@@ -174,11 +167,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
   <div class="no-url" id="noUrl">
     <span class="material-symbols-rounded">smart_display</span>
-    <div class="nu-hint">在地址栏添加 ?url=视频地址 开始播放</div>
-    <div class="nu-row">
-      <input type="text" id="urlInput" placeholder="输入视频地址（MP4/M3U8）">
-      <button class="nu-play" id="urlPlayBtn">播放</button>
-    </div>
+    <div class="nu-hint">使用方式：?url=视频地址</div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -262,8 +251,6 @@ let currentSpeed = 1;
 let isLongPress = false;
 let longPressOrigSpeed = 1;
 
-// ========== 修复核心：进度存储/读取函数 ==========
-
 function getStorageKey(url) {
   return 'wq_time_' + url;
 }
@@ -278,10 +265,9 @@ function getStoredTime(url) {
 function saveProgress() {
   if (!videoUrl) return;
   const ct = video.currentTime;
-  // 严格条件：有效、大于3秒、且不超过总时长（如果已知）
   if (isFinite(ct) && ct > 3) {
     if (video.duration && isFinite(video.duration)) {
-      if (ct >= video.duration - 3) return; // 快结束时不保存
+      if (ct >= video.duration - 3) return;
     }
     localStorage.setItem(getStorageKey(videoUrl), ct);
     savedTime = ct;
@@ -295,14 +281,11 @@ function clearProgress() {
   }
 }
 
-// ========== 播放器初始化 ==========
-
 async function initPlayer(url) {
   if (!url) { $('#noUrl').style.display = 'flex'; return; }
   $('#noUrl').style.display = 'none';
   videoUrl = url;
   retryCount = 0;
-  // 每次初始化都从 localStorage 重新读取，不依赖可能被污染的 savedTime
   savedTime = getStoredTime(url);
   hideError();
 
@@ -370,7 +353,6 @@ function createHlsInstance(Hls, url) {
   hlsInstance.on(Hls.Events.MANIFEST_PARSED, (e, data) => {
     isLive = data.levels.some(l => l.details?.live);
     updateLiveUI();
-    // 从 localStorage 读取，不依赖内存变量
     const storedTime = getStoredTime(videoUrl);
     if (storedTime > 0 && !isLive) {
       video.currentTime = storedTime;
@@ -398,23 +380,18 @@ function createHlsInstance(Hls, url) {
 }
 
 video.addEventListener('error', () => {
-  // 错误时先保存当前有效进度
   saveProgress();
   if (retryCount < MAX_RETRY) tryRetry();
   else showError(`视频加载失败（已重试${MAX_RETRY}次）`);
 });
 
-// ========== 修复核心：重试逻辑 ==========
-
 function tryRetry() {
   retryCount++;
-  // 保护 savedTime：只在 currentTime 有效且大于 3 秒时才更新
   const ct = video.currentTime;
   if (isFinite(ct) && ct > 3) {
     savedTime = ct;
     saveProgress();
   }
-  // 如果 currentTime 无效，保持原有的 savedTime（从 localStorage 读取的）
   showToast(`加载失败，第${retryCount}次重试...`);
   setTimeout(() => initPlayer(videoUrl), 1500);
 }
@@ -477,7 +454,6 @@ const updateProgress = throttle(() => {
 
 video.addEventListener('timeupdate', () => {
   updateProgress();
-  // 每5秒保存一次播放进度
   if (Math.floor(video.currentTime) % 5 === 0 && video.currentTime > 1) {
     saveProgress();
   }
@@ -911,18 +887,6 @@ document.addEventListener('keydown', (e) => {
   showControls();
 });
 
-$('#urlPlayBtn').addEventListener('click', () => {
-  const url = $('#urlInput').value.trim();
-  if (url) initPlayer(url);
-  else showToast('请输入视频地址');
-});
-$('#urlInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    const url = e.target.value.trim();
-    if (url) initPlayer(url);
-  }
-});
-
 const url = getVideoUrl();
 if (url) {
   $('#noUrl').style.display = 'none';
@@ -934,10 +898,8 @@ if (url) {
 showControls();
 updatePlayUI();
 
-// 页面关闭/刷新前保存进度
 window.addEventListener('beforeunload', saveProgress);
 
-// 本机时间显示
 function updateLocalTime() {
   const now = new Date();
   const h = String(now.getHours()).padStart(2, '0');
