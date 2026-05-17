@@ -317,7 +317,7 @@ function initMp4(url) {
       // 先检查视频是否已准备好seek
       if (video.readyState >= 1) {
         video.currentTime = storedTime;
-        showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+        showToast('意外中断，上次播放进度: ' + fmtTime(storedTime));
       }
 
       // 清理所有监听器
@@ -338,7 +338,7 @@ function initMp4(url) {
       checkCount++;
       if (video.readyState >= 2 && !isSeeking && video.currentTime !== storedTime) {
         video.currentTime = storedTime;
-        showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+        showToast('意外中断，上次播放进度: ' + fmtTime(storedTime));
         clearInterval(checkInterval);
       }
       if (checkCount > 20) clearInterval(checkInterval); // 最多等2秒
@@ -358,7 +358,7 @@ async function initHls(url) {
 
         if (video.readyState >= 1) {
           video.currentTime = storedTime;
-          showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+          showToast('意外中断，上次播放进度: ' + fmtTime(storedTime));
         }
 
         video.removeEventListener('loadedmetadata', restoreHandler);
@@ -377,7 +377,7 @@ async function initHls(url) {
         checkCount++;
         if (video.readyState >= 2 && !isSeeking && video.currentTime !== storedTime) {
           video.currentTime = storedTime;
-          showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+          showToast('意外中断，上次播放进度: ' + fmtTime(storedTime));
           clearInterval(checkInterval);
         }
         if (checkCount > 20) clearInterval(checkInterval);
@@ -420,7 +420,7 @@ function createHlsInstance(Hls, url) {
       setTimeout(() => {
         if (video.readyState >= 1) {
           video.currentTime = storedTime;
-          showToast('已恢复上次播放进度: ' + fmtTime(storedTime));
+          showToast('意外中断，上次播放进度: ' + fmtTime(storedTime));
         }
         isSeeking = false;
       }, 300);
