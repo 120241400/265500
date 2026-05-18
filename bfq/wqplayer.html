@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -60,10 +62,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .center-play .material-symbols-rounded{font-size:42px;color:#000;margin-left:3px}
 .center-play.hide{opacity:0;transform:translate(-50%,-50%) scale(.7);pointer-events:none}
 
-.loader{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:46px;height:46px;border:3px solid rgba(255,255,255,.12);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
+.loader{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:46px;height:46px;border:3px solid rgba(255,255,255,.12);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;z-index:9;opacity:0;pointer-events:none;transition:opacity .25s}
 .loader.show{opacity:1}
 @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-
 
 .speed-badge{position:absolute;top:calc(var(--safe-t) + 14px);right:14px;background:var(--accent);color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;z-index:9;opacity:0;pointer-events:none;transition:opacity .3s}
 .speed-badge.show{opacity:1}
@@ -253,7 +254,7 @@ function isHlsUrl(url) {
 }
 
 const HLS_CDNS = [
-  'https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js',
+  'https://cdn.jsdmirror.com/npm/hls.js@1.5.7/dist/hls.min.js',
   'https://unpkg.com/hls.js@1.5.7/dist/hls.min.js',
   'https://cdn.bootcdn.net/ajax/libs/hls.js/1.5.7/hls.min.js'
 ];
@@ -355,9 +356,6 @@ async function initPlayer(url) {
   $('#centerPlay').classList.remove('hide');
   videoUrl = url;
   retryCount = 0;
-  // 开始加载时显示 loader
-  $('#loader').classList.add('show');
-  $('#centerPlay').classList.add('hide');
   savedTime = getStoredTime(url);
   resumeTipShown = false;
   hideError();
@@ -372,7 +370,6 @@ async function initPlayer(url) {
 function initMp4(url) {
   video.src = url;
   video.load();
-  // MP4 加载完成后通过 canplay 事件隐藏 loader
   const storedTime = getStoredTime(url);
   if (storedTime > 0) {
     const restoreHandler = function(e) {
@@ -504,26 +501,6 @@ function createHlsInstance(Hls, url) {
       }
     }
   });
-
-  // HLS 缓冲状态监听
-  hlsInstance.on(Hls.Events.FRAG_LOADING, () => {
-    $('#loader').classList.add('show');
-    $('#centerPlay').classList.add('hide');
-  });
-  hlsInstance.on(Hls.Events.FRAG_LOADED, () => {
-    $('#loader').classList.remove('show');
-    if (video.paused && videoUrl) $('#centerPlay').classList.remove('hide');
-  });
-  hlsInstance.on(Hls.Events.BUFFER_STALLED_ERROR, () => {
-    $('#loader').classList.add('show');
-    $('#centerPlay').classList.add('hide');
-  });
-  hlsInstance.on(Hls.Events.BUFFER_APPENDED, () => {
-    if (video.readyState >= 3) {
-      $('#loader').classList.remove('show');
-      if (video.paused && videoUrl) $('#centerPlay').classList.remove('hide');
-    }
-  });
 }
 
 video.addEventListener('error', () => {
@@ -562,35 +539,19 @@ $('#retryBtn').addEventListener('click', () => { retryCount = 0; initPlayer(vide
 // ========== 播放控制 ==========
 
 function togglePlay() {
-  if (video.paused) {
-    video.play().catch(()=>{});
-    // 立即显示 loader，隐藏 centerPlay，直到视频真正开始播放
-    $('#loader').classList.add('show');
-    $('#centerPlay').classList.add('hide');
-  } else {
-    video.pause();
-  }
+  if (video.paused) video.play().catch(()=>{});
+  else video.pause();
 }
 
 function updatePlayUI() {
   const icon = video.paused ? 'play_arrow' : 'pause';
   $('#btnPlay span').textContent = icon;
   $('#centerPlay span').textContent = icon;
-  if (video.paused && videoUrl) {
-    $('#centerPlay').classList.remove('hide');
-    // 暂停时隐藏 loader
-    $('#loader').classList.remove('show');
-  } else {
-    $('#centerPlay').classList.add('hide');
-    // 播放时如果视频已经准备好，隐藏 loader
-    if (video.readyState >= 3) {
-      $('#loader').classList.remove('show');
-    }
-  }
+  if (video.paused && videoUrl) $('#centerPlay').classList.remove('hide');
+  else $('#centerPlay').classList.add('hide');
 }
 
 video.addEventListener('play', updatePlayUI);
-video.addEventListener('loadstart', () => { $('#loader').classList.add('show'); $('#centerPlay').classList.add('hide'); });
 video.addEventListener('pause', () => { updatePlayUI(); saveProgress(); });
 video.addEventListener('ended', () => { updatePlayUI(); showControls(); clearProgress(); });
 
@@ -614,10 +575,9 @@ $('#btnPlay').addEventListener('click', (e) => {
   }
 });
 
-video.addEventListener('waiting', () => { $('#loader').classList.add('show'); $('#centerPlay').classList.add('hide'); saveProgress(); });
-video.addEventListener('stalled', () => { $('#loader').classList.add('show'); $('#centerPlay').classList.add('hide'); });
-video.addEventListener('canplay', () => { $('#loader').classList.remove('show'); if (video.paused && videoUrl) $('#centerPlay').classList.remove('hide'); });
-video.addEventListener('playing', () => { $('#loader').classList.remove('show'); if (video.paused && videoUrl) $('#centerPlay').classList.remove('hide'); });
+video.addEventListener('waiting', () => { $('#loader').classList.add('show'); saveProgress(); });
+video.addEventListener('canplay', () => $('#loader').classList.remove('show'));
+video.addEventListener('playing', () => $('#loader').classList.remove('show'));
 
 video.addEventListener('canplaythrough', () => {
   if (video.buffered.length > 0) {
