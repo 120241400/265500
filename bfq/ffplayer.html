@@ -12,9 +12,6 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-        }
-
-        * {
             margin: 0;
             padding: 0;
         }
@@ -29,7 +26,80 @@
             height: 100%;
         }
 
-        .resolution-display {
+        /* ========== Artplayer 容器内样式 - 确保全屏时可见 ========== */
+        .artplayer-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ========== 顶部提示栏 - 必须在 artplayer 容器内 ========== */
+        .wq-top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 35px;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            opacity: 1;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .wq-top-bar.hidden {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+
+        .wq-top-bar .wq-ad-hint {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            white-space: nowrap;
+        }
+
+        .wq-top-bar .wq-time {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* ========== 手势提示 - 必须在 artplayer 容器内 ========== */
+        .wq-gesture-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            z-index: 99999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .wq-gesture-hint.show {
+            opacity: 1;
+        }
+
+        /* ========== 分辨率显示 - 必须在 artplayer 容器内 ========== */
+        .wq-resolution {
             position: absolute;
             top: 20px;
             right: 20px;
@@ -39,37 +109,13 @@
             border-radius: 4px;
             font-size: 14px;
             font-weight: bold;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-
-        .resolution-display.show {
-            opacity: 1;
-        }
-
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .gesture-hint {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 16px;
             z-index: 9999;
             opacity: 0;
+            transition: opacity 0.5s ease-in-out;
             pointer-events: none;
-            transition: opacity 0.2s ease;
         }
-        .gesture-hint.show {
+
+        .wq-resolution.show {
             opacity: 1;
         }
 
@@ -81,47 +127,6 @@
             opacity: 0 !important;
             pointer-events: none !important;
             transform: translateY(100%) !important;
-        }
-
-        /* ========== 新增：顶部提示栏样式 ========== */
-        .top-hint-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 35px;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 15px;
-            opacity: 1;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            pointer-events: none;
-        }
-
-        .top-hint-bar.hidden {
-            opacity: 0;
-            transform: translateY(-100%);
-        }
-
-        .top-hint-left {
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-            white-space: nowrap;
-        }
-
-        .top-hint-center {
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
         }
     </style>
     <script>
@@ -149,14 +154,6 @@
 <body>
     <div id="container"></div>
     
-    <!-- ========== 新增：顶部提示栏 ========== -->
-    <div id="topHintBar" class="top-hint-bar">
-        <div class="top-hint-left">请勿相信视频中的广告</div>
-        <div id="currentTime" class="top-hint-center">--:--</div>
-    </div>
-    
-    <div id="resolutionDisplay" class="resolution-display"></div>
-    <div id="gestureHint" class="gesture-hint"></div>
     <script>
         document.addEventListener("DOMContentLoaded", (event) => {
             const videoUrl = extractVideoUrl();
@@ -247,31 +244,72 @@
             });
 
             function initializePlayer(url) {
-                const resolutionDisplay = document.getElementById('resolutionDisplay');
-                const gestureHint = document.getElementById('gestureHint');
-                const topHintBar = document.getElementById('topHintBar');
-                const currentTimeEl = document.getElementById('currentTime');
-                
                 let hlsInstance = null;
-                let startY = 0;
-                let isLeftSide = false;
-                let isDragging = false;
-                let currentBrightness = 100;
-                let hintTimeout = null;
                 let controlsHideTimer = null;
                 let savedTime = 0;
                 let saveTimer = null;
                 let timeUpdateTimer = null;
+                let isFullscreen = false;
+                let currentBrightness = 100;
 
-                // ========== 新增：时间更新函数 ==========
+                // ========== 手势状态机 ==========
+                const GestureState = {
+                    IDLE: 0,
+                    SEEK: 1,
+                    VOLUME: 2,
+                    BRIGHTNESS: 3
+                };
+                let gestureState = GestureState.IDLE;
+                let gestureStartX = 0;
+                let gestureStartY = 0;
+                let gestureStartTime = 0;
+                let gestureLastX = 0;
+                let gestureLastY = 0;
+                let gestureStartVolume = 0;
+                let gestureStartBrightness = 100;
+                let gestureHintTimeout = null;
+
+                // ========== DOM 元素引用 ==========
+                let topBar, adHint, timeEl, gestureHint, resolutionEl;
+
+                // ========== 创建自定义 UI 元素（挂载到 Artplayer 容器内）==========
+                function createCustomElements(artContainer) {
+                    // 顶部提示栏
+                    topBar = document.createElement('div');
+                    topBar.className = 'wq-top-bar';
+                    
+                    adHint = document.createElement('div');
+                    adHint.className = 'wq-ad-hint';
+                    adHint.textContent = '请勿相信视频中的广告';
+                    
+                    timeEl = document.createElement('div');
+                    timeEl.className = 'wq-time';
+                    timeEl.textContent = '--:--';
+                    
+                    topBar.appendChild(adHint);
+                    topBar.appendChild(timeEl);
+                    artContainer.appendChild(topBar);
+
+                    // 手势提示
+                    gestureHint = document.createElement('div');
+                    gestureHint.className = 'wq-gesture-hint';
+                    artContainer.appendChild(gestureHint);
+
+                    // 分辨率显示
+                    resolutionEl = document.createElement('div');
+                    resolutionEl.className = 'wq-resolution';
+                    artContainer.appendChild(resolutionEl);
+                }
+
+                // ========== 时间更新 ==========
                 function updateCurrentTime() {
                     const now = new Date();
                     const hours = String(now.getHours()).padStart(2, '0');
                     const minutes = String(now.getMinutes()).padStart(2, '0');
-                    currentTimeEl.textContent = `${hours}:${minutes}`;
+                    if (timeEl) timeEl.textContent = `${hours}:${minutes}`;
                 }
 
-                // 以视频URL为key，恢复上次播放进度
+                // ========== 存储键 ==========
                 function getStorageKey() {
                     return 'wq_time_' + url;
                 }
@@ -292,24 +330,56 @@
                     if (t > 0) savedTime = t;
                 }
 
-                // 加载时立即恢复
                 restoreProgress();
 
-                function showResolution(width, height) {
-                    resolutionDisplay.textContent = `${width}×${height}`;
-                    resolutionDisplay.classList.add('show');
-                    setTimeout(() => {
-                        resolutionDisplay.classList.remove('show');
-                    }, 9000);
+                // ========== 显示/隐藏控制 ==========
+                function showTopBar() {
+                    if (topBar) topBar.classList.remove('hidden');
                 }
 
-                function showGestureHint(text) {
-                    gestureHint.textContent = text;
-                    gestureHint.classList.add('show');
-                    clearTimeout(hintTimeout);
-                    hintTimeout = setTimeout(() => {
-                        gestureHint.classList.remove('show');
+                function hideTopBar() {
+                    if (topBar) topBar.classList.add('hidden');
+                }
+
+                function showControls() {
+                    const controls = document.querySelector('.artplayer-controls');
+                    if (controls) controls.classList.remove('artplayer-controls-hide');
+                    showTopBar();
+                    
+                    clearTimeout(controlsHideTimer);
+                    controlsHideTimer = setTimeout(() => {
+                        const controls = document.querySelector('.artplayer-controls');
+                        if (controls) controls.classList.add('artplayer-controls-hide');
+                        hideTopBar();
                     }, 1000);
+                }
+
+                function bindControlsAutoHide() {
+                    const container = document.getElementById('container');
+                    ['mousemove', 'click', 'touchstart', 'mouseenter'].forEach(evt => {
+                        container.addEventListener(evt, () => showControls(), { passive: true });
+                    });
+                }
+
+                // ========== 分辨率显示 ==========
+                function showResolution(width, height) {
+                    if (resolutionEl) {
+                        resolutionEl.textContent = `${width}×${height}`;
+                        resolutionEl.classList.add('show');
+                        setTimeout(() => resolutionEl.classList.remove('show'), 9000);
+                    }
+                }
+
+                // ========== 手势提示 ==========
+                function showGestureHint(text) {
+                    if (gestureHint) {
+                        gestureHint.textContent = text;
+                        gestureHint.classList.add('show');
+                        clearTimeout(gestureHintTimeout);
+                        gestureHintTimeout = setTimeout(() => {
+                            gestureHint.classList.remove('show');
+                        }, 1000);
+                    }
                 }
 
                 function formatTime(sec) {
@@ -330,60 +400,127 @@
                     return null;
                 }
 
-                // ========== 修改：显示/隐藏顶部提示栏（与进度条同步）==========
-                function showTopHintBar() {
-                    topHintBar.classList.remove('hidden');
-                }
-
-                function hideTopHintBar() {
-                    topHintBar.classList.add('hidden');
-                }
-
-                // 显示进度条并设置3秒后隐藏
-                function showControls() {
-                    const controls = document.querySelector('.artplayer-controls');
-                    if (controls) {
-                        controls.classList.remove('artplayer-controls-hide');
+                // ========== 全屏状态处理 ==========
+                function updateFullscreenUI() {
+                    const fsElement = document.fullscreenElement || 
+                                     document.webkitFullscreenElement || 
+                                     document.mozFullScreenElement || 
+                                     document.msFullscreenElement;
+                    
+                    // 检查是否处于全屏状态
+                    isFullscreen = !!(fsElement || (window.player && window.player.fullscreen));
+                    
+                    if (isFullscreen) {
+                        // 全屏模式：隐藏广告，保留时间
+                        if (adHint) adHint.style.display = 'none';
+                        if (timeEl) timeEl.style.display = 'block';
+                    } else {
+                        // 非全屏模式：显示广告和时间
+                        if (adHint) adHint.style.display = 'block';
+                        if (timeEl) timeEl.style.display = 'block';
                     }
-                    // 同时显示顶部提示栏
-                    showTopHintBar();
-
-                    clearTimeout(controlsHideTimer);
-                    controlsHideTimer = setTimeout(() => {
-                        const controls = document.querySelector('.artplayer-controls');
-                        if (controls) {
-                            controls.classList.add('artplayer-controls-hide');
-                        }
-                        // 同时隐藏顶部提示栏
-                        hideTopHintBar();
-                    }, 1000);
                 }
 
-                // 绑定进度条自动隐藏事件
-                function bindControlsAutoHide() {
+                // 监听全屏变化
+                ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
+                    document.addEventListener(event, updateFullscreenUI);
+                });
+
+                // ========== 精准手势系统 ==========
+                function initTouchGestures() {
                     const container = document.getElementById('container');
+                    const video = window.player.video;
+                    const MIN_SWIPE = 10;
+                    const DIRECTION_LOCK = 2.0; // 方向锁定阈值
 
-                    // 鼠标移动显示进度条
-                    container.addEventListener('mousemove', () => {
-                        showControls();
-                    });
+                    container.addEventListener('touchstart', (e) => {
+                        if (e.touches.length !== 1) return;
+                        const touch = e.touches[0];
+                        
+                        gestureStartX = touch.clientX;
+                        gestureStartY = touch.clientY;
+                        gestureLastX = touch.clientX;
+                        gestureLastY = touch.clientY;
+                        gestureStartTime = Date.now();
+                        gestureState = GestureState.IDLE;
+                        gestureStartVolume = video.volume;
+                        gestureStartBrightness = currentBrightness;
+                        
+                    }, { passive: true });
 
-                    // 点击显示进度条（手机和电脑都适用）
-                    container.addEventListener('click', () => {
-                        showControls();
-                    });
+                    container.addEventListener('touchmove', (e) => {
+                        if (e.touches.length !== 1 || gestureState === GestureState.IDLE) return;
+                        e.preventDefault();
+                        
+                        const touch = e.touches[0];
+                        const deltaX = touch.clientX - gestureLastX;
+                        const deltaY = touch.clientY - gestureLastY;
+                        const totalDeltaX = touch.clientX - gestureStartX;
+                        const totalDeltaY = touch.clientY - gestureStartY;
+                        
+                        gestureLastX = touch.clientX;
+                        gestureLastY = touch.clientY;
 
-                    // 触摸事件（手机端）
-                    container.addEventListener('touchstart', () => {
-                        showControls();
-                    });
+                        // 方向判定阶段
+                        if (gestureState === GestureState.IDLE) {
+                            const absX = Math.abs(totalDeltaX);
+                            const absY = Math.abs(totalDeltaY);
+                            
+                            if (Math.max(absX, absY) < MIN_SWIPE) return;
+                            
+                            if (absX > absY * DIRECTION_LOCK) {
+                                gestureState = GestureState.SEEK;
+                            } else if (absY > absX * DIRECTION_LOCK) {
+                                const width = container.offsetWidth;
+                                gestureState = (gestureStartX < width / 2) ? GestureState.BRIGHTNESS : GestureState.VOLUME;
+                            }
+                            return;
+                        }
 
-                    // 鼠标进入播放器区域也显示
-                    container.addEventListener('mouseenter', () => {
-                        showControls();
-                    });
+                        // 执行阶段（已锁定方向）
+                        switch (gestureState) {
+                            case GestureState.SEEK: {
+                                const seekRatio = deltaX / container.offsetWidth;
+                                const seekTime = seekRatio * 90;
+                                if (Math.abs(seekTime) > 0.5) {
+                                    const newTime = Math.max(0, Math.min(video.duration || Infinity, video.currentTime + seekTime));
+                                    video.currentTime = newTime;
+                                    const direction = seekTime > 0 ? '快进' : '后退';
+                                    showGestureHint(`${direction} ${formatTime(Math.abs(seekTime))}`);
+                                }
+                                break;
+                            }
+                            case GestureState.VOLUME: {
+                                const volumeRatio = -deltaY / container.offsetHeight;
+                                const volumeChange = volumeRatio * 2;
+                                let newVolume = gestureStartVolume + volumeChange;
+                                newVolume = Math.max(0, Math.min(1, newVolume));
+                                video.volume = newVolume;
+                                showGestureHint(`音量: ${Math.round(newVolume * 100)}%`);
+                                break;
+                            }
+                            case GestureState.BRIGHTNESS: {
+                                const brightnessRatio = -deltaY / container.offsetHeight;
+                                const brightnessChange = brightnessRatio * 200;
+                                let newBrightness = gestureStartBrightness + brightnessChange;
+                                newBrightness = Math.max(20, Math.min(100, newBrightness));
+                                currentBrightness = newBrightness;
+                                video.style.filter = `brightness(${currentBrightness}%)`;
+                                showGestureHint(`亮度: ${Math.round(currentBrightness)}%`);
+                                break;
+                            }
+                        }
+                    }, { passive: false });
+
+                    const endGesture = () => {
+                        gestureState = GestureState.IDLE;
+                    };
+                    
+                    container.addEventListener('touchend', endGesture, { passive: true });
+                    container.addEventListener('touchcancel', endGesture, { passive: true });
                 }
 
+                // ========== 初始化 Artplayer ==========
                 window.player = new Artplayer({
                     container: '#container',
                     url: url,
@@ -468,97 +605,79 @@
                     }
                 });
 
-                function initTouchGestures() {
-                    const container = document.getElementById('container');
-                    const video = window.player.video;
-
-                    container.addEventListener('touchstart', (e) => {
-                        if (e.touches.length !== 1) return;
-                        const touch = e.touches[0];
-                        startY = touch.clientY;
-                        const x = touch.clientX;
-                        const width = container.offsetWidth;
-                        isLeftSide = x < width / 2;
-                        isDragging = true;
-                    });
-
-                    container.addEventListener('touchmove', (e) => {
-                        if (!isDragging || e.touches.length !== 1) return;
-                        e.preventDefault();
-                        const touch = e.touches[0];
-                        const deltaY = startY - touch.clientY;
-                        startY = touch.clientY;
-
-                        if (isLeftSide) {
-                            currentBrightness += deltaY * 0.8;
-                            currentBrightness = Math.max(20, Math.min(100, currentBrightness));
-                            video.style.filter = `brightness(${currentBrightness}%)`;
-                            showGestureHint(`亮度: ${Math.round(currentBrightness)}%`);
-                        } else {
-                            let volume = video.volume * 100;
-                            volume += deltaY * 0.8;
-                            volume = Math.max(0, Math.min(100, volume));
-                            video.volume = volume / 100;
-                            showGestureHint(`音量: ${Math.round(volume)}%`);
-                        }
-                    });
-
-                    container.addEventListener('touchend', () => { isDragging = false; });
-                    container.addEventListener('touchcancel', () => { isDragging = false; });
-                }
-
-                window.player.notice = { show: () => {}, hide: () => {} };
-
+                // ========== 事件绑定 ==========
                 window.player.on('video:loadedmetadata', function () {
                     const videoElement = window.player.video;
                     if (videoElement) {
-                        // 恢复进度（如果 ready 事件未成功设置）
                         if (savedTime > 0 && videoElement.currentTime < 1) {
                             videoElement.currentTime = savedTime;
                         }
                         const resolution = getVideoResolution(videoElement);
                         if (resolution) {
-                            setTimeout(() => {
-                                showResolution(resolution.width, resolution.height);
-                            }, 1000);
+                            setTimeout(() => showResolution(resolution.width, resolution.height), 1000);
                         }
                     }
                 });
 
                 window.player.on('ready', () => { 
+                    // 获取 Artplayer 容器并创建自定义元素
+                    const artContainer = document.querySelector('.artplayer-container') || document.getElementById('container');
+                    createCustomElements(artContainer);
+                    
+                    // 初始化手势
                     initTouchGestures();
+                    
+                    // 设置初始亮度
                     window.player.video.style.filter = `brightness(${currentBrightness}%)`;
-                    // 播放器就绪后绑定进度条自动隐藏
+                    
+                    // 绑定控制栏自动隐藏
                     bindControlsAutoHide();
                     
-                    // ========== 新增：启动时间更新 ==========
+                    // 启动时间更新
                     updateCurrentTime();
                     timeUpdateTimer = setInterval(updateCurrentTime, 1000);
                     
-                    // 初始状态隐藏进度条和顶部提示栏
+                    // 初始状态隐藏
                     setTimeout(() => {
                         const controls = document.querySelector('.artplayer-controls');
-                        if (controls) {
-                            controls.classList.add('artplayer-controls-hide');
-                        }
-                        hideTopHintBar();
+                        if (controls) controls.classList.add('artplayer-controls-hide');
+                        hideTopBar();
                     }, 1000);
                     
-                    // 恢复上次播放进度
+                    // 恢复进度
                     if (savedTime > 0 && window.player.video) {
                         window.player.video.currentTime = savedTime;
                         showGestureHint('已恢复上次进度: ' + formatTime(savedTime));
                     }
-                    // 每5秒自动保存进度
-                    saveTimer = setInterval(() => {
-                        saveProgress();
-                    }, 5000);
+                    
+                    // 定时保存进度
+                    saveTimer = setInterval(saveProgress, 5000);
+
+                    // 监听 Artplayer 全屏事件
+                    window.player.on('fullscreen', (state) => {
+                        isFullscreen = state;
+                        if (state) {
+                            if (adHint) adHint.style.display = 'none';
+                        } else {
+                            if (adHint) adHint.style.display = 'block';
+                        }
+                    });
+
+                    // 监听网页全屏事件
+                    window.player.on('fullscreenWeb', (state) => {
+                        isFullscreen = state;
+                        if (state) {
+                            if (adHint) adHint.style.display = 'none';
+                        } else {
+                            if (adHint) adHint.style.display = 'block';
+                        }
+                    });
                 });
 
                 window.player.on('destroy', () => {
                     saveProgress();
                     clearInterval(saveTimer);
-                    clearInterval(timeUpdateTimer); // 清理时间更新定时器
+                    clearInterval(timeUpdateTimer);
                     if (hlsInstance) {
                         try { hlsInstance.destroy(); } catch (e) { console.warn('销毁HLS实例:', e); }
                         hlsInstance = null;
@@ -574,7 +693,7 @@
             }
         });
 
-        // 页面关闭/刷新前保存当前视频进度
+        // 页面关闭前保存进度
         window.addEventListener('beforeunload', () => {
             if (window.player && window.player.video) {
                 const video = window.player.video;
