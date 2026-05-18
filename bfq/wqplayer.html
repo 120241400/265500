@@ -1,4 +1,3 @@
-﻿
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -28,13 +27,34 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .seek-tip.show{opacity:1}
 .seek-tip .st-time{font-size:20px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
 
-/* 进度恢复提示 - 常驻显示，点击消失 */
-.resume-tip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:20px;padding:24px 36px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:100;cursor:pointer;pointer-events:auto;opacity:0;transition:opacity .3s}
-.resume-tip.show{opacity:1}
-.resume-tip .rt-icon{font-size:40px;color:var(--accent)}
-.resume-tip .rt-text{font-size:14px;color:rgba(255,255,255,.85);font-weight:500;text-align:center;max-width:280px;line-height:1.5}
-.resume-tip .rt-time{font-size:24px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
-.resume-tip .rt-hint{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px}
+/* 顶部横向进度恢复提示 - 与中间播放按钮完全避开 */
+.resume-tip{
+  position:absolute;
+  top:calc(var(--safe-t) + 44px);
+  left:50%;
+  transform:translateX(-50%) translateY(-20px);
+  background:rgba(20,20,20,.9);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,130,0,.3);
+  border-radius:999px;
+  padding:8px 20px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  z-index:7;
+  cursor:pointer;
+  pointer-events:auto;
+  opacity:0;
+  transition:opacity .3s,transform .3s;
+  max-width:90vw;
+  white-space:nowrap;
+}
+.resume-tip.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.resume-tip .rt-icon{font-size:18px;color:var(--accent);flex-shrink:0}
+.resume-tip .rt-text{font-size:12px;color:rgba(255,255,255,.8);font-weight:500}
+.resume-tip .rt-time{font-size:13px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;flex-shrink:0}
+.resume-tip .rt-hint{font-size:11px;color:rgba(255,255,255,.4);margin-left:4px}
 
 .center-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:8;transition:opacity .3s,transform .3s;border:2px solid rgba(255,255,255,.3);box-shadow:0 4px 20px rgba(0,0,0,.3)}
 .center-play .material-symbols-rounded{font-size:42px;color:#000;margin-left:3px}
@@ -123,12 +143,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
     <span class="st-time" id="stTime">00:10 / 01:30:00</span>
   </div>
 
-  <!-- 进度恢复提示 - 常驻显示，点击消失 -->
+  <!-- 顶部横向进度恢复提示 - 胶囊样式，与中间播放按钮完全避开 -->
   <div class="resume-tip" id="resumeTip">
     <span class="material-symbols-rounded rt-icon">history</span>
-    <span class="rt-text">意外中断，上次播放到</span>
+    <span class="rt-text">上次播放到</span>
     <span class="rt-time" id="rtTime">00:00</span>
-    <span class="rt-hint">点击任意处继续播放</span>
+    <span class="rt-hint">点击继续</span>
   </div>
 
   <div class="center-play hide" id="centerPlay">
@@ -268,7 +288,7 @@ let currentSpeed = 1;
 let isLongPress = false;
 let longPressOrigSpeed = 1;
 let isSeeking = false;
-let resumeTipShown = false; // 标记恢复提示是否已显示
+let resumeTipShown = false;
 
 function getStorageKey(url) {
   return 'wq_time_' + url;
@@ -307,7 +327,6 @@ function showResumeTip(time) {
   resumeTipShown = true;
   $('#rtTime').textContent = fmtTime(time);
   $('#resumeTip').classList.add('show');
-  // 暂停视频，等待用户点击
   video.pause();
   updatePlayUI();
 }
@@ -316,19 +335,15 @@ function hideResumeTip() {
   if (!resumeTipShown) return;
   resumeTipShown = false;
   $('#resumeTip').classList.remove('show');
-  // 用户点击后自动播放
   video.play().catch(() => {});
   updatePlayUI();
 }
 
-// 点击恢复提示或播放器任意区域时隐藏提示
+// 点击恢复提示本身关闭
 $('#resumeTip').addEventListener('click', (e) => {
   e.stopPropagation();
   hideResumeTip();
 });
-
-// 也监听播放器点击，如果恢复提示显示中，点击任意处也关闭
-const originalPlayerClick = player.addEventListener;
 
 async function initPlayer(url) {
   if (!url) { 
@@ -362,7 +377,6 @@ function initMp4(url) {
 
       if (video.readyState >= 1) {
         video.currentTime = storedTime;
-        // 显示常驻恢复提示，不自动消失
         showResumeTip(storedTime);
       }
 
@@ -521,12 +535,9 @@ function hideError() {
 }
 $('#retryBtn').addEventListener('click', () => { retryCount = 0; initPlayer(videoUrl); });
 
+// ========== 播放控制 ==========
+
 function togglePlay() {
-  // 如果恢复提示显示中，先关闭提示
-  if (resumeTipShown) {
-    hideResumeTip();
-    return;
-  }
   if (video.paused) video.play().catch(()=>{});
   else video.pause();
 }
@@ -535,7 +546,7 @@ function updatePlayUI() {
   const icon = video.paused ? 'play_arrow' : 'pause';
   $('#btnPlay span').textContent = icon;
   $('#centerPlay span').textContent = icon;
-  if (video.paused && videoUrl && !resumeTipShown) $('#centerPlay').classList.remove('hide');
+  if (video.paused && videoUrl) $('#centerPlay').classList.remove('hide');
   else $('#centerPlay').classList.add('hide');
 }
 
@@ -543,7 +554,25 @@ video.addEventListener('play', updatePlayUI);
 video.addEventListener('pause', () => { updatePlayUI(); saveProgress(); });
 video.addEventListener('ended', () => { updatePlayUI(); showControls(); clearProgress(); });
 
-$('#centerPlay').addEventListener('click', togglePlay);$('#btnPlay').addEventListener('click', togglePlay);
+// 中间播放按钮
+$('#centerPlay').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (resumeTipShown) {
+    hideResumeTip();
+  } else {
+    togglePlay();
+  }
+});
+
+// 底部播放按钮
+$('#btnPlay').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (resumeTipShown) {
+    hideResumeTip();
+  } else {
+    togglePlay();
+  }
+});
 
 video.addEventListener('waiting', () => { $('#loader').classList.add('show'); saveProgress(); });
 video.addEventListener('canplay', () => $('#loader').classList.remove('show'));
@@ -766,7 +795,7 @@ function showControls() {
 }
 
 function hideControls() {
-  if (video.paused || isDragging || speedPanel.classList.contains('open') || resumeTipShown) return;
+  if (video.paused || isDragging || speedPanel.classList.contains('open')) return;
   $('#controls').classList.add('hide');
   $('#topBar').classList.add('hide');
   $('#tbTime').classList.remove('show');
@@ -783,13 +812,8 @@ player.addEventListener('mousemove', showControls);
 let touchClickCount = 0;
 let touchClickTimer = null;
 
+// 移动端触摸双击逻辑
 player.addEventListener('touchstart', (e) => {
-  // 如果恢复提示显示中，点击任意处关闭提示
-  if (resumeTipShown) {
-    hideResumeTip();
-    return;
-  }
-
   if (!$('#controls').contains(e.target) && !$('#topBar').contains(e.target) &&
       !$('#errPanel').contains(e.target) && !$('#noUrl').contains(e.target) &&
       !speedPanel.contains(e.target) && !$('#resumeTip').contains(e.target)) {
@@ -805,7 +829,11 @@ player.addEventListener('touchstart', (e) => {
     } else if (touchClickCount === 2) {
       clearTimeout(touchClickTimer);
       touchClickCount = 0;
-      togglePlay();
+      if (resumeTipShown) {
+        hideResumeTip();
+      } else {
+        togglePlay();
+      }
     }
   }
 }, { passive: true });
@@ -813,13 +841,8 @@ player.addEventListener('touchstart', (e) => {
 let clickTimer = null;
 let clickCount = 0;
 
+// PC端单击/双击逻辑
 player.addEventListener('click', (e) => {
-  // 如果恢复提示显示中，点击任意处关闭提示
-  if (resumeTipShown && !$('#resumeTip').contains(e.target)) {
-    hideResumeTip();
-    return;
-  }
-
   if ($('#controls').contains(e.target) || $('#topBar').contains(e.target) ||
       $('#errPanel').contains(e.target) || $('#noUrl').contains(e.target) ||
       speedPanel.contains(e.target) || $('#resumeTip').contains(e.target)) return;
@@ -837,7 +860,11 @@ player.addEventListener('click', (e) => {
   } else if (clickCount === 2) {
     clearTimeout(clickTimer);
     clickCount = 0;
-    togglePlay();
+    if (resumeTipShown) {
+      hideResumeTip();
+    } else {
+      togglePlay();
+    }
   }
 });
 
@@ -872,9 +899,6 @@ function showSeekTip(delta, cur, total) {
 function hideSeekTip() { seekTip.classList.remove('show'); }
 
 player.addEventListener('touchstart', (e) => {
-  // 如果恢复提示显示中，禁止手势操作
-  if (resumeTipShown) return;
-
   if ($('#controls').contains(e.target) ||$('#topBar').contains(e.target) ||
       $('#errPanel').contains(e.target) ||$('#noUrl').contains(e.target)) return;
   if (e.touches.length !== 1) return;
@@ -901,8 +925,6 @@ player.addEventListener('touchstart', (e) => {
 }, { passive: true });
 
 player.addEventListener('touchmove', (e) => {
-  if (resumeTipShown) return;
-
   if ($('#controls').contains(e.target) ||$('#topBar').contains(e.target) ||
       $('#errPanel').contains(e.target) ||$('#noUrl').contains(e.target)) return;
   if (gesture.isLongPress) return;
@@ -994,18 +1016,13 @@ player.addEventListener('touchcancel', () => {
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT') return;
 
-  // 如果恢复提示显示中，任意按键关闭提示
-  if (resumeTipShown) {
-    hideResumeTip();
-    return;
-  }
-
   switch(e.key) {
     case ' ':
     case 'k':
     case 'K':
       e.preventDefault();
-      togglePlay();
+      if (resumeTipShown) hideResumeTip();
+      else togglePlay();
       break;
     case 'ArrowLeft':
       e.preventDefault();
