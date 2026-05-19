@@ -1,0 +1,496 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1" />
+    <title>忘情播放器</title>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .resolution-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .resolution-display.show {
+            opacity: 1;
+        }
+
+        /* 当前北京时间显示 - 与分辨率窗口相同的样式逻辑，位置在正上方 */
+        .beijing-time-display {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .beijing-time-display.show {
+            opacity: 1;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .gesture-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .gesture-hint.show {
+            opacity: 1;
+        }
+    </style>
+    <script>
+        function extractVideoUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rawUrl = urlParams.get('url');
+            if (!rawUrl) return null;
+            const httpIndex = rawUrl.toLowerCase().indexOf('http');
+            if (httpIndex >= 0) {
+                return rawUrl.substring(httpIndex);
+            }
+            return rawUrl;
+        }
+
+        function isVideoUrl(url) {
+            if (!url) return false;
+            const videoExtensions = ['.m3u8', '.mp4', '.avi', '.flv'];
+            const lowerUrl = url.toLowerCase();
+            return videoExtensions.some(ext => lowerUrl.includes(ext));
+        }
+    </script>
+</head>
+
+<body>
+    <div id="container"></div>
+    <div id="resolutionDisplay" class="resolution-display"></div>
+    <!-- 当前北京时间显示元素 -->
+    <div id="beijingTimeDisplay" class="beijing-time-display"></div>
+    <div id="gestureHint" class="gesture-hint"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            const videoUrl = extractVideoUrl();
+
+            if (!videoUrl) {
+                const container = document.getElementById('container');
+                container.style.cssText = `
+                    background-color: black;
+                    color: white;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-size: 24px;
+                `;
+                container.textContent = '使用方式 ?url=视频地址';
+                return;
+            }
+
+            if (!isVideoUrl(videoUrl)) {
+                const container = document.getElementById('container');
+                // ✅ 已修复 XSS 漏洞
+                const iframe = document.createElement('iframe');
+                iframe.className = 'iframe-container';
+                iframe.allowFullscreen = true;
+                iframe.src = videoUrl;
+                container.appendChild(iframe);
+                return;
+            }
+
+            const hlsJsSources = [
+                'https://gcore.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js',
+                'https://cdn.jsdmirror.cn/npm/hls.js@latest/dist/hls.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js'
+            ];
+            const artplayerJsSources = [
+                'https://gcore.jsdelivr.net/npm/artplayer@latest/dist/artplayer.js',
+                'https://cdn.jsdmirror.cn/npm/artplayer@latest/dist/artplayer.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/artplayer/5.0.9/artplayer.js'
+            ];
+
+            function loadScript(srcArray) {
+                return new Promise((resolve, reject) => {
+                    let currentIndex = 0;
+                    function tryLoad() {
+                        if (currentIndex >= srcArray.length) {
+                            reject(new Error(`All sources failed: ${srcArray.join(', ')}`));
+                            return;
+                        }
+                        const script = document.createElement('script');
+                        script.src = srcArray[currentIndex];
+                        script.onload = () => resolve(script);
+                        script.onerror = () => {
+                            console.warn(`Failed to load script from: ${srcArray[currentIndex]}, trying next...`);
+                            currentIndex++;
+                            tryLoad();
+                        };
+                        document.head.appendChild(script);
+                    }
+                    tryLoad();
+                });
+            }
+
+            Promise.all([
+                loadScript(hlsJsSources),
+                loadScript(artplayerJsSources)
+            ]).then(() => {
+                console.log('All external scripts loaded successfully.');
+                initializePlayer(videoUrl);
+            }).catch((error) => {
+                console.error('Failed to load required scripts:', error);
+                const container = document.getElementById('container');
+                container.style.cssText = `
+                    background-color: black;
+                    color: white;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-size: 18px;
+                    padding: 20px;
+                    text-align: center;
+                `;
+                container.textContent = '播放器脚本加载失败，请刷新页面重试';
+            });
+
+            function initializePlayer(url) {
+                const resolutionDisplay = document.getElementById('resolutionDisplay');
+                const gestureHint = document.getElementById('gestureHint');
+                const beijingTimeDisplay = document.getElementById('beijingTimeDisplay');
+                let hlsInstance = null;
+                let startY = 0;
+                let isLeftSide = false;
+                let isDragging = false;
+                let currentBrightness = 100;
+                let hintTimeout = null;
+                let timeUpdateInterval = null;
+
+                function showResolution(width, height) {
+                    resolutionDisplay.textContent = `${width}×${height}`;
+                    resolutionDisplay.classList.add('show');
+                    setTimeout(() => {
+                        resolutionDisplay.classList.remove('show');
+                    }, 9000);
+                }
+
+                function showGestureHint(text) {
+                    gestureHint.textContent = text;
+                    gestureHint.classList.add('show');
+                    clearTimeout(hintTimeout);
+                    hintTimeout = setTimeout(() => {
+                        gestureHint.classList.remove('show');
+                    }, 1000);
+                }
+
+                function getVideoResolution(videoElement) {
+                    if (videoElement && videoElement.videoWidth && videoElement.videoHeight) {
+                        return { width: videoElement.videoWidth, height: videoElement.videoHeight };
+                    }
+                    return null;
+                }
+
+                // 获取当前北京时间（东八区）
+                function getBeijingTime() {
+                    const now = new Date();
+                    // 使用东八区时间
+                    const beijingTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }));
+                    const h = beijingTime.getHours().toString().padStart(2, '0');
+                    const m = beijingTime.getMinutes().toString().padStart(2, '0');
+                    const s = beijingTime.getSeconds().toString().padStart(2, '0');
+                    return `${h}:${m}:${s}`;
+                }
+
+                // 更新北京时间显示
+                function updateBeijingTime() {
+                    beijingTimeDisplay.textContent = getBeijingTime();
+                }
+
+                // 显示/隐藏北京时间 - 与进度条同步
+                function showBeijingTime() {
+                    updateBeijingTime();
+                    beijingTimeDisplay.classList.add('show');
+                }
+
+                function hideBeijingTime() {
+                    beijingTimeDisplay.classList.remove('show');
+                }
+
+                window.player = new Artplayer({
+                    container: '#container',
+                    url: url,
+                    autoplay: true,
+                    autoSize: false,
+                    loop: false,
+                    mutex: true,
+                    setting: true,
+                    pip: true,
+                    flip: false,
+                    lock: true,
+                    fastForward: true,
+                    playbackRate: true,
+                    aspectRatio: true,
+                    theme: '#ff0057',
+                    fullscreen: true,
+                    fullscreenWeb: false,
+                    miniProgressBar: true,
+                    autoOrientation: true,
+                    airplay: false,
+                    whitelist: ['*'],
+                    notice: false,
+                    customType: {
+                        m3u8: function (video, m3u8Url) {
+                            if (hlsInstance) {
+                                try { hlsInstance.destroy(); } catch (e) { console.warn('销毁旧HLS实例:', e); }
+                                hlsInstance = null;
+                            }
+
+                            if (Hls.isSupported()) {
+                                const hls = new Hls({
+                                    startLevel: -1,
+                                    autoStartLoad: true,
+                                    maxBufferLength: 60,
+                                    maxMaxBufferLength: 240,
+                                    capLevelToPlayerSize: false,
+                                    startLevel: Infinity
+                                });
+                                hlsInstance = hls;
+
+                                hls.loadSource(m3u8Url);
+                                hls.attachMedia(video);
+
+                                hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                                    console.log('HLS清单解析完成, 可用级别:', data.levels.length);
+                                    const maxLevel = data.levels.length - 1;
+                                    hls.currentLevel = maxLevel;
+
+                                    setTimeout(() => {
+                                        const resolution = getVideoResolution(video);
+                                        if (resolution) showResolution(resolution.width, resolution.height);
+                                    }, 1500);
+                                });
+
+                                hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+                                    setTimeout(() => {
+                                        const resolution = getVideoResolution(video);
+                                        if (resolution) showResolution(resolution.width, resolution.height);
+                                    }, 2000);
+                                });
+
+                                hls.on(Hls.Events.ERROR, function (event, data) {
+                                    console.error('HLS错误:', data);
+                                    if (data.fatal) {
+                                        console.log('发生致命错误，停止播放');
+                                        hls.destroy();
+                                        hlsInstance = null;
+                                        video.style.opacity = '0.5';
+                                    }
+                                });
+
+                            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                                video.src = m3u8Url;
+                                video.addEventListener('loadedmetadata', function () {
+                                    const resolution = getVideoResolution(video);
+                                    if (resolution) showResolution(resolution.width, resolution.height);
+                                });
+                            } else {
+                                console.error('Unsupported playback format: m3u8');
+                            }
+                        },
+                    }
+                });
+
+                function initTouchGestures() {
+                    const container = document.getElementById('container');
+                    const video = window.player.video;
+
+                    container.addEventListener('touchstart', (e) => {
+                        if (e.touches.length !== 1) return;
+                        const touch = e.touches[0];
+                        startY = touch.clientY;
+                        const x = touch.clientX;
+                        const width = container.offsetWidth;
+                        isLeftSide = x < width / 2;
+                        isDragging = true;
+                    });
+
+                    container.addEventListener('touchmove', (e) => {
+                        if (!isDragging || e.touches.length !== 1) return;
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const deltaY = startY - touch.clientY;
+                        startY = touch.clientY;
+
+                        if (isLeftSide) {
+                            currentBrightness += deltaY * 0.8;
+                            currentBrightness = Math.max(20, Math.min(100, currentBrightness));
+                            video.style.filter = `brightness(${currentBrightness}%)`;
+                            showGestureHint(`亮度: ${Math.round(currentBrightness)}%`);
+                        } else {
+                            let volume = video.volume * 100;
+                            volume += deltaY * 0.8;
+                            volume = Math.max(0, Math.min(100, volume));
+                            video.volume = volume / 100;
+                            showGestureHint(`音量: ${Math.round(volume)}%`);
+                        }
+                    });
+
+                    container.addEventListener('touchend', () => { isDragging = false; });
+                    container.addEventListener('touchcancel', () => { isDragging = false; });
+                }
+
+                window.player.notice = { show: () => {}, hide: () => {} };
+
+                window.player.on('video:loadedmetadata', function () {
+                    const videoElement = window.player.video;
+                    if (videoElement) {
+                        const resolution = getVideoResolution(videoElement);
+                        if (resolution) {
+                            setTimeout(() => {
+                                showResolution(resolution.width, resolution.height);
+                            }, 1000);
+                        }
+                    }
+                });
+
+                window.player.on('ready', () => { 
+                    initTouchGestures();
+                    window.player.video.style.filter = `brightness(${currentBrightness}%)`;
+
+                    // 初始化北京时间显示，并开始定时更新
+                    updateBeijingTime();
+                    timeUpdateInterval = setInterval(updateBeijingTime, 1000);
+
+                    // 监听进度条显示状态 - 通过检测 artplayer 底部控制栏的显示
+                    setupProgressBarSync();
+                });
+
+                window.player.on('destroy', () => {
+                    if (hlsInstance) {
+                        try { hlsInstance.destroy(); } catch (e) { console.warn('销毁HLS实例:', e); }
+                        hlsInstance = null;
+                    }
+                    if (timeUpdateInterval) {
+                        clearInterval(timeUpdateInterval);
+                        timeUpdateInterval = null;
+                    }
+                });
+
+                window.player.on('error', (e) => { console.error('播放器错误:', e); e.preventDefault(); return false; });
+                window.player.on('networkError', (e) => { console.error('网络错误:', e); e.preventDefault(); return false; });
+                window.player.on('decodeError', (e) => { console.error('解码错误:', e); e.preventDefault(); return false; });
+
+                // 与进度条显示同步的核心逻辑
+                function setupProgressBarSync() {
+                    const container = document.getElementById('container');
+
+                    // Artplayer 的底部控制栏类名通常是 art-controls 或 art-bottom
+                    // 我们通过监听鼠标/触摸事件来同步显示状态
+
+                    let hideTimer = null;
+
+                    function onUserActivity() {
+                        showBeijingTime();
+                        clearTimeout(hideTimer);
+                        // Artplayer 默认控制栏显示约 3-4 秒后隐藏
+                        hideTimer = setTimeout(() => {
+                            hideBeijingTime();
+                        }, 4000);
+                    }
+
+                    // 监听容器上的交互事件
+                    container.addEventListener('mousemove', onUserActivity);
+                    container.addEventListener('click', onUserActivity);
+                    container.addEventListener('touchstart', onUserActivity);
+                    container.addEventListener('touchmove', onUserActivity);
+
+                    // 监听播放器自身的控制栏显示事件（如果 Artplayer 提供）
+                    // Artplayer 会在控制栏显示/隐藏时触发相关事件
+                    window.player.on('control', (state) => {
+                        if (state === true) {
+                            showBeijingTime();
+                        } else {
+                            hideBeijingTime();
+                        }
+                    });
+
+                    // 备用方案：通过 MutationObserver 监听控制栏的显示状态变化
+                    setTimeout(() => {
+                        const controlsElement = container.querySelector('.art-controls, .art-bottom, .art-control');
+                        if (controlsElement) {
+                            const observer = new MutationObserver((mutations) => {
+                                mutations.forEach((mutation) => {
+                                    if (mutation.attributeName === 'style' || mutation.attributeName === 'class') {
+                                        const isVisible = controlsElement.style.display !== 'none' && 
+                                                         !controlsElement.classList.contains('art-hide') &&
+                                                         !controlsElement.classList.contains('art-control-hide');
+                                        if (isVisible) {
+                                            showBeijingTime();
+                                        } else {
+                                            hideBeijingTime();
+                                        }
+                                    }
+                                });
+                            });
+                            observer.observe(controlsElement, { attributes: true, attributeFilter: ['style', 'class'] });
+                        }
+                    }, 1000);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
