@@ -48,29 +48,6 @@
             opacity: 1;
         }
 
-        /* 当前北京时间显示 - 与分辨率窗口相同的样式逻辑，位置在正上方 */
-        .beijing-time-display {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: bold;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-
-        .beijing-time-display.show {
-            opacity: 1;
-        }
-
         .iframe-container {
             width: 100%;
             height: 100%;
@@ -120,8 +97,6 @@
 <body>
     <div id="container"></div>
     <div id="resolutionDisplay" class="resolution-display"></div>
-    <!-- 当前北京时间显示元素 -->
-    <div id="beijingTimeDisplay" class="beijing-time-display"></div>
     <div id="gestureHint" class="gesture-hint"></div>
     <script>
         document.addEventListener("DOMContentLoaded", (event) => {
@@ -143,7 +118,6 @@
 
             if (!isVideoUrl(videoUrl)) {
                 const container = document.getElementById('container');
-                // ✅ 已修复 XSS 漏洞
                 const iframe = document.createElement('iframe');
                 iframe.className = 'iframe-container';
                 iframe.allowFullscreen = true;
@@ -210,7 +184,6 @@
             function initializePlayer(url) {
                 const resolutionDisplay = document.getElementById('resolutionDisplay');
                 const gestureHint = document.getElementById('gestureHint');
-                const beijingTimeDisplay = document.getElementById('beijingTimeDisplay');
                 let hlsInstance = null;
                 let startY = 0;
                 let isLeftSide = false;
@@ -218,6 +191,7 @@
                 let currentBrightness = 100;
                 let hintTimeout = null;
                 let timeUpdateInterval = null;
+                let beijingTimeLayer = null;
 
                 function showResolution(width, height) {
                     resolutionDisplay.textContent = `${width}×${height}`;
@@ -243,30 +217,13 @@
                     return null;
                 }
 
-                // 获取当前北京时间（东八区）
+                // 获取当前北京时间（东八区），只返回时分
                 function getBeijingTime() {
                     const now = new Date();
-                    // 使用东八区时间
                     const beijingTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }));
                     const h = beijingTime.getHours().toString().padStart(2, '0');
                     const m = beijingTime.getMinutes().toString().padStart(2, '0');
-                    const s = beijingTime.getSeconds().toString().padStart(2, '0');
-                    return `${h}:${m}:${s}`;
-                }
-
-                // 更新北京时间显示
-                function updateBeijingTime() {
-                    beijingTimeDisplay.textContent = getBeijingTime();
-                }
-
-                // 显示/隐藏北京时间 - 与进度条同步
-                function showBeijingTime() {
-                    updateBeijingTime();
-                    beijingTimeDisplay.classList.add('show');
-                }
-
-                function hideBeijingTime() {
-                    beijingTimeDisplay.classList.remove('show');
+                    return `${h}:${m}`;
                 }
 
                 window.player = new Artplayer({
@@ -291,6 +248,29 @@
                     airplay: false,
                     whitelist: ['*'],
                     notice: false,
+                    layers: [
+                        {
+                            name: 'beijingTime',
+                            html: '<span id="art-beijing-time" style="font-size:14px;font-weight:bold;"></span>',
+                            style: {
+                                position: 'absolute',
+                                top: '20px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                background: 'rgba(0, 0, 0, 0.8)',
+                                color: 'white',
+                                padding: '8px 12px',
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                pointerEvents: 'none',
+                                whiteSpace: 'nowrap',
+                                opacity: '0',
+                                transition: 'opacity 0.5s ease-in-out',
+                                zIndex: '1000',
+                            },
+                        },
+                    ],
                     customType: {
                         m3u8: function (video, m3u8Url) {
                             if (hlsInstance) {
@@ -410,11 +390,21 @@
                     initTouchGestures();
                     window.player.video.style.filter = `brightness(${currentBrightness}%)`;
 
-                    // 初始化北京时间显示，并开始定时更新
-                    updateBeijingTime();
-                    timeUpdateInterval = setInterval(updateBeijingTime, 1000);
+                    // 获取 Artplayer 内部创建的 layer 元素
+                    const artLayers = window.player.query('.art-layers');
+                    if (artLayers) {
+                        beijingTimeLayer = artLayers.querySelector('[data-layer="beijingTime"]');
+                        if (beijingTimeLayer) {
+                            const timeSpan = beijingTimeLayer.querySelector('#art-beijing-time');
+                            if (timeSpan) {
+                                timeSpan.textContent = getBeijingTime();
+                                timeUpdateInterval = setInterval(() => {
+                                    timeSpan.textContent = getBeijingTime();
+                                }, 1000);
+                            }
+                        }
+                    }
 
-                    // 监听进度条显示状态 - 通过检测 artplayer 底部控制栏的显示
                     setupProgressBarSync();
                 });
 
@@ -433,61 +423,43 @@
                 window.player.on('networkError', (e) => { console.error('网络错误:', e); e.preventDefault(); return false; });
                 window.player.on('decodeError', (e) => { console.error('解码错误:', e); e.preventDefault(); return false; });
 
-                // 与进度条显示同步的核心逻辑
+                // 与进度条显示同步
                 function setupProgressBarSync() {
                     const container = document.getElementById('container');
-
-                    // Artplayer 的底部控制栏类名通常是 art-controls 或 art-bottom
-                    // 我们通过监听鼠标/触摸事件来同步显示状态
-
                     let hideTimer = null;
 
+                    function showTime() {
+                        if (beijingTimeLayer) {
+                            beijingTimeLayer.style.opacity = '1';
+                        }
+                    }
+
+                    function hideTime() {
+                        if (beijingTimeLayer) {
+                            beijingTimeLayer.style.opacity = '0';
+                        }
+                    }
+
                     function onUserActivity() {
-                        showBeijingTime();
+                        showTime();
                         clearTimeout(hideTimer);
-                        // Artplayer 默认控制栏显示约 3-4 秒后隐藏
                         hideTimer = setTimeout(() => {
-                            hideBeijingTime();
+                            hideTime();
                         }, 4000);
                     }
 
-                    // 监听容器上的交互事件
                     container.addEventListener('mousemove', onUserActivity);
                     container.addEventListener('click', onUserActivity);
                     container.addEventListener('touchstart', onUserActivity);
                     container.addEventListener('touchmove', onUserActivity);
 
-                    // 监听播放器自身的控制栏显示事件（如果 Artplayer 提供）
-                    // Artplayer 会在控制栏显示/隐藏时触发相关事件
                     window.player.on('control', (state) => {
                         if (state === true) {
-                            showBeijingTime();
+                            showTime();
                         } else {
-                            hideBeijingTime();
+                            hideTime();
                         }
                     });
-
-                    // 备用方案：通过 MutationObserver 监听控制栏的显示状态变化
-                    setTimeout(() => {
-                        const controlsElement = container.querySelector('.art-controls, .art-bottom, .art-control');
-                        if (controlsElement) {
-                            const observer = new MutationObserver((mutations) => {
-                                mutations.forEach((mutation) => {
-                                    if (mutation.attributeName === 'style' || mutation.attributeName === 'class') {
-                                        const isVisible = controlsElement.style.display !== 'none' && 
-                                                         !controlsElement.classList.contains('art-hide') &&
-                                                         !controlsElement.classList.contains('art-control-hide');
-                                        if (isVisible) {
-                                            showBeijingTime();
-                                        } else {
-                                            hideBeijingTime();
-                                        }
-                                    }
-                                });
-                            });
-                            observer.observe(controlsElement, { attributes: true, attributeFilter: ['style', 'class'] });
-                        }
-                    }, 1000);
                 }
             }
         });
