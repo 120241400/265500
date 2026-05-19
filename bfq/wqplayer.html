@@ -1,8 +1,4 @@
 
-
-
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -163,7 +159,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
-<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -364,9 +359,13 @@ function showResumeTip(time) {
   $('#rtTime').textContent = fmtTime(time);
   const tip = $('#resumeTip');
   tip.classList.add('show');
-  tip.classList.remove('auto-hide');
+  tip.classList.add('auto-hide');
   video.pause();
   updatePlayUI();
+  // 3秒后自动消失并恢复播放
+  setTimeout(() => {
+    if (resumeTipShown) hideResumeTip();
+  }, 3000);
 }
 
 function hideResumeTip() {
@@ -590,15 +589,7 @@ function updatePlayUI() {
   else $('#centerPlay').classList.add('hide');
 }
 
-video.addEventListener('play', () => {
-  updatePlayUI();
-  // 播放3秒后自动隐藏恢复提示
-  if (resumeTipShown) {
-    setTimeout(() => {
-      if (resumeTipShown && !video.paused) hideResumeTip();
-    }, 3000);
-  }
-});
+video.addEventListener('play', updatePlayUI);
 video.addEventListener('pause', () => { updatePlayUI(); saveProgress(); });
 video.addEventListener('ended', () => { updatePlayUI(); showControls(); clearProgress(); });
 
