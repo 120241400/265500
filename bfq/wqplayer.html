@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -108,13 +107,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .sp-btn:hover{background:rgba(255,255,255,.08);color:var(--fg)}
 .sp-btn.active{color:var(--accent);font-weight:700}
 
-.err-panel{position:absolute;inset:0;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:30;opacity:0;pointer-events:none;transition:opacity .3s}
-.err-panel.show{opacity:1;pointer-events:auto}
-.err-panel .material-symbols-rounded{font-size:48px;color:#ff4757}
-.err-panel .err-msg{color:rgba(255,255,255,.65);font-size:13px;max-width:280px;text-align:center;line-height:1.6}
-.err-panel .retry-btn{background:var(--accent);color:#000;border:none;padding:10px 30px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;margin-top:4px}
-.err-panel .retry-btn:hover{opacity:.85}
-
 .no-url{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:30}
 .no-url .material-symbols-rounded{font-size:56px;color:rgba(255,255,255,.15)}
 .no-url .nu-hint{color:rgba(255,255,255,.45);font-size:16px;font-weight:700;margin-top:20px}
@@ -197,12 +189,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
     <button class="sp-btn" data-speed="2">2.0x</button>
   </div>
 
-  <div class="err-panel" id="errPanel">
-    <span class="material-symbols-rounded">error_outline</span>
-    <div class="err-msg" id="errMsg">视频加载失败</div>
-    <button class="retry-btn" id="retryBtn">重新加载</button>
-  </div>
-
   <div class="no-url" id="noUrl">
     <span class="material-symbols-rounded">smart_display</span>
     <div class="nu-hint">使用方式：?url=视频地址</div>
@@ -282,8 +268,6 @@ const player = $('#player');
 let hlsInstance = null;
 let videoUrl = '';
 let isLive = false;
-let retryCount = 0;
-const MAX_RETRY = 3;
 let savedTime = 0;
 let currentSpeed = 1;
 let isLongPress = false;
@@ -355,10 +339,8 @@ async function initPlayer(url) {
   $('#noUrl').style.display = 'none';
   $('#centerPlay').classList.remove('hide');
   videoUrl = url;
-  retryCount = 0;
   savedTime = getStoredTime(url);
   resumeTipShown = false;
-  hideError();
 
   if (isHlsUrl(url)) {
     await initHls(url);
@@ -446,10 +428,10 @@ async function initHls(url) {
   }
   try {
     const Hls = await loadHlsJs();
-    if (!Hls.isSupported()) { showError('当前浏览器不支持HLS播放'); return; }
+    if (!Hls.isSupported()) { showToast('当前浏览器不支持HLS播放'); return; }
     createHlsInstance(Hls, url);
   } catch(e) {
-    showError('HLS.js 加载失败，无法播放此流');
+    showToast('HLS.js 加载失败，无法播放此流');
   }
 }
 
@@ -496,7 +478,7 @@ function createHlsInstance(Hls, url) {
           hlsInstance.recoverMediaError();
           break;
         default:
-          tryRetry();
+          showToast('播放错误');
           break;
       }
     }
@@ -505,36 +487,8 @@ function createHlsInstance(Hls, url) {
 
 video.addEventListener('error', () => {
   saveProgress();
-  if (retryCount < MAX_RETRY) tryRetry();
-  else showError(`视频加载失败（已重试${MAX_RETRY}次）`);
+  showToast('视频加载失败');
 });
-
-function tryRetry() {
-  retryCount++;
-
-  const ct = video.currentTime;
-  if (isFinite(ct) && ct > 3) {
-    localStorage.setItem(getStorageKey(videoUrl), ct);
-    savedTime = ct;
-  }
-
-  const stored = getStoredTime(videoUrl);
-  if (stored > 0) {
-    savedTime = stored;
-  }
-
-  showToast(`加载失败，第${retryCount}次重试...`);
-  setTimeout(() => initPlayer(videoUrl), 1500);
-}
-
-function showError(msg) {
-  $('#errMsg').textContent = msg || '视频加载失败';
-  $('#errPanel').classList.add('show');
-}
-function hideError() {
-  $('#errPanel').classList.remove('show');
-}
-$('#retryBtn').addEventListener('click', () => { retryCount = 0; initPlayer(videoUrl); });
 
 // ========== 播放控制 ==========
 
@@ -816,7 +770,7 @@ let touchClickTimer = null;
 // 移动端触摸双击逻辑
 player.addEventListener('touchstart', (e) => {
   if (!$('#controls').contains(e.target) && !$('#topBar').contains(e.target) &&
-      !$('#errPanel').contains(e.target) && !$('#noUrl').contains(e.target) &&
+      !$('#noUrl').contains(e.target) &&
       !speedPanel.contains(e.target) && !$('#resumeTip').contains(e.target)) {
 
     touchClickCount++;
@@ -845,7 +799,7 @@ let clickCount = 0;
 // PC端单击/双击逻辑
 player.addEventListener('click', (e) => {
   if ($('#controls').contains(e.target) || $('#topBar').contains(e.target) ||
-      $('#errPanel').contains(e.target) || $('#noUrl').contains(e.target) ||
+      $('#noUrl').contains(e.target) ||
       speedPanel.contains(e.target) || $('#resumeTip').contains(e.target)) return;
 
   if (player.dataset.touched) return;
@@ -901,7 +855,7 @@ function hideSeekTip() { seekTip.classList.remove('show'); }
 
 player.addEventListener('touchstart', (e) => {
   if ($('#controls').contains(e.target) ||$('#topBar').contains(e.target) ||
-      $('#errPanel').contains(e.target) ||$('#noUrl').contains(e.target)) return;
+      $('#noUrl').contains(e.target)) return;
   if (e.touches.length !== 1) return;
 
   const t = e.touches[0];
@@ -927,7 +881,7 @@ player.addEventListener('touchstart', (e) => {
 
 player.addEventListener('touchmove', (e) => {
   if ($('#controls').contains(e.target) ||$('#topBar').contains(e.target) ||
-      $('#errPanel').contains(e.target) ||$('#noUrl').contains(e.target)) return;
+      $('#noUrl').contains(e.target)) return;
   if (gesture.isLongPress) return;
   if (e.touches.length !== 1) return;
 
