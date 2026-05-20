@@ -1,5 +1,3 @@
-﻿
-
 
 
 <!DOCTYPE html>
@@ -7,33 +5,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>豆瓣热剧推荐 · 极速搜索</title>
+    <title>豆瓣热剧推荐 · 极光影院</title>
     <style>
         :root {
-            --color-bg-primary: #0a0f1d;
-            --color-bg-secondary: #111827;
-            --color-bg-third: #1a2235;
-            --color-btn-normal: #1e293b;
-            --color-btn-hover: #273449;
-            --color-btn-active: #1d4ed8;
-            --color-border-normal: #2d3748;
-            --color-text-primary: #e2e8f0;
+            --color-bg-primary: #050b1a;
+            --color-bg-secondary: #0f172a;
+            --color-bg-third: #1e293b;
+            --color-btn-normal: #1e2a3e;
+            --color-btn-hover: #2d3b4f;
+            --color-btn-active: #3b82f6;
+            --color-border-normal: #334155;
+            --color-text-primary: #f1f5f9;
             --color-text-secondary: #94a3b8;
             --color-accent: #3b82f6;
-            --shadow-normal: 0 2px 8px rgba(0,0,0,0.3);
-            --shadow-active: 0 0 15px rgba(29, 78, 216, 0.4);
-            --radius-btn: 20px;
-            --radius-modal: 16px;
-            --radius-input: 12px;
-            --radius-card: 12px;
-            --gradient-btn: linear-gradient(135deg, #1e293b 0%, #273449 100%);
+            --shadow-normal: 0 8px 20px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2);
+            --shadow-active: 0 0 18px rgba(59, 130, 246, 0.5);
+            --radius-btn: 32px;
+            --radius-modal: 24px;
+            --radius-input: 60px;
+            --radius-card: 20px;
+            --gradient-btn: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --gradient-gold: linear-gradient(135deg, #f0b86e, #ffd89b);
+            --glass-bg: rgba(15, 23, 42, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.08);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft YaHei", "Noto Sans SC", -apple-system, sans-serif;
+            font-family: "SF Pro Text", "Noto Sans SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
             border: none;
             outline: none;
         }
@@ -43,10 +44,9 @@
             height: 100vh;
             height: 100dvh;
             overflow: hidden;
-            background: var(--color-bg-primary);
+            background: radial-gradient(circle at 10% 20%, #0a0f1a, #020617);
             margin: 0;
             padding: 0;
-            position: relative;
         }
 
         .app-container {
@@ -55,27 +55,23 @@
             width: 100%;
             height: 100vh;
             height: 100dvh;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: relative;
+            backdrop-filter: blur(2px);
         }
 
-        /* 顶部导航栏 */
+        /* ========= 顶栏胶囊导航 ========= */
         .nav-box {
             width: 100%;
-            background: var(--color-bg-secondary);
-            padding: 9px 10px;
-            box-shadow: var(--shadow-normal);
-            height: 46px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 8px 12px;
+            height: 54px;
             flex-shrink: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            border-bottom: 1px solid #1e293b;
-            position: relative;
-            z-index: 1;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         .nav-scroll {
@@ -93,82 +89,57 @@
 
         .nav-list {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             width: max-content;
             margin: 0 auto;
         }
 
         .nav-btn {
-            padding: 8px 20px;
+            padding: 8px 22px;
             background: var(--gradient-btn);
-            border: 1px solid var(--color-border-normal);
-            border-radius: var(--radius-btn);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
             font-size: 13px;
+            font-weight: 500;
             color: var(--color-text-primary);
             white-space: nowrap;
             cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .nav-btn:hover::before {
-            left: 100%;
+            transition: all 0.25s ease;
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(4px);
         }
 
         .nav-btn:hover {
-            background: #273449;
-            border-color: #334155;
-            transform: translateY(-1px);
+            background: #2a3a58;
+            border-color: rgba(59,130,246,0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.3);
         }
 
         .nav-btn.active {
-            background: var(--color-btn-active);
-            color: #ffffff;
-            font-weight: bold;
-            box-shadow: var(--shadow-active);
+            background: linear-gradient(95deg, #2563eb, #1e40af);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
             border-color: #3b82f6;
-            transform: translateY(-1px);
-        }
-
-        /* 主页按钮永远不高亮 */
-        .nav-btn.home-btn {
-            background: var(--gradient-btn);
-            border-color: var(--color-border-normal);
-            font-weight: normal;
         }
         
-        .nav-btn.home-btn:hover {
-            background: #273449;
-            border-color: #334155;
-        }
-        
+        /* 主页按钮风格不抢眼 */
         .nav-btn.home-btn.active {
             background: var(--gradient-btn);
-            border-color: var(--color-border-normal);
             color: var(--color-text-primary);
-            font-weight: normal;
+            font-weight: 500;
             box-shadow: none;
+            border-color: var(--glass-border);
         }
 
-        /* 豆瓣推荐区域容器 (替换原有热门搜索区域) */
+        /* ========= 豆瓣推荐区域 玻璃质感 ========= */
         .hot-search-container {
             flex: 1;
             width: 100%;
-            background: linear-gradient(135deg, #0a0f1d 0%, #0f172a 100%);
+            background: radial-gradient(ellipse at 50% 30%, rgba(8, 20, 45, 0.6), rgba(2, 6, 23, 0.9));
             overflow-y: auto;
-            padding: 20px 15px;
+            padding: 24px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -176,104 +147,186 @@
 
         .hot-search-box {
             width: 100%;
-            max-width: 1000px;
-            background: rgba(17, 24, 39, 0.75);
-            backdrop-filter: blur(4px);
+            max-width: 1100px;
+            background: rgba(15, 25, 45, 0.55);
+            backdrop-filter: blur(16px);
             border-radius: var(--radius-card);
-            padding: 22px 20px;
-            box-shadow: var(--shadow-normal);
-            border: 1px solid rgba(45, 55, 72, 0.6);
-            transition: all 0.2s ease;
+            padding: 28px 24px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            border: 1px solid rgba(59,130,246,0.25);
+            transition: all 0.3s;
         }
 
         .hot-search-title {
-            font-size: 1.6rem;
-            font-weight: 700;
+            font-size: 1.9rem;
+            font-weight: 800;
             text-align: center;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #fff 0%, #a8edea 60%, #fed6e3 100%);
+            margin-bottom: 6px;
+            background: linear-gradient(125deg, #ffffff 0%, #b9e6ff 45%, #ffcfdf 100%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            letter-spacing: 1px;
+            letter-spacing: -0.3px;
         }
 
         .sub-title {
             text-align: center;
-            color: var(--color-text-secondary);
+            color: #a5b4fc;
             font-size: 0.85rem;
-            margin-bottom: 25px;
-            border-bottom: 1px dashed #334155;
+            margin-bottom: 28px;
             display: inline-block;
             width: auto;
             margin-left: auto;
             margin-right: auto;
-            padding-bottom: 8px;
+            padding: 6px 20px;
+            background: rgba(59,130,246,0.15);
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+            font-weight: 400;
         }
 
-        /* 豆瓣气泡网格 — 动态自适应换行，毛玻璃风格 */
+        /* ========= 🌟 完美胶囊整体搜索栏（主页） ========= */
+        .home-search-wrap {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            border: 1px solid rgba(59, 130, 246, 0.6);
+            padding: 0;
+            margin: 0 auto 32px auto;
+            max-width: 600px;
+            width: 100%;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+
+        .home-search-wrap:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), 0 8px 25px rgba(0,0,0,0.5);
+            background: rgba(8, 20, 40, 0.8);
+        }
+
+        #homeSearchInput {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 15px 20px;
+            font-size: 1rem;
+            color: #f0f3fa;
+            outline: none;
+            letter-spacing: 0.3px;
+            min-width: 0;
+        }
+
+        #homeSearchInput::placeholder {
+            color: #8ca3c7;
+            font-weight: 400;
+            font-size: 0.95rem;
+        }
+
+        #homeSearchBtn {
+            background: linear-gradient(110deg, #2563eb, #1e40af);
+            border: none;
+            border-radius: 60px;
+            padding: 12px 32px;
+            margin: 5px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: 0.8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            white-space: nowrap;
+            backdrop-filter: blur(4px);
+        }
+
+        #homeSearchBtn:hover {
+            background: linear-gradient(110deg, #3b82f6, #2563eb);
+            transform: scale(0.96);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.5);
+        }
+
+        #homeSearchBtn:active {
+            transform: scale(0.94);
+        }
+
+        /* 手机优化 胶囊更精致 */
+        @media (max-width: 640px) {
+            .home-search-wrap {
+                max-width: 95%;
+            }
+            #homeSearchInput {
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+            #homeSearchBtn {
+                padding: 9px 22px;
+                font-size: 0.85rem;
+                margin: 4px;
+            }
+        }
+
+        /* 豆瓣气泡网格 - 现代毛玻璃 */
         .hot-search-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 14px;
+            gap: 16px;
             justify-content: center;
-            margin-top: 12px;
+            margin-top: 8px;
         }
 
-        /* 气泡卡片样式 — 融合豆瓣主页质感 */
         .douban-bubble {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 32px;
-            padding: 10px 22px;
+            background: rgba(20, 30, 55, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 48px;
+            padding: 10px 26px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.4, 1.2);
             text-align: center;
             white-space: nowrap;
             flex-shrink: 0;
             min-width: 100px;
             width: auto;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .douban-bubble:hover {
-            background: rgba(59, 130, 246, 0.3);
-            border-color: #3b82f6;
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3), 0 0 12px rgba(59, 130, 246, 0.5);
+            background: rgba(59, 130, 246, 0.65);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 15px 25px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.7);
         }
 
         .bubble-text {
-            color: #f0f3fa;
+            color: #f1f5f9;
             font-size: 0.95rem;
             font-weight: 500;
-            letter-spacing: 0.5px;
-            display: block;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            letter-spacing: 0.3px;
+            text-shadow: 0 1px 2px black;
         }
 
-        /* 加载与错误状态 */
+        /* 加载/错误状态 */
         .loading-hot-search, .error-message {
             text-align: center;
             padding: 40px 20px;
-            color: var(--color-text-secondary);
+            color: #cbd5e6;
             font-size: 1rem;
             width: 100%;
             background: rgba(0,0,0,0.3);
-            border-radius: 32px;
+            border-radius: 48px;
             font-weight: 500;
+            backdrop-filter: blur(8px);
         }
 
-        .error-message {
-            color: #f87171;
-        }
-
-        /* 搜索结果容器 (iframe) */
+        /* 搜索结果容器 */
         .search-container {
             flex: 1;
             width: 100%;
-            background: var(--color-bg-secondary);
+            background: #000000cc;
             overflow: hidden;
             position: relative;
             display: none;
@@ -287,24 +340,21 @@
             position: absolute;
             top: 0;
             left: 0;
-            object-fit: cover;
-            transform: translateZ(0);
-            backface-visibility: hidden;
         }
 
-        /* 搜索模态框 */
+        /* 模态框（胶囊整体优化） */
         .search-modal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 999;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
+            transition: all 0.25s ease;
+            backdrop-filter: blur(12px);
         }
 
         .search-modal.show {
@@ -314,173 +364,119 @@
 
         .search-modal-box {
             width: 90%;
-            max-width: 500px;
-            background: var(--color-bg-secondary);
-            border-radius: var(--radius-modal);
-            padding: 30px 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            max-width: 480px;
+            background: rgba(15, 25, 45, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 36px;
+            padding: 28px 26px;
+            box-shadow: 0 30px 45px rgba(0,0,0,0.5);
+            border: 1px solid rgba(59, 130, 246, 0.4);
             position: relative;
-            border: 1px solid #1e293b;
         }
 
         .search-close {
             position: absolute;
-            right: 18px;
-            top: 18px;
-            width: 32px;
-            height: 32px;
+            right: 22px;
+            top: 22px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: var(--color-btn-normal);
-            border: 1px solid var(--color-border-normal);
-            color: #fff;
-            font-size: 16px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: #e2e8f0;
+            font-size: 18px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
+            transition: 0.2s;
         }
 
         .search-close:hover {
             background: #ef4444;
-            border-color: #ef4444;
             transform: rotate(90deg);
+            border-color: #ef4444;
         }
 
         .search-modal-title {
             text-align: center;
-            color: var(--color-text-primary);
-            font-size: 19px;
-            margin-bottom: 25px;
-            font-weight: 600;
+            color: #e0f2fe;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 28px;
         }
 
+        /* 模态框胶囊整体结构 完美融合 */
         .search-input-wrap {
             display: flex;
-            gap: 12px;
             align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 60px;
+            border: 1px solid rgba(59, 130, 246, 0.6);
+            padding: 0;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .search-input-wrap:focus-within {
+            border-color: #3b82f6;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.4);
         }
 
         #localInput {
             flex: 1;
-            height: 48px;
-            padding: 0 20px;
-            border-radius: var(--radius-input);
-            border: 1px solid var(--color-border-normal);
-            background: var(--color-btn-normal);
-            color: var(--color-text-primary);
-            font-size: 15px;
+            background: transparent;
+            border: none;
+            padding: 14px 20px;
+            font-size: 1rem;
+            color: #f1f5f9;
             outline: none;
-            transition: all 0.3s ease;
         }
 
-        #localInput:focus {
-            border-color: var(--color-btn-active);
-            background: #273449;
-            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+        #localInput::placeholder {
+            color: #8ba3c7;
         }
 
         #localSearchBtn {
-            height: 48px;
-            padding: 0 25px;
-            border-radius: var(--radius-input);
-            border: 1px solid var(--color-btn-active);
-            background: var(--color-btn-active);
-            color: #fff;
-            font-size: 15px;
+            background: linear-gradient(110deg, #2563eb, #1e40af);
+            border: none;
+            border-radius: 60px;
+            padding: 11px 28px;
+            margin: 5px;
+            color: white;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
+            transition: 0.2s;
+            white-space: nowrap;
+            font-size: 0.9rem;
         }
 
         #localSearchBtn:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
+            background: #3b82f6;
+            transform: scale(0.96);
         }
 
         .footer-box {
             width: 100%;
-            background: var(--color-bg-secondary);
-            padding: 9px 10px;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
-            height: 46px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 8px;
+            height: 40px;
             flex-shrink: 0;
-            border-top: 1px solid #1e293b;
+            border-top: 1px solid rgba(59,130,246,0.2);
         }
 
-        /* 手机端优化 */
-        @media (max-width: 768px) {
-            .nav-box, .footer-box {
-                padding: 8px 10px;
-                height: 42px;
-            }
-            .nav-btn {
-                padding: 7px 16px;
-                font-size: 12px;
-            }
-            .hot-search-container {
-                padding: 15px 10px;
-            }
-            .hot-search-box {
-                padding: 18px 14px;
-            }
-            .hot-search-title {
-                font-size: 1.4rem;
-            }
-            .douban-bubble {
-                padding: 8px 18px;
-                min-width: 85px;
-            }
-            .bubble-text {
-                font-size: 0.85rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .nav-btn {
-                padding: 6px 12px;
-                font-size: 11px;
-            }
-            .douban-bubble {
-                padding: 6px 14px;
-                min-width: 75px;
-            }
-            .bubble-text {
-                font-size: 0.8rem;
-            }
-        }
-
-        /* 主页搜索框样式 */
-        .home-search-wrap input:focus {
-            border-color: #1d4ed8 !important;
-            background: #273449 !important;
-            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2) !important;
-        }
-        .home-search-wrap button:hover {
-            background: #2563eb !important;
-            transform: translateY(-1px) !important;
-        }
-
-        /* 全屏兼容 */
-        :-webkit-full-screen #search-iframe,
-        :-moz-full-screen #search-iframe,
-        :fullscreen #search-iframe {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* 搜索结果加载提示 - 底层常驻，iframe加载完成后覆盖 */
+        /* 加载覆盖层 */
         .search-loading-overlay {
             position: absolute;
             inset: 0;
-            background: var(--color-bg-secondary);
-            z-index: 1;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(16px);
+            z-index: 2;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 16px;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
+            gap: 18px;
+            transition: opacity 0.4s;
         }
 
         .search-loading-overlay.hidden {
@@ -490,9 +486,9 @@
         }
 
         .search-loading-spinner {
-            width: 48px;
-            height: 48px;
-            border: 3px solid rgba(59, 130, 246, 0.2);
+            width: 54px;
+            height: 54px;
+            border: 4px solid rgba(59, 130, 246, 0.2);
             border-top-color: #3b82f6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -503,449 +499,351 @@
         }
 
         .search-loading-text {
-            color: var(--color-text-primary);
-            font-size: 1.1rem;
+            color: #f0f3fa;
+            font-size: 1.2rem;
             font-weight: 500;
-            letter-spacing: 1px;
-        }
-
-        .search-loading-subtext {
-            color: var(--color-text-secondary);
-            font-size: 0.85rem;
-            margin-top: -8px;
         }
 
         .search-loading-tip {
-            margin-top: 12px;
-            padding: 8px 20px;
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 20px;
-            color: #f87171;
+            padding: 6px 20px;
+            background: rgba(239, 68, 68, 0.2);
+            border-radius: 40px;
+            color: #fca5a5;
             font-size: 0.8rem;
-            animation: pulse 2s ease-in-out infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
+        /* 手机响应式 */
+        @media (max-width: 768px) {
+            .nav-box { height: 50px; padding: 6px 8px; }
+            .nav-btn { padding: 6px 14px; font-size: 11px; }
+            .hot-search-box { padding: 18px 16px; }
+            .hot-search-title { font-size: 1.5rem; }
+            .douban-bubble { padding: 6px 18px; min-width: 75px; }
+            .bubble-text { font-size: 0.8rem; }
+        }
+
+        @media (max-width: 480px) {
+            .search-modal-box { padding: 24px 18px; }
+            .search-input-wrap { padding: 0; }
+            #localSearchBtn { padding: 8px 16px; font-size: 0.75rem; }
+        }
+
+        /* 滚动条优雅 */
+        .hot-search-container::-webkit-scrollbar {
+            width: 5px;
+        }
+        .hot-search-container::-webkit-scrollbar-track {
+            background: #0f172a;
+            border-radius: 10px;
+        }
+        .hot-search-container::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="nav-box">
-            <div class="nav-scroll">
-                <div class="nav-list">
-                    <button class="nav-btn home-btn" id="homeBtn">🏠 主页</button>
-                    <button class="nav-btn active" data-prefix="/yingshi/2/1907.html?url=">一线</button>
-                    <button class="nav-btn" data-prefix="https://video.isyour.love/player/getplayer?url=">二线</button>
-                    <button class="nav-btn" data-prefix="https://leafy-salmiakki-8e302a.netlify.app/360/maotai.html?url=">三线</button>
-                    <button class="nav-btn" id="goHome">🎁 福利</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 豆瓣推荐气泡区域 (动态加载20个气泡) -->
-        <div class="hot-search-container" id="hotSearchContainer">
-            <div class="hot-search-box">
-                <div class="hot-search-title">豆瓣国产剧推荐</div>
-                <div style="text-align: center; margin-bottom: 12px;">
-                    <span class="sub-title">✨ 全网热评 · 点击即刻搜索 ✨</span>
-                </div>
-                <!-- 主页搜索框 -->
-                <div class="home-search-wrap" style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto;">
-                    <input type="text" id="homeSearchInput" placeholder="请输入影片关键词..." style="flex: 1; height: 48px; padding: 0 20px; border-radius: 12px; border: 1px solid #2d3748; background: #1e293b; color: #e2e8f0; font-size: 15px; outline: none; transition: all 0.3s ease;">
-                    <button id="homeSearchBtn" style="height: 48px; padding: 0 25px; border-radius: 12px; border: 1px solid #1d4ed8; background: #1d4ed8; color: #fff; font-size: 15px; cursor: pointer; transition: all 0.3s ease; font-weight: 500; white-space: nowrap;">🔍 搜索</button>
-                </div>
-                <!-- 动态气泡列表容器 -->
-                <div class="hot-search-list" id="hotSearchList">
-                    <div class="loading-hot-search">🎞️ 正在为你加载豆瓣高分剧集 ...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 搜索结果容器（iframe播放器） -->
-        <div class="search-container" id="searchContainer">
-            <iframe 
-                id="search-iframe" 
-                src="about:blank"
-                allowfullscreen="true"
-                webkitallowfullscreen="true"
-                mozallowfullscreen="true"
-                oallowfullscreen="true"
-                msallowfullscreen="true"
-                allow="autoplay; fullscreen; encrypted-media; picture-in-picture; gyroscope; accelerometer"
-                sandbox="allow-scripts allow-same-origin allow-popups allow-fullscreen allow-forms"
-                frameborder="0"
-            ></iframe>
-        <!-- 搜索结果加载提示 - 底层，iframe加载完成后覆盖 -->
-            <div class="search-loading-overlay" id="searchLoadingOverlay">
-                <div class="search-loading-spinner"></div>
-                <div class="search-loading-text">正在搜索影片资源...</div>
-                <div class="search-loading-subtext">请稍后，或更换线路</div>
-                <div class="search-loading-tip">💡 若长时间无响应，可尝试切换其他线路</div>
-            </div>
-        </div>
-
-        <div class="footer-box"></div>
-    </div>
-
-    <!-- 搜索模态框 -->
-    <div class="search-modal" id="searchModal">
-        <div class="search-modal-box">
-            <button class="search-close" id="closeSearch">✕</button>
-            <div class="search-modal-title">影视搜索</div>
-            <div class="search-input-wrap">
-                <input type="text" id="localInput" placeholder="请输入影片关键词...">
-                <button id="localSearchBtn">确定</button>
+<div class="app-container">
+    <div class="nav-box">
+        <div class="nav-scroll">
+            <div class="nav-list">
+                <button class="nav-btn home-btn" id="homeBtn">🏠 主页</button>
+                <button class="nav-btn active" data-prefix="/yingshi/2/1907.html?url=">一线</button>
+                <button class="nav-btn" data-prefix="https://video.isyour.love/player/getplayer?url=">二线</button>
+                <button class="nav-btn" data-prefix="https://leafy-salmiakki-8e302a.netlify.app/360/maotai.html?url=">三线</button>
+                <button class="nav-btn" id="goHome">🎁 福利</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // 搜索加载提示管理器 - 底层常驻，加载完成后隐藏
-        const SearchLoadingManager = {
-            overlay: null,
-            init() {
-                this.overlay = document.getElementById('searchLoadingOverlay');
-            },
-            show() {
-                if (this.overlay) {
-                    this.overlay.classList.remove('hidden');
+    <!-- 豆瓣推荐主区 -->
+    <div class="hot-search-container" id="hotSearchContainer">
+        <div class="hot-search-box">
+            <div class="hot-search-title">豆瓣国产剧推荐</div>
+            <div style="text-align: center;">
+                <span class="sub-title">✨ 全网热评 · 点击即播 ✨</span>
+            </div>
+            <!-- 🌟 完美胶囊整体搜索栏（无间隙、高融合度） -->
+            <div class="home-search-wrap">
+                <input type="text" id="homeSearchInput" placeholder="搜你想看 · 剧名 / 影名" autocomplete="off">
+                <button id="homeSearchBtn">🔍 搜索</button>
+            </div>
+            <div class="hot-search-list" id="hotSearchList">
+                <div class="loading-hot-search">🎬 正在加载豆瓣高分佳作 ...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- iframe 播放区 -->
+    <div class="search-container" id="searchContainer">
+        <iframe id="search-iframe" src="about:blank" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" sandbox="allow-scripts allow-same-origin allow-popups allow-fullscreen allow-forms"></iframe>
+        <div class="search-loading-overlay" id="searchLoadingOverlay">
+            <div class="search-loading-spinner"></div>
+            <div class="search-loading-text">正在搜寻最佳线路 ✨</div>
+            <div class="search-loading-tip">💡 若加载缓慢，可尝试切换其他线路</div>
+        </div>
+    </div>
+
+    <div class="footer-box"></div>
+</div>
+
+<!-- 搜索模态框（备用） -->
+<div class="search-modal" id="searchModal">
+    <div class="search-modal-box">
+        <button class="search-close" id="closeSearch">✕</button>
+        <div class="search-modal-title">影视搜索</div>
+        <div class="search-input-wrap">
+            <input type="text" id="localInput" placeholder="请输入影片关键词...">
+            <button id="localSearchBtn">搜 索</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 加载管理器
+    const SearchLoadingManager = {
+        overlay: null,
+        init() {
+            this.overlay = document.getElementById('searchLoadingOverlay');
+        },
+        show() {
+            if (this.overlay) this.overlay.classList.remove('hidden');
+        },
+        hide() {
+            if (this.overlay) this.overlay.classList.add('hidden');
+        }
+    };
+
+    const CONSTANTS = {
+        SOGOU_URL: '/bfq/lingquan.html',
+        DEFAULT_PREFIX: '/yingshi/2/1907.html?url=',
+        NON_ACTIVE_BUTTONS: ['goHome', 'homeBtn']
+    };
+
+    const DOUBAN_API_PROXY = 'https://seep.eu.org/';
+    const DOUBAN_TV_URL = 'https://movie.douban.com/j/search_subjects?type=tv&tag=%E5%9B%BD%E4%BA%A7%E5%89%A7&sort=recommend&page_limit=100&page_start=0';
+
+    const utils = {
+        getUrlKeyword() {
+            const params = new URLSearchParams(window.location.search);
+            let keyword = params.get('url') || '';
+            if (keyword.includes(' ')) keyword = keyword.split(' ')[0];
+            return keyword.trim();
+        },
+        resizeContainer() {
+            const app = document.querySelector('.app-container');
+            if (app) app.style.height = window.innerHeight + 'px';
+        },
+        toggleActiveNavBtn(activeBtn) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (!CONSTANTS.NON_ACTIVE_BUTTONS.includes(btn.id)) {
+                    btn.classList.toggle('active', btn === activeBtn);
                 }
-            },
-            hide() {
-                if (this.overlay) {
-                    this.overlay.classList.add('hidden');
-                }
+            });
+        },
+        toggleDisplayMode(showResults) {
+            const hotContainer = document.getElementById('hotSearchContainer');
+            const searchContainer = document.getElementById('searchContainer');
+            if (showResults) {
+                hotContainer.style.display = 'none';
+                searchContainer.style.display = 'block';
+            } else {
+                hotContainer.style.display = 'flex';
+                searchContainer.style.display = 'none';
             }
-        };
-
-        const CONSTANTS = {
-            SOGOU_URL: '/bfq/lingquan.html',
-            DEFAULT_PREFIX: '/yingshi/2/1907.html?url=',
-            NON_ACTIVE_BUTTONS: ['goHome', 'homeBtn']
-        };
-
-        // 豆瓣API代理 (稳定跨域代理，与原豆瓣主页一致)
-        const DOUBAN_API_PROXY = 'https://seep.eu.org/';
-        const DOUBAN_TV_URL = 'https://movie.douban.com/j/search_subjects?type=tv&tag=%E5%9B%BD%E4%BA%A7%E5%89%A7&sort=recommend&page_limit=100&page_start=0';
-
-        // 全局工具函数
-        const utils = {
-            getUrlKeyword() {
-                const params = new URLSearchParams(window.location.search);
-                let keyword = params.get('url') || '';
-                if (keyword.includes(' ')) {
-                    keyword = keyword.split(' ')[0];
-                }
-                return keyword.trim();
-            },
-
-            resizeContainer() {
-                const appContainer = document.querySelector('.app-container');
-                if (appContainer) {
-                    appContainer.style.height = window.innerHeight + 'px';
-                }
-            },
-
-            toggleActiveNavBtn(activeBtn) {
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    if (!CONSTANTS.NON_ACTIVE_BUTTONS.includes(btn.id)) {
-                        btn.classList.toggle('active', btn === activeBtn);
-                    }
-                });
-            },
-
-            toggleDisplayMode(showResults) {
-                const hotSearchContainer = document.getElementById('hotSearchContainer');
-                const searchContainer = document.getElementById('searchContainer');
-                if (showResults) {
-                    hotSearchContainer.style.display = 'none';
-                    searchContainer.style.display = 'block';
-                } else {
-                    hotSearchContainer.style.display = 'flex';
-                    searchContainer.style.display = 'none';
-                }
-            },
-
-            goToHomePage() {
-                // 刷新到不带参数的首页，展示豆瓣推荐
-                window.location.href = window.location.pathname;
-            },
-
-            // 通用fetch辅助
-            async fetchDoubanData() {
-                const fullUrl = DOUBAN_API_PROXY + DOUBAN_TV_URL;
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 12000);
-                    const response = await fetch(fullUrl, {
-                        signal: controller.signal,
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    clearTimeout(timeoutId);
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const data = await response.json();
-                    return data;
-                } catch (err) {
-                    console.error('豆瓣API请求失败:', err);
-                    throw err;
-                }
-            }
-        };
-
-        // 豆瓣推荐管理器：动态获取20个气泡（仅提取有效剧名）
-        class DoubanRecommendManager {
-            constructor(containerId) {
-                this.container = document.getElementById(containerId);
-                if (!this.container) return;
-                this.loadAndRender();
-            }
-
-            async loadAndRender() {
-                this.showLoading();
-                try {
-                    const result = await utils.fetchDoubanData();
-                    if (!result || !result.subjects || !Array.isArray(result.subjects)) {
-                        throw new Error('无效的豆瓣数据');
-                    }
-                    // 过滤有效标题，去重，只取前20个
-                    const validShows = result.subjects
-                        .filter(item => item && item.title && typeof item.title === 'string' && item.title.trim().length > 0)
-                        .map(item => item.title.trim())
-                        .filter((title, index, self) => self.indexOf(title) === index); // 简单去重
-                    
-                    const top20 = validShows.slice(0, 20);
-                    if (top20.length === 0) {
-                        this.showError('暂无数据，请稍后重试');
-                        return;
-                    }
-                    this.renderBubbles(top20);
-                } catch (error) {
-                    console.error('加载豆瓣推荐失败:', error);
-                    this.showError(`🎭 加载失败: ${error.message || '网络波动'}<br>点击刷新重试`);
-                }
-            }
-
-            showLoading() {
-                if (this.container) {
-                    this.container.innerHTML = '<div class="loading-hot-search">🌟 数据加载中，请稍等...</div>';
-                }
-            }
-
-            showError(msg) {
-                if (this.container) {
-                    this.container.innerHTML = `<div class="error-message">❌ ${msg}</div>`;
-                }
-            }
-
-            renderBubbles(titles) {
-                if (!this.container) return;
-                this.container.innerHTML = '';
-                titles.forEach(title => {
-                    const bubble = document.createElement('div');
-                    bubble.className = 'douban-bubble';
-                    const textSpan = document.createElement('span');
-                    textSpan.className = 'bubble-text';
-                    textSpan.textContent = title;
-                    bubble.appendChild(textSpan);
-                    // 点击气泡：跳转搜索模式（与原有热门影片行为一致）
-                    bubble.onclick = () => {
-                        if (title) {
-                            // 直接跳转，加载提示会在搜索结果页默认显示
-                            window.location.href = `?url=${encodeURIComponent(title)}`;
-                        }
-                    };
-                    this.container.appendChild(bubble);
-                });
-                // 优雅的补充说明：显示共加载数量
-                if (titles.length === 20) {
-                    const tip = document.createElement('div');
-                    tip.style.width = '100%';
-                    tip.style.textAlign = 'center';
-                    tip.style.marginTop = '20px';
-                    tip.style.fontSize = '12px';
-                    tip.style.color = '#6b7280';
-                    tip.innerText = `✨ 豆瓣国产剧推荐 · 顶部自定义搜索 ✨`;
-                    this.container.appendChild(tip);
-                }
+        },
+        goToHomePage() {
+            window.location.href = window.location.pathname;
+        },
+        async fetchDoubanData() {
+            const fullUrl = DOUBAN_API_PROXY + DOUBAN_TV_URL;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+            try {
+                const resp = await fetch(fullUrl, { signal: controller.signal, headers: { 'Accept': 'application/json' } });
+                clearTimeout(timeoutId);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                return data;
+            } catch (err) {
+                clearTimeout(timeoutId);
+                throw err;
             }
         }
+    };
 
-        // ----- 主程序入口 -----
-        document.addEventListener('DOMContentLoaded', function () {
-            const elements = {
-                iframe: document.getElementById('search-iframe'),
-                navButtons: document.querySelectorAll('.nav-btn'),
-                searchModal: document.getElementById('searchModal'),
-                closeSearchBtn: document.getElementById('closeSearch'),
-                searchInput: document.getElementById('localInput'),
-                searchBtn: document.getElementById('localSearchBtn'),
-                homeBtn: document.getElementById('homeBtn')
-            };
-
-            const keyword = utils.getUrlKeyword();
-
-            // 窗口适配
-            utils.resizeContainer();
-            window.addEventListener('resize', utils.resizeContainer);
-            window.addEventListener('orientationchange', utils.resizeContainer);
-
-            // 根据 URL 是否有 keyword 决定显示模式
-            if (keyword) {
-                // 含有搜索关键词 → 显示播放器iframe
-                utils.toggleDisplayMode(true);
-                SearchLoadingManager.init();
-                // 加载提示默认显示（底层），iframe加载完成后覆盖
-                elements.iframe.onload = () => SearchLoadingManager.hide();
-                elements.iframe.onerror = () => SearchLoadingManager.hide();
-                elements.iframe.src = `${CONSTANTS.DEFAULT_PREFIX}${encodeURIComponent(keyword)}`;
-                // 高亮第一个有效线路按钮（active已经在DOM上）
-            } else {
-                // 无关键词 → 显示豆瓣推荐区域（替换原有热门搜索）
-                utils.toggleDisplayMode(false);
-                // 初始化豆瓣气泡管理器（动态提取20个气泡）
-                new DoubanRecommendManager('hotSearchList');
+    // 豆瓣推荐管理器
+    class DoubanRecommendManager {
+        constructor(containerId) {
+            this.container = document.getElementById(containerId);
+            if (this.container) this.loadAndRender();
+        }
+        async loadAndRender() {
+            this.showLoading();
+            try {
+                const result = await utils.fetchDoubanData();
+                if (!result || !result.subjects || !result.subjects.length) throw new Error('数据为空');
+                const validShows = result.subjects
+                    .filter(item => item && item.title && item.title.trim())
+                    .map(item => item.title.trim())
+                    .filter((title, idx, arr) => arr.indexOf(title) === idx);
+                const top20 = validShows.slice(0, 20);
+                if (top20.length === 0) throw new Error('无有效剧集');
+                this.renderBubbles(top20);
+            } catch (error) {
+                this.showError(`加载失败: ${error.message || '网络问题'} 点击刷新重试`);
             }
-
-            // 主页按钮：强制回到主页（无参数刷新）
-            elements.homeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                utils.goToHomePage();
+        }
+        showLoading() {
+            if (this.container) this.container.innerHTML = '<div class="loading-hot-search">🌟 数据加载中，请稍等...</div>';
+        }
+        showError(msg) {
+            if (this.container) this.container.innerHTML = `<div class="error-message">❌ ${msg}</div>`;
+        }
+        renderBubbles(titles) {
+            if (!this.container) return;
+            this.container.innerHTML = '';
+            titles.forEach(title => {
+                const bubble = document.createElement('div');
+                bubble.className = 'douban-bubble';
+                const span = document.createElement('span');
+                span.className = 'bubble-text';
+                span.textContent = title;
+                bubble.appendChild(span);
+                bubble.onclick = () => {
+                    window.location.href = `?url=${encodeURIComponent(title)}`;
+                };
+                this.container.appendChild(bubble);
             });
+            const tip = document.createElement('div');
+            tip.style.width = '100%';
+            tip.style.textAlign = 'center';
+            tip.style.marginTop = '20px';
+            tip.style.fontSize = '11px';
+            tip.style.color = '#7e8ba3';
+            tip.innerText = `✨ 共 ${titles.length} 部豆瓣高分剧集 · 一键直达 ✨`;
+            this.container.appendChild(tip);
+        }
+    }
 
-            // 福利按钮打开第三方福利页
-            const goHomeBtn = document.getElementById('goHome');
-            if (goHomeBtn) {
-                goHomeBtn.addEventListener('click', () => {
+    // 主入口
+    document.addEventListener('DOMContentLoaded', () => {
+        const elements = {
+            iframe: document.getElementById('search-iframe'),
+            navButtons: document.querySelectorAll('.nav-btn'),
+            searchModal: document.getElementById('searchModal'),
+            closeSearchBtn: document.getElementById('closeSearch'),
+            searchInput: document.getElementById('localInput'),
+            searchBtn: document.getElementById('localSearchBtn'),
+            homeBtn: document.getElementById('homeBtn')
+        };
+
+        const keyword = utils.getUrlKeyword();
+        utils.resizeContainer();
+        window.addEventListener('resize', utils.resizeContainer);
+        window.addEventListener('orientationchange', utils.resizeContainer);
+
+        // 根据URL初始化
+        if (keyword) {
+            utils.toggleDisplayMode(true);
+            SearchLoadingManager.init();
+            elements.iframe.onload = () => SearchLoadingManager.hide();
+            elements.iframe.onerror = () => SearchLoadingManager.hide();
+            elements.iframe.src = `${CONSTANTS.DEFAULT_PREFIX}${encodeURIComponent(keyword)}`;
+        } else {
+            utils.toggleDisplayMode(false);
+            new DoubanRecommendManager('hotSearchList');
+        }
+
+        // 主页按钮
+        elements.homeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            utils.goToHomePage();
+        });
+
+        // 福利
+        const goHomeBtn = document.getElementById('goHome');
+        if (goHomeBtn) goHomeBtn.addEventListener('click', () => window.open(CONSTANTS.SOGOU_URL, '_blank'));
+
+        // 线路切换
+        elements.navButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (this.id === 'goHome') {
                     window.open(CONSTANTS.SOGOU_URL, '_blank');
-                });
-            }
-
-            // 导航按钮（一线、二线）及搜索弹出逻辑
-            elements.navButtons.forEach(btn => {
-                // 激活状态同步（但对openSearch/goHome/homeBtn特殊处理）
-                if (keyword && !CONSTANTS.NON_ACTIVE_BUTTONS.includes(btn.id) && btn.classList.contains('active')) {
-                    utils.toggleActiveNavBtn(btn);
+                    return;
                 }
-
-                btn.addEventListener('click', function () {
-                    // 福利（已单独处理过，但防止二次绑定）
-                    if (this.id === 'goHome') {
-                        // 已在上面绑定过，但避免重复open新窗口
-                        window.open(CONSTANTS.SOGOU_URL, '_blank');
-                        return;
-                    }
-                    // 主页（单独处理不再跳线路）
-                    if (this.id === 'homeBtn') {
-                        utils.goToHomePage();
-                        return;
-                    }
-
-                    // 核心：一线、二线等线路必须确保存在keyword（搜索词）
-                    const currentKeyword = utils.getUrlKeyword();
-                    if (!currentKeyword) {
-                        // 没有搜索词时，提示需要先从豆瓣气泡或搜索框搜索
-                        alert('请先点击上方🔍搜索，或点击豆瓣剧名进行搜索后再切换线路');
-                        return;
-                    }
-
-                    // 激活样式切换
-                    utils.toggleActiveNavBtn(this);
-                    const prefix = this.getAttribute('data-prefix');
-                    if (prefix && elements.iframe) {
-                        SearchLoadingManager.show();
-                        elements.iframe.onload = () => SearchLoadingManager.hide();
-                        elements.iframe.onerror = () => SearchLoadingManager.hide();
-                        elements.iframe.src = `${prefix}${encodeURIComponent(currentKeyword)}`;
-                        // 确保显示在iframe容器
-                        utils.toggleDisplayMode(true);
-                    }
-                });
-            });
-
-            // 关闭模态框
-            elements.closeSearchBtn.addEventListener('click', () => {
-                elements.searchModal.classList.remove('show');
-            });
-            elements.searchModal.addEventListener('click', (e) => {
-                if (e.target === elements.searchModal) {
-                    elements.searchModal.classList.remove('show');
+                if (this.id === 'homeBtn') {
+                    utils.goToHomePage();
+                    return;
                 }
-            });
-
-            // 执行本地搜索（模态框）
-            const doSearch = () => {
-                let val = elements.searchInput.value.trim();
-                if (val.includes(' ')) {
-                    val = val.split(' ')[0];
+                const currentKeyword = utils.getUrlKeyword();
+                if (!currentKeyword) {
+                    alert('请先点击上方🔍搜索，或点击豆瓣剧名进行搜索后再切换线路');
+                    return;
                 }
-                if (val) {
-                    // 关闭搜索模态框
-                    elements.searchModal.classList.remove('show');
-                    // 直接跳转，加载提示会在新页面默认显示
-                    location.href = `?url=${encodeURIComponent(val)}`;
-                } else {
-                    alert('请输入影片关键词');
-                }
-            };
-
-            elements.searchBtn.addEventListener('click', doSearch);
-            elements.searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') doSearch();
-            });
-
-            // 主页搜索功能
-            const homeSearchInput = document.getElementById('homeSearchInput');
-            const homeSearchBtn = document.getElementById('homeSearchBtn');
-
-            const doHomeSearch = () => {
-                let val = homeSearchInput.value.trim();
-                if (val.includes(' ')) {
-                    val = val.split(' ')[0];
-                }
-                if (val) {
-                    location.href = `?url=${encodeURIComponent(val)}`;
-                } else {
-                    alert('请输入影片关键词');
-                }
-            };
-
-            if (homeSearchBtn) {
-                homeSearchBtn.addEventListener('click', doHomeSearch);
-            }
-            if (homeSearchInput) {
-                homeSearchInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') doHomeSearch();
-                });
-                // 自动聚焦
-                homeSearchInput.focus();
-            }
-
-            // 监听hash或popstate细节，保证当从iframe返回或手动清除keyword时回到豆瓣推荐（刷新由主页按钮处理）
-            window.addEventListener('popstate', () => {
-                const newKeyword = utils.getUrlKeyword();
-                if (!newKeyword) {
-                    // 无keyword，确保显示豆瓣推荐区域
-                    utils.toggleDisplayMode(false);
-                    // 重新渲染豆瓣列表（防止容器为空）
-                    const listContainer = document.getElementById('hotSearchList');
-                    if (listContainer && listContainer.children.length <= 1) {
-                        new DoubanRecommendManager('hotSearchList');
-                    }
-                } else {
+                utils.toggleActiveNavBtn(this);
+                const prefix = this.getAttribute('data-prefix');
+                if (prefix && elements.iframe) {
+                    SearchLoadingManager.show();
+                    elements.iframe.onload = () => SearchLoadingManager.hide();
+                    elements.iframe.onerror = () => SearchLoadingManager.hide();
+                    elements.iframe.src = `${prefix}${encodeURIComponent(currentKeyword)}`;
                     utils.toggleDisplayMode(true);
-                    // 如果iframe未加载，重新加载
-                    if (elements.iframe && (elements.iframe.src === 'about:blank' || !elements.iframe.src.includes(newKeyword))) {
-                        const activeBtn = document.querySelector('.nav-btn.active[data-prefix]');
-                        const prefix = activeBtn ? activeBtn.getAttribute('data-prefix') : CONSTANTS.DEFAULT_PREFIX;
-                        elements.iframe.src = `${prefix}${encodeURIComponent(newKeyword)}`;
-                    }
                 }
             });
         });
-    </script>
+
+        // 模态框关闭
+        elements.closeSearchBtn.addEventListener('click', () => elements.searchModal.classList.remove('show'));
+        elements.searchModal.addEventListener('click', (e) => {
+            if (e.target === elements.searchModal) elements.searchModal.classList.remove('show');
+        });
+
+        const doModalSearch = () => {
+            let val = elements.searchInput.value.trim();
+            if (val.includes(' ')) val = val.split(' ')[0];
+            if (val) {
+                elements.searchModal.classList.remove('show');
+                location.href = `?url=${encodeURIComponent(val)}`;
+            } else alert('请输入影片关键词');
+        };
+        elements.searchBtn.addEventListener('click', doModalSearch);
+        elements.searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doModalSearch(); });
+
+        // 主页搜索胶囊触发
+        const homeInput = document.getElementById('homeSearchInput');
+        const homeBtn = document.getElementById('homeSearchBtn');
+        const doHomeSearch = () => {
+            let val = homeInput.value.trim();
+            if (val.includes(' ')) val = val.split(' ')[0];
+            if (val) location.href = `?url=${encodeURIComponent(val)}`;
+            else alert('请输入影片关键词');
+        };
+        homeBtn.addEventListener('click', doHomeSearch);
+        homeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doHomeSearch(); });
+        if (homeInput) homeInput.focus();
+
+        // popstate 智能回退
+        window.addEventListener('popstate', () => {
+            const newKeyword = utils.getUrlKeyword();
+            if (!newKeyword) {
+                utils.toggleDisplayMode(false);
+                const listContainer = document.getElementById('hotSearchList');
+                if (listContainer && (!listContainer.children.length || listContainer.children.length <= 1)) {
+                    new DoubanRecommendManager('hotSearchList');
+                }
+            } else {
+                utils.toggleDisplayMode(true);
+                if (elements.iframe && (elements.iframe.src === 'about:blank' || !elements.iframe.src.includes(encodeURIComponent(newKeyword)))) {
+                    const activeBtn = document.querySelector('.nav-btn.active[data-prefix]');
+                    const prefix = activeBtn ? activeBtn.getAttribute('data-prefix') : CONSTANTS.DEFAULT_PREFIX;
+                    elements.iframe.src = `${prefix}${encodeURIComponent(newKeyword)}`;
+                    SearchLoadingManager.show();
+                    elements.iframe.onload = () => SearchLoadingManager.hide();
+                }
+            }
+        });
+    });
+</script>
 </body>
 </html>
