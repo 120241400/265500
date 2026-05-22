@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿
+
+
+
+
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +11,36 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>忘情H5播放器</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0">
+<script>
+// Material Symbols Rounded 字体 CSS 三条线路轮询互为备用
+(function() {
+  const FONT_CDNS = [
+    'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0',
+    'https://fonts.loli.net/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0',
+    'https://google-fonts.mirrors.sjtug.sjtu.edu.cn/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0'
+  ];
+
+  function tryLoadFont(index) {
+    if (index >= FONT_CDNS.length) {
+      console.warn('所有 Material Symbols Rounded 字体 CDN 加载失败');
+      return;
+    }
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = FONT_CDNS[index];
+    link.onerror = function() {
+      document.head.removeChild(link);
+      tryLoadFont(index + 1);
+    };
+    link.onload = function() {
+      console.log('Material Symbols Rounded 字体加载成功: ' + FONT_CDNS[index]);
+    };
+    document.head.appendChild(link);
+  }
+
+  tryLoadFont(0);
+})();
+</script>
 <style>
 :root{--accent:#FF8200;--accent-glow:rgba(0,229,160,.45);--bg:#000;--fg:#fff;--muted:#aaa;--glass:rgba(12,12,12,.82);--border:rgba(255,255,255,.1);--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
@@ -51,6 +85,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   white-space:nowrap;
 }
 .resume-tip.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.resume-tip.auto-hide{animation:resumeFadeOut .4s ease forwards 3s}
+@keyframes resumeFadeOut{to{opacity:0;transform:translateX(-50%) translateY(-10px);pointer-events:none}}
 .resume-tip .rt-icon{font-size:18px;color:var(--accent);flex-shrink:0}
 .resume-tip .rt-text{font-size:12px;color:rgba(255,255,255,.8);font-weight:500}
 .resume-tip .rt-time{font-size:13px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;flex-shrink:0}
@@ -127,6 +163,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
+<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -325,7 +362,9 @@ function showResumeTip(time) {
   if (resumeTipShown) return;
   resumeTipShown = true;
   $('#rtTime').textContent = fmtTime(time);
-  $('#resumeTip').classList.add('show');
+  const tip = $('#resumeTip');
+  tip.classList.add('show');
+  tip.classList.remove('auto-hide');
   video.pause();
   updatePlayUI();
 }
@@ -333,7 +372,9 @@ function showResumeTip(time) {
 function hideResumeTip() {
   if (!resumeTipShown) return;
   resumeTipShown = false;
-  $('#resumeTip').classList.remove('show');
+  const tip = $('#resumeTip');
+  tip.classList.remove('show');
+  tip.classList.remove('auto-hide');
   video.play().catch(() => {});
   updatePlayUI();
 }
@@ -521,7 +562,7 @@ function tryRetry() {
     savedTime = stored;
   }
 
-  showToast(`加载失败，第${retryCount}次重试...`);
+  // showToast(`加载失败，第${retryCount}次重试...`);
   setTimeout(() => initPlayer(videoUrl), 1500);
 }
 
@@ -549,7 +590,15 @@ function updatePlayUI() {
   else $('#centerPlay').classList.add('hide');
 }
 
-video.addEventListener('play', updatePlayUI);
+video.addEventListener('play', () => {
+  updatePlayUI();
+  // 播放3秒后自动隐藏恢复提示
+  if (resumeTipShown) {
+    setTimeout(() => {
+      if (resumeTipShown && !video.paused) hideResumeTip();
+    }, 3000);
+  }
+});
 video.addEventListener('pause', () => { updatePlayUI(); saveProgress(); });
 video.addEventListener('ended', () => { updatePlayUI(); showControls(); clearProgress(); });
 
