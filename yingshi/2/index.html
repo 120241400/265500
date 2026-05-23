@@ -1,849 +1,652 @@
-
+﻿
 
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>豆瓣热剧推荐 · 极光影院</title>
-    <style>
-        :root {
-            --color-bg-primary: #050b1a;
-            --color-bg-secondary: #0f172a;
-            --color-bg-third: #1e293b;
-            --color-btn-normal: #1e2a3e;
-            --color-btn-hover: #2d3b4f;
-            --color-btn-active: #3b82f6;
-            --color-border-normal: #334155;
-            --color-text-primary: #f1f5f9;
-            --color-text-secondary: #94a3b8;
-            --color-accent: #3b82f6;
-            --shadow-normal: 0 8px 20px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2);
-            --shadow-active: 0 0 18px rgba(59, 130, 246, 0.5);
-            --radius-btn: 32px;
-            --radius-modal: 24px;
-            --radius-input: 60px;
-            --radius-card: 20px;
-            --gradient-btn: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            --gradient-gold: linear-gradient(135deg, #f0b86e, #ffd89b);
-            --glass-bg: rgba(15, 23, 42, 0.65);
-            --glass-border: rgba(255, 255, 255, 0.08);
-        }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>影视聚合 - 纯前端版</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "SF Pro Text", "Noto Sans SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
-            border: none;
-            outline: none;
-        }
 
-        html, body {
-            width: 100%;
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
-            background: radial-gradient(circle at 10% 20%, #0a0f1a, #020617);
-            margin: 0;
-            padding: 0;
-        }
 
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100vh;
-            height: 100dvh;
-            position: relative;
-            backdrop-filter: blur(2px);
-        }
 
-        /* ========= 顶栏胶囊导航 ========= */
-        .nav-box {
-            width: 100%;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(12px);
-            padding: 8px 12px;
-            height: 54px;
-            flex-shrink: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
 
-        .nav-scroll {
-            width: 100%;
-            max-width: 1200px;
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+  background: transparent; 
+  color: #333; 
+}
+a { text-decoration: none; color: inherit; }
 
-        .nav-scroll::-webkit-scrollbar {
-            display: none;
-        }
+/* 顶部导航 */
+.header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+.nav-container { max-width: 1200px; margin: 0 auto; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
 
-        .nav-list {
-            display: flex;
-            gap: 10px;
-            width: max-content;
-            margin: 0 auto;
-        }
+/* 炫彩变色站名 - 主页，慢速变化 */
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff, #ff6b6b);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbow 12s linear infinite;
+}
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 400% 50%; }
+}
 
-        .nav-btn {
-            padding: 8px 22px;
-            background: var(--gradient-btn);
-            border: 1px solid var(--glass-border);
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--color-text-primary);
-            white-space: nowrap;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            letter-spacing: 0.3px;
-            backdrop-filter: blur(4px);
-        }
+/* 搜索框 */
+.search-box { display: flex; flex: 1; max-width: 500px; min-width: 250px; }
+.search-input-wrap { position: relative; flex: 1; display: flex; }
+.search-input-wrap input { width: 100%; }
+.clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 50%;
+  background: #ccc;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  display: none;
+  transition: background 0.2s;
+  user-select: none;
+}
+.clear-btn:hover { background: #ff6b6b; }
+.clear-btn.show { display: block; }
+.search-box input { flex: 1; padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 25px 0 0 25px; outline: none; font-size: 14px; transition: border-color 0.3s; background: rgba(255,255,255,0.9); }
+.search-box input:focus { border-color: #ff6b6b; }
+.search-box button { padding: 10px 20px; background: #ff6b6b; color: white; border: none; border-radius: 0 25px 25px 0; cursor: pointer; font-size: 14px; transition: background 0.3s; }
+.search-box button:hover { background: #ff5252; }
 
-        .nav-btn:hover {
-            background: #2a3a58;
-            border-color: rgba(59,130,246,0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(0,0,0,0.3);
-        }
+/* 主类型切换 - 放在header内部 */
+.type-tabs-inline { display: flex; gap: 5px; }
+.type-tab-inline { 
+  padding: 8px 16px; 
+  cursor: pointer; 
+  border-radius: 20px; 
+  transition: all 0.3s; 
+  font-weight: 500; 
+  font-size: 14px;
+  background: rgba(245, 245, 245, 0.9);
+  border: 1px solid transparent;
+}
+.type-tab-inline:hover { background: #ffebee; color: #ff6b6b; }
+.type-tab-inline.active { background: #ff6b6b; color: white; }
 
-        .nav-btn.active {
-            background: linear-gradient(95deg, #2563eb, #1e40af);
-            color: white;
-            font-weight: 600;
-            box-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
-            border-color: #3b82f6;
-        }
-        
-        /* 主页按钮风格不抢眼 */
-        .nav-btn.home-btn.active {
-            background: var(--gradient-btn);
-            color: var(--color-text-primary);
-            font-weight: 500;
-            box-shadow: none;
-            border-color: var(--glass-border);
-        }
+/* 筛选区域 - 白底左右对齐浏览器边缘 */
+.filter-section { 
+  background: rgba(255, 255, 255, 0.95); 
+  backdrop-filter: blur(10px); 
+  padding: 12px 0; 
+  margin: 0; 
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+}
+.filter-row { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 8px; 
+  align-items: center; 
+  padding: 0 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  justify-content: flex-start;
+}
+.filter-tag { 
+  padding: 6px 14px; 
+  border-radius: 20px; 
+  font-size: 13px; 
+  cursor: pointer; 
+  transition: all 0.3s; 
+  background: rgba(245, 245, 245, 0.9); 
+  border: 1px solid transparent; 
+}
+.filter-tag:hover { background: #ffebee; color: #ff6b6b; }
+.filter-tag.active { background: #ff6b6b; color: white; }
 
-        /* ========= 豆瓣推荐区域 玻璃质感 ========= */
-        .hot-search-container {
-            flex: 1;
-            width: 100%;
-            background: radial-gradient(ellipse at 50% 30%, rgba(8, 20, 45, 0.6), rgba(2, 6, 23, 0.9));
-            overflow-y: auto;
-            padding: 24px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+/* 内容网格 */
+.content { max-width: 1200px; margin: 20px auto 0; padding: 0 20px 40px; }
+.movie-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
+.movie-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
+.movie-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+.movie-cover { position: relative; padding-top: 140%; overflow: hidden; background: #eee; }
+.movie-cover img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+.movie-card:hover .movie-cover img { transform: scale(1.05); }
+.movie-info { padding: 12px; }
+.movie-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.movie-meta { font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .hot-search-box {
-            width: 100%;
-            max-width: 1100px;
-            background: rgba(15, 25, 45, 0.55);
-            backdrop-filter: blur(16px);
-            border-radius: var(--radius-card);
-            padding: 28px 24px;
-            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
-            border: 1px solid rgba(59,130,246,0.25);
-            transition: all 0.3s;
-        }
+/* 加载状态 */
+.loading { text-align: center; padding: 60px; grid-column: 1 / -1; }
+.spinner { display: inline-block; width: 50px; height: 50px; border: 3px solid #f3f3f3; border-top: 3px solid #ff6b6b; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .hot-search-title {
-            font-size: 1.9rem;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 6px;
-            background: linear-gradient(125deg, #ffffff 0%, #b9e6ff 45%, #ffcfdf 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            letter-spacing: -0.3px;
-        }
+/* 分页 */
+.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 40px; flex-wrap: wrap; }
+.page-btn { padding: 8px 16px; border-radius: 6px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid #e0e0e0; cursor: pointer; transition: all 0.3s; font-size: 14px; }
+.page-btn:hover:not(:disabled) { background: #ff6b6b; color: white; border-color: #ff6b6b; }
+.page-btn.active { background: #ff6b6b; color: white; border-color: #ff6b6b; }
+.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .sub-title {
-            text-align: center;
-            color: #a5b4fc;
-            font-size: 0.85rem;
-            margin-bottom: 28px;
-            display: inline-block;
-            width: auto;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 6px 20px;
-            background: rgba(59,130,246,0.15);
-            border-radius: 60px;
-            backdrop-filter: blur(4px);
-            font-weight: 400;
-        }
+/* 错误提示 */
+.error-msg { text-align: center; padding: 40px; color: #fff; background: rgba(0,0,0,0.3); border-radius: 8px; grid-column: 1 / -1; }
 
-        /* ========= 🌟 完美胶囊整体搜索栏（主页） ========= */
-        .home-search-wrap {
-            display: flex;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(12px);
-            border-radius: 60px;
-            border: 1px solid rgba(59, 130, 246, 0.6);
-            padding: 0;
-            margin: 0 auto 32px auto;
-            max-width: 600px;
-            width: 100%;
-            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
-            overflow: hidden;
-        }
+/* ==================== 播放页面 ==================== */
+.play-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  flex-direction: column;
+  overflow: hidden;
+}
+.play-overlay.active { display: flex; }
 
-        .home-search-wrap:focus-within {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), 0 8px 25px rgba(0,0,0,0.5);
-            background: rgba(8, 20, 40, 0.8);
-        }
 
-        #homeSearchInput {
-            flex: 1;
-            background: transparent;
-            border: none;
-            padding: 15px 20px;
-            font-size: 1rem;
-            color: #f0f3fa;
-            outline: none;
-            letter-spacing: 0.3px;
-            min-width: 0;
-        }
 
-        #homeSearchInput::placeholder {
-            color: #8ca3c7;
-            font-weight: 400;
-            font-size: 0.95rem;
-        }
 
-        #homeSearchBtn {
-            background: linear-gradient(110deg, #2563eb, #1e40af);
-            border: none;
-            border-radius: 60px;
-            padding: 12px 32px;
-            margin: 5px;
-            color: white;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            letter-spacing: 0.8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            white-space: nowrap;
-            backdrop-filter: blur(4px);
-        }
+/* 播放器头部 - 电脑端完整显示 */
+.play-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+  z-index: 101;
+}
+.play-header .nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+}
 
-        #homeSearchBtn:hover {
-            background: linear-gradient(110deg, #3b82f6, #2563eb);
-            transform: scale(0.96);
-            box-shadow: 0 4px 12px rgba(37,99,235,0.5);
-        }
+/* 播放页炫彩站名 - 慢速变化 */
+.play-header .logo {
+  font-size: 24px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff, #ff6b6b);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbow 12s linear infinite;
+}
 
-        #homeSearchBtn:active {
-            transform: scale(0.94);
-        }
+/* 播放器内父分类Tab */
+.play-header .type-tabs-inline { display: flex; gap: 5px; }
+.play-header .type-tab-inline { 
+  padding: 8px 16px; 
+  cursor: pointer; 
+  border-radius: 20px; 
+  transition: all 0.3s; 
+  font-weight: 500; 
+  font-size: 14px;
+  background: rgba(245, 245, 245, 0.9);
+  border: 1px solid transparent;
+}
+.play-header .type-tab-inline:hover { background: #ffebee; color: #ff6b6b; }
+.play-header .type-tab-inline.active { background: #ff6b6b; color: white; }
 
-        /* 手机优化 胶囊更精致 */
-        @media (max-width: 640px) {
-            .home-search-wrap {
-                max-width: 95%;
-            }
-            #homeSearchInput {
-                padding: 12px 16px;
-                font-size: 0.9rem;
-            }
-            #homeSearchBtn {
-                padding: 9px 22px;
-                font-size: 0.85rem;
-                margin: 4px;
-            }
-        }
+.play-header .search-box {
+  display: flex;
+  flex: 1;
+  max-width: 500px;
+  min-width: 250px;
+}
+.play-header .search-input-wrap { position: relative; flex: 1; display: flex; }
+.play-header .search-input-wrap input { width: 100%; }
+.play-header .search-box input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px 0 0 25px;
+  outline: none;
+  font-size: 14px;
+  background: rgba(255,255,255,0.9);
+}
+.play-header .search-box input:focus { border-color: #ff6b6b; }
+.play-header .search-box button {
+  padding: 10px 20px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 0 25px 25px 0;
+  cursor: pointer;
+  font-size: 14px;
+}
 
-        /* 豆瓣气泡网格 - 现代毛玻璃 */
-        .hot-search-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            justify-content: center;
-            margin-top: 8px;
-        }
+/* 播放器iframe区域 - 完全填充容器，四周不留空隙 */
+.play-frame-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+.play-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #000;
+}
 
-        .douban-bubble {
-            background: rgba(20, 30, 55, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 48px;
-            padding: 10px 26px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.4, 1.2);
-            text-align: center;
-            white-space: nowrap;
-            flex-shrink: 0;
-            min-width: 100px;
-            width: auto;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
+/* ==================== 手机端适配 ==================== */
+@media (max-width: 768px) {
+  /* 主页布局 */
+  .nav-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .logo {
+    justify-content: center;
+    width: 100%;
+  }
+  .search-box {
+    max-width: 100%;
+    width: 100%;
+    min-width: auto;
+  }
+  .type-tabs-inline {
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .type-tab-inline {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  .filter-row {
+    padding: 0 12px;
+  }
+  .content {
+    padding: 0 12px 30px;
+  }
+  .movie-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .movie-title {
+    font-size: 13px;
+  }
+  .movie-meta {
+    font-size: 11px;
+  }
+  .pagination {
+    gap: 6px;
+  }
+  .page-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  .filter-tag {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
 
-        .douban-bubble:hover {
-            background: rgba(59, 130, 246, 0.65);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 15px 25px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.7);
-        }
+  /* 播放页面 - 手机端只显示站名和容器 */
+  .play-header .type-tabs-inline,
+  .play-header .search-box {
+    display: none !important;
+  }
+  .play-header .nav-container {
+    flex-direction: row;
+    justify-content: center;
+    padding: 12px 15px;
+  }
+  .play-header .logo {
+    font-size: 20px;
+    justify-content: center;
+  }
+}
 
-        .bubble-text {
-            color: #f1f5f9;
-            font-size: 0.95rem;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-            text-shadow: 0 1px 2px black;
-        }
-
-        /* 加载/错误状态 */
-        .loading-hot-search, .error-message {
-            text-align: center;
-            padding: 40px 20px;
-            color: #cbd5e6;
-            font-size: 1rem;
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border-radius: 48px;
-            font-weight: 500;
-            backdrop-filter: blur(8px);
-        }
-
-        /* 搜索结果容器 */
-        .search-container {
-            flex: 1;
-            width: 100%;
-            background: #000000cc;
-            overflow: hidden;
-            position: relative;
-            display: none;
-        }
-
-        #search-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-
-        /* 模态框（胶囊整体优化） */
-        .search-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.25s ease;
-            backdrop-filter: blur(12px);
-        }
-
-        .search-modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .search-modal-box {
-            width: 90%;
-            max-width: 480px;
-            background: rgba(15, 25, 45, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 36px;
-            padding: 28px 26px;
-            box-shadow: 0 30px 45px rgba(0,0,0,0.5);
-            border: 1px solid rgba(59, 130, 246, 0.4);
-            position: relative;
-        }
-
-        .search-close {
-            position: absolute;
-            right: 22px;
-            top: 22px;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #1e293b;
-            border: 1px solid #475569;
-            color: #e2e8f0;
-            font-size: 18px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .search-close:hover {
-            background: #ef4444;
-            transform: rotate(90deg);
-            border-color: #ef4444;
-        }
-
-        .search-modal-title {
-            text-align: center;
-            color: #e0f2fe;
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-bottom: 28px;
-        }
-
-        /* 模态框胶囊整体结构 完美融合 */
-        .search-input-wrap {
-            display: flex;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 60px;
-            border: 1px solid rgba(59, 130, 246, 0.6);
-            padding: 0;
-            transition: all 0.2s;
-            overflow: hidden;
-        }
-
-        .search-input-wrap:focus-within {
-            border-color: #3b82f6;
-            background: rgba(0, 0, 0, 0.8);
-            box-shadow: 0 0 0 2px rgba(59,130,246,0.4);
-        }
-
-        #localInput {
-            flex: 1;
-            background: transparent;
-            border: none;
-            padding: 14px 20px;
-            font-size: 1rem;
-            color: #f1f5f9;
-            outline: none;
-        }
-
-        #localInput::placeholder {
-            color: #8ba3c7;
-        }
-
-        #localSearchBtn {
-            background: linear-gradient(110deg, #2563eb, #1e40af);
-            border: none;
-            border-radius: 60px;
-            padding: 11px 28px;
-            margin: 5px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            white-space: nowrap;
-            font-size: 0.9rem;
-        }
-
-        #localSearchBtn:hover {
-            background: #3b82f6;
-            transform: scale(0.96);
-        }
-
-        .footer-box {
-            width: 100%;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(8px);
-            padding: 8px;
-            height: 40px;
-            flex-shrink: 0;
-            border-top: 1px solid rgba(59,130,246,0.2);
-        }
-
-        /* 加载覆盖层 */
-        .search-loading-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(16px);
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            transition: opacity 0.4s;
-        }
-
-        .search-loading-overlay.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        .search-loading-spinner {
-            width: 54px;
-            height: 54px;
-            border: 4px solid rgba(59, 130, 246, 0.2);
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .search-loading-text {
-            color: #f0f3fa;
-            font-size: 1.2rem;
-            font-weight: 500;
-        }
-
-        .search-loading-tip {
-            padding: 6px 20px;
-            background: rgba(239, 68, 68, 0.2);
-            border-radius: 40px;
-            color: #fca5a5;
-            font-size: 0.8rem;
-        }
-
-        /* 手机响应式 */
-        @media (max-width: 768px) {
-            .nav-box { height: 50px; padding: 6px 8px; }
-            .nav-btn { padding: 6px 14px; font-size: 11px; }
-            .hot-search-box { padding: 18px 16px; }
-            .hot-search-title { font-size: 1.5rem; }
-            .douban-bubble { padding: 6px 18px; min-width: 75px; }
-            .bubble-text { font-size: 0.8rem; }
-        }
-
-        @media (max-width: 480px) {
-            .search-modal-box { padding: 24px 18px; }
-            .search-input-wrap { padding: 0; }
-            #localSearchBtn { padding: 8px 16px; font-size: 0.75rem; }
-        }
-
-        /* 滚动条优雅 */
-        .hot-search-container::-webkit-scrollbar {
-            width: 5px;
-        }
-        .hot-search-container::-webkit-scrollbar-track {
-            background: #0f172a;
-            border-radius: 10px;
-        }
-        .hot-search-container::-webkit-scrollbar-thumb {
-            background: #3b82f6;
-            border-radius: 10px;
-        }
-    </style>
+@media (max-width: 480px) {
+  .movie-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .type-tab-inline {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+</style>
+<base target="_blank">
 </head>
 <body>
-<div class="app-container">
-    <div class="nav-box">
-        <div class="nav-scroll">
-            <div class="nav-list">
-                <button class="nav-btn home-btn" id="homeBtn">🏠 主页</button>
-                <button class="nav-btn active" data-prefix="/yingshi/2/1907.html?url=">一线</button>
-                <button class="nav-btn" data-prefix="https://video.isyour.love/player/getplayer?url=">二线</button>
-                <button class="nav-btn" data-prefix="https://leafy-salmiakki-8e302a.netlify.app/360/maotai.html?url=">三线</button>
-                <button class="nav-btn" id="goHome">🎁 福利</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- 豆瓣推荐主区 -->
-    <div class="hot-search-container" id="hotSearchContainer">
-        <div class="hot-search-box">
-            <div class="hot-search-title">豆瓣国产剧推荐</div>
-            <div style="text-align: center;">
-                <span class="sub-title">✨ 全网热评 · 点击即播 ✨</span>
-            </div>
-            <!-- 🌟 完美胶囊整体搜索栏（无间隙、高融合度） -->
-            <div class="home-search-wrap">
-                <input type="text" id="homeSearchInput" placeholder="搜你想看 · 剧名 / 影名" autocomplete="off">
-                <button id="homeSearchBtn">🔍 搜索</button>
-            </div>
-            <div class="hot-search-list" id="hotSearchList">
-                <div class="loading-hot-search">🎬 正在加载豆瓣高分佳作 ...</div>
-            </div>
-        </div>
+<!-- 顶部 - 站名 + 父分类Tab + 搜索框 -->
+<div class="header">
+  <div class="nav-container">
+    <div class="logo" onclick="goHome()">影视聚合</div>
+    <div class="type-tabs-inline" id="typeTabsInline">
+      <div class="type-tab-inline active" data-catid="2" onclick="switchType(2)">📺 电视剧</div>
+      <div class="type-tab-inline" data-catid="1" onclick="switchType(1)">🎬 电影</div>
+      <div class="type-tab-inline" data-catid="3" onclick="switchType(3)">🎪 综艺</div>
+      <div class="type-tab-inline" data-catid="4" onclick="switchType(4)">🎨 动漫</div>
     </div>
-
-    <!-- iframe 播放区 -->
-    <div class="search-container" id="searchContainer">
-        <iframe id="search-iframe" src="about:blank" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" sandbox="allow-scripts allow-same-origin allow-popups allow-fullscreen allow-forms"></iframe>
-        <div class="search-loading-overlay" id="searchLoadingOverlay">
-            <div class="search-loading-spinner"></div>
-            <div class="search-loading-text">正在搜寻最佳线路 ✨</div>
-            <div class="search-loading-tip">💡 若加载缓慢，可尝试切换其他线路</div>
-        </div>
+    <div class="search-box">
+      <div class="search-input-wrap">
+        <input type="text" id="searchInput" placeholder="输入关键词搜索影片..." oninput="toggleClearBtn(this)" onkeypress="if(event.key==='Enter') doSearch()">
+        <span class="clear-btn" id="homeClearBtn" onclick="clearSearch('searchInput')">×</span>
+      </div>
+      <button onclick="doSearch()">🔍 搜索</button>
     </div>
-
-    <div class="footer-box"></div>
+  </div>
 </div>
 
-<!-- 搜索模态框（备用） -->
-<div class="search-modal" id="searchModal">
-    <div class="search-modal-box">
-        <button class="search-close" id="closeSearch">✕</button>
-        <div class="search-modal-title">影视搜索</div>
+<!-- 筛选条件 - 白底左右对齐浏览器边缘 -->
+<div class="filter-section" id="filterSection">
+  <div class="filter-row" id="subFilterRow"></div>
+</div>
+
+<!-- 内容区 -->
+<div class="content">
+  <div class="movie-grid" id="movieGrid">
+    <div class="loading"><div class="spinner"></div><p style="margin-top:15px;color:#999">加载中...</p></div>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<!-- ==================== 播放页面（全屏覆盖层） ==================== -->
+<div class="play-overlay" id="playOverlay">
+  <!-- 播放器头部 - 电脑端显示站名+父标题+搜索框，手机端只显示站名 -->
+  <div class="play-header">
+    <div class="nav-container">
+      <div class="logo" onclick="closePlayer()">影视聚合</div>
+      <!-- 播放器内父分类Tab - 手机端隐藏，使用switchPlayType跳转 -->
+      <div class="type-tabs-inline" id="playTypeTabs">
+        <div class="type-tab-inline active" data-catid="2" onclick="switchPlayType(2)">📺 电视剧</div>
+        <div class="type-tab-inline" data-catid="1" onclick="switchPlayType(1)">🎬 电影</div>
+        <div class="type-tab-inline" data-catid="3" onclick="switchPlayType(3)">🎪 综艺</div>
+        <div class="type-tab-inline" data-catid="4" onclick="switchPlayType(4)">🎨 动漫</div>
+      </div>
+      <!-- 播放器内搜索框 - 手机端隐藏 -->
+      <div class="search-box">
         <div class="search-input-wrap">
-            <input type="text" id="localInput" placeholder="请输入影片关键词...">
-            <button id="localSearchBtn">搜 索</button>
+          <input type="text" id="playSearchInput" placeholder="输入关键词搜索影片..." oninput="toggleClearBtn(this)" onkeypress="if(event.key==='Enter') doPlaySearch()">
+          <span class="clear-btn" id="playClearBtn" onclick="clearSearch('playSearchInput')">×</span>
         </div>
+        <button onclick="doPlaySearch()">🔍 搜索</button>
+      </div>
     </div>
+  </div>
+
+  <!-- 播放器iframe - 完全填充容器，四周不留空隙 -->
+  <div class="play-frame-wrap">
+    <iframe class="play-frame" id="playFrame" src="" allowfullscreen></iframe>
+  </div>
 </div>
 
 <script>
-    // 加载管理器
-    const SearchLoadingManager = {
-        overlay: null,
-        init() {
-            this.overlay = document.getElementById('searchLoadingOverlay');
-        },
-        show() {
-            if (this.overlay) this.overlay.classList.remove('hidden');
-        },
-        hide() {
-            if (this.overlay) this.overlay.classList.add('hidden');
-        }
-    };
+const CONFIG = {
+  categories: {
+    1: { name: '电影', sub: ['全部','喜剧','爱情','动作','恐怖','科幻','剧情','犯罪','奇幻','战争','悬疑','动画','文艺','纪录','传记','歌舞','古装','历史','惊悚','伦理','其他'] },
+    2: { name: '电视剧', sub: ['全部','言情','剧情','伦理','喜剧','悬疑','都市','偶像','古装','军事','警匪','历史','励志','神话','谍战','青春','家庭','动作','情景','武侠','科幻','其他'] },
+    3: { name: '综艺', sub: ['全部','脱口秀','真人秀','搞笑','选秀','八卦','访谈','情感','生活','晚会','音乐','职场','美食','时尚','游戏','体育','纪实','科教','曲艺','歌舞','财经','汽车'] },
+    4: { name: '动漫', sub: ['全部','热血','科幻','美少女','魔幻','经典','励志','少儿','冒险','搞笑','推理','恋爱','治愈','幻想','校园','动物','机战','亲子','儿歌','运动','悬疑','怪物','战争','益智','青春','童话','竞技','动作','社会','友情','真人版','电影版','OVA版','TV版','新番动画','完结动画'] }
+  },
+  apiBase: 'https://api.web.360kan.com/v1/filter/list',
+  searchBase: './jiexi.html?url=',
+  pageSize: 24
+};
 
-    const CONSTANTS = {
-        SOGOU_URL: '/bfq/lingquan.html',
-        DEFAULT_PREFIX: '/yingshi/2/1907.html?url=',
-        NON_ACTIVE_BUTTONS: ['goHome', 'homeBtn']
-    };
+let state = {
+  catid: 2,
+  cat: '',
+  pageno: 1,
+  isLoading: false
+};
 
-    const DOUBAN_API_PROXY = 'https://seep.eu.org/';
-    const DOUBAN_TV_URL = 'https://movie.douban.com/j/search_subjects?type=tv&tag=%E5%9B%BD%E4%BA%A7%E5%89%A7&sort=recommend&page_limit=100&page_start=0';
+document.addEventListener('DOMContentLoaded', () => {
+  // 同步更新主页和播放页的父分类激活状态
+  document.querySelectorAll('.type-tab-inline').forEach(tab => {
+    tab.classList.toggle('active', parseInt(tab.dataset.catid) === 2);
+  });
+  renderFilters();
+  loadData();
+});
 
-    const utils = {
-        getUrlKeyword() {
-            const params = new URLSearchParams(window.location.search);
-            let keyword = params.get('url') || '';
-            if (keyword.includes(' ')) keyword = keyword.split(' ')[0];
-            return keyword.trim();
-        },
-        resizeContainer() {
-            const app = document.querySelector('.app-container');
-            if (app) app.style.height = window.innerHeight + 'px';
-        },
-        toggleActiveNavBtn(activeBtn) {
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                if (!CONSTANTS.NON_ACTIVE_BUTTONS.includes(btn.id)) {
-                    btn.classList.toggle('active', btn === activeBtn);
-                }
-            });
-        },
-        toggleDisplayMode(showResults) {
-            const hotContainer = document.getElementById('hotSearchContainer');
-            const searchContainer = document.getElementById('searchContainer');
-            if (showResults) {
-                hotContainer.style.display = 'none';
-                searchContainer.style.display = 'block';
-            } else {
-                hotContainer.style.display = 'flex';
-                searchContainer.style.display = 'none';
-            }
-        },
-        goToHomePage() {
-            window.location.href = window.location.pathname;
-        },
-        async fetchDoubanData() {
-            const fullUrl = DOUBAN_API_PROXY + DOUBAN_TV_URL;
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000);
-            try {
-                const resp = await fetch(fullUrl, { signal: controller.signal, headers: { 'Accept': 'application/json' } });
-                clearTimeout(timeoutId);
-                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                const data = await resp.json();
-                return data;
-            } catch (err) {
-                clearTimeout(timeoutId);
-                throw err;
-            }
-        }
-    };
+function goHome() {
+  window.location.href = window.location.pathname;
+  window.location.reload();
+}
 
-    // 豆瓣推荐管理器
-    class DoubanRecommendManager {
-        constructor(containerId) {
-            this.container = document.getElementById(containerId);
-            if (this.container) this.loadAndRender();
-        }
-        async loadAndRender() {
-            this.showLoading();
-            try {
-                const result = await utils.fetchDoubanData();
-                if (!result || !result.subjects || !result.subjects.length) throw new Error('数据为空');
-                const validShows = result.subjects
-                    .filter(item => item && item.title && item.title.trim())
-                    .map(item => item.title.trim())
-                    .filter((title, idx, arr) => arr.indexOf(title) === idx);
-                const top20 = validShows.slice(0, 20);
-                if (top20.length === 0) throw new Error('无有效剧集');
-                this.renderBubbles(top20);
-            } catch (error) {
-                this.showError(`加载失败: ${error.message || '网络问题'} 点击刷新重试`);
-            }
-        }
-        showLoading() {
-            if (this.container) this.container.innerHTML = '<div class="loading-hot-search">🌟 数据加载中，请稍等...</div>';
-        }
-        showError(msg) {
-            if (this.container) this.container.innerHTML = `<div class="error-message">❌ ${msg}</div>`;
-        }
-        renderBubbles(titles) {
-            if (!this.container) return;
-            this.container.innerHTML = '';
-            titles.forEach(title => {
-                const bubble = document.createElement('div');
-                bubble.className = 'douban-bubble';
-                const span = document.createElement('span');
-                span.className = 'bubble-text';
-                span.textContent = title;
-                bubble.appendChild(span);
-                bubble.onclick = () => {
-                    window.location.href = `?url=${encodeURIComponent(title)}`;
-                };
-                this.container.appendChild(bubble);
-            });
-            const tip = document.createElement('div');
-            tip.style.width = '100%';
-            tip.style.textAlign = 'center';
-            tip.style.marginTop = '20px';
-            tip.style.fontSize = '11px';
-            tip.style.color = '#7e8ba3';
-            tip.innerText = `✨ 共 ${titles.length} 部豆瓣高分剧集 · 一键直达 ✨`;
-            this.container.appendChild(tip);
-        }
+// 主页父标题切换
+function switchType(catid) {
+  if (state.catid === catid || state.isLoading) return;
+  state.catid = catid;
+  state.cat = '';
+  state.pageno = 1;
+
+  // 同步更新主页和播放页的父分类Tab激活状态
+  document.querySelectorAll('.type-tab-inline').forEach(tab => {
+    const tabCatid = parseInt(tab.dataset.catid);
+    tab.classList.toggle('active', tabCatid === catid);
+  });
+
+  renderFilters();
+  loadData();
+}
+
+// 播放页父标题切换 - 先关闭播放器回到主页，再执行切换
+function switchPlayType(catid) {
+  // 先关闭播放器回到主页
+  closePlayer();
+  // 然后执行切换
+  setTimeout(() => {
+    switchType(catid);
+  }, 50);
+}
+
+function switchSubCat(cat) {
+  if (state.cat === cat || state.isLoading) return;
+  state.cat = cat;
+  state.pageno = 1;
+  renderFilters();
+  loadData();
+}
+
+function goPage(p) {
+  if (p < 1 || state.isLoading) return;
+  state.pageno = p;
+  loadData();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function doSearch() {
+  const keyword = document.getElementById('searchInput').value.trim();
+  if (!keyword) return;
+  openPlayer(keyword);
+}
+
+function doPlaySearch() {
+  const keyword = document.getElementById('playSearchInput').value.trim();
+  if (!keyword) return;
+  const frame = document.getElementById('playFrame');
+  frame.src = CONFIG.searchBase + encodeURIComponent(keyword);
+  document.title = keyword + ' - 影视聚合';
+}
+
+function openPlayer(title) {
+  const overlay = document.getElementById('playOverlay');
+  const frame = document.getElementById('playFrame');
+  const playSearchInput = document.getElementById('playSearchInput');
+
+  frame.src = CONFIG.searchBase + encodeURIComponent(title);
+  playSearchInput.value = title;
+  document.title = title + ' - 影视聚合';
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePlayer() {
+  const overlay = document.getElementById('playOverlay');
+  const frame = document.getElementById('playFrame');
+  const playSearchInput = document.getElementById('playSearchInput');
+
+  overlay.classList.remove('active');
+  frame.src = '';
+  playSearchInput.value = '';
+  document.title = '影视聚合 - 纯前端版';
+  document.body.style.overflow = '';
+}
+
+function playMovie(title) {
+  openPlayer(title);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closePlayer();
+  }
+});
+
+function renderFilters() {
+  const row = document.getElementById('subFilterRow');
+  const subs = CONFIG.categories[state.catid].sub;
+  row.innerHTML = subs.map(sub => {
+    const val = sub === '全部' ? '' : sub;
+    const isActive = state.cat === val;
+    return `<span class="filter-tag ${isActive ? 'active' : ''}" onclick="switchSubCat('${val}')">${sub}</span>`;
+  }).join('');
+}
+
+function renderMovies(movies) {
+  const grid = document.getElementById('movieGrid');
+  if (!movies || movies.length === 0) {
+    grid.innerHTML = '<div class="error-msg">暂无数据，请尝试其他分类</div>';
+    return;
+  }
+  grid.innerHTML = movies.map(movie => `
+    <div class="movie-card" onclick="playMovie('${escapeHtml(movie.title)}')">
+      <div class="movie-cover">
+        <img src="https:${movie.cdncover}" 
+             alt="${escapeHtml(movie.title)}" 
+             loading="lazy"
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%%22 height=%22100%%22><rect width=%22100%%22 height=%22100%%22 fill=%22%23eee%22/><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 fill=%22%23999%22>暂无封面</text></svg>'">
+      </div>
+      <div class="movie-info">
+        <div class="movie-title">${escapeHtml(movie.title)}</div>
+        <div class="movie-meta">${escapeHtml(movie.comment || '暂无简介')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderPagination() {
+  const p = state.pageno;
+  const container = document.getElementById('pagination');
+  let html = '';
+  html += `<button class="page-btn" onclick="goPage(${p-1})" ${p<=1?'disabled':''}>上一页</button>`;
+  const start = Math.max(1, p - 2);
+  const end = p + 3;
+  for (let i = start; i <= end; i++) {
+    html += `<button class="page-btn ${i === p ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html += `<button class="page-btn" onclick="goPage(${p+1})">下一页</button>`;
+  container.innerHTML = html;
+}
+
+function loadData() {
+  if (state.isLoading) return;
+  state.isLoading = true;
+  document.getElementById('movieGrid').innerHTML = `
+    <div class="loading"><div class="spinner"></div><p style="margin-top:15px;color:#999">加载中...</p></div>
+  `;
+  const url = `${CONFIG.apiBase}?catid=${state.catid}&rank=rankhot&cat=${encodeURIComponent(state.cat)}&year=&area=&act=&size=${CONFIG.pageSize}&pageno=${state.pageno}&callback=handleData&_=${Date.now()}`;
+  const script = document.createElement('script');
+  script.src = url;
+  script.onerror = () => {
+    state.isLoading = false;
+    document.getElementById('movieGrid').innerHTML = 
+      '<div class="error-msg">❌ 加载失败，请检查网络或稍后重试<br><button onclick="loadData()" style="margin-top:10px;padding:8px 20px;background:#ff6b6b;color:white;border:none;border-radius:4px;cursor:pointer">重新加载</button></div>';
+  };
+  const oldScript = document.getElementById('jsonp-script');
+  if (oldScript) oldScript.remove();
+  script.id = 'jsonp-script';
+  window.handleData = (data) => {
+    state.isLoading = false;
+    script.remove();
+    if (data && data.data && data.data.movies) {
+      renderMovies(data.data.movies);
+      renderPagination();
+    } else {
+      renderMovies([]);
     }
+  };
+  setTimeout(() => {
+    if (state.isLoading) {
+      state.isLoading = false;
+      script.remove();
+      document.getElementById('movieGrid').innerHTML = 
+        '<div class="error-msg">⏱️ 请求超时，请稍后重试</div>';
+    }
+  }, 10000);
+  document.head.appendChild(script);
+}
 
-    // 主入口
-    document.addEventListener('DOMContentLoaded', () => {
-        const elements = {
-            iframe: document.getElementById('search-iframe'),
-            navButtons: document.querySelectorAll('.nav-btn'),
-            searchModal: document.getElementById('searchModal'),
-            closeSearchBtn: document.getElementById('closeSearch'),
-            searchInput: document.getElementById('localInput'),
-            searchBtn: document.getElementById('localSearchBtn'),
-            homeBtn: document.getElementById('homeBtn')
-        };
+function toggleClearBtn(input) {
+  const btnId = input.id === 'searchInput' ? 'homeClearBtn' : 'playClearBtn';
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    btn.classList.toggle('show', input.value.length > 0);
+  }
+}
 
-        const keyword = utils.getUrlKeyword();
-        utils.resizeContainer();
-        window.addEventListener('resize', utils.resizeContainer);
-        window.addEventListener('orientationchange', utils.resizeContainer);
+function clearSearch(inputId) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    input.value = '';
+    input.focus();
+    toggleClearBtn(input);
+  }
+}
 
-        // 根据URL初始化
-        if (keyword) {
-            utils.toggleDisplayMode(true);
-            SearchLoadingManager.init();
-            elements.iframe.onload = () => SearchLoadingManager.hide();
-            elements.iframe.onerror = () => SearchLoadingManager.hide();
-            elements.iframe.src = `${CONSTANTS.DEFAULT_PREFIX}${encodeURIComponent(keyword)}`;
-        } else {
-            utils.toggleDisplayMode(false);
-            new DoubanRecommendManager('hotSearchList');
-        }
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
 
-        // 主页按钮
-        elements.homeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            utils.goToHomePage();
-        });
-
-        // 福利
-        const goHomeBtn = document.getElementById('goHome');
-        if (goHomeBtn) goHomeBtn.addEventListener('click', () => window.open(CONSTANTS.SOGOU_URL, '_blank'));
-
-        // 线路切换
-        elements.navButtons.forEach(btn => {
-            btn.addEventListener('click', function () {
-                if (this.id === 'goHome') {
-                    window.open(CONSTANTS.SOGOU_URL, '_blank');
-                    return;
-                }
-                if (this.id === 'homeBtn') {
-                    utils.goToHomePage();
-                    return;
-                }
-                const currentKeyword = utils.getUrlKeyword();
-                if (!currentKeyword) {
-                    alert('请先点击上方🔍搜索，或点击豆瓣剧名进行搜索后再切换线路');
-                    return;
-                }
-                utils.toggleActiveNavBtn(this);
-                const prefix = this.getAttribute('data-prefix');
-                if (prefix && elements.iframe) {
-                    SearchLoadingManager.show();
-                    elements.iframe.onload = () => SearchLoadingManager.hide();
-                    elements.iframe.onerror = () => SearchLoadingManager.hide();
-                    elements.iframe.src = `${prefix}${encodeURIComponent(currentKeyword)}`;
-                    utils.toggleDisplayMode(true);
-                }
-            });
-        });
-
-        // 模态框关闭
-        elements.closeSearchBtn.addEventListener('click', () => elements.searchModal.classList.remove('show'));
-        elements.searchModal.addEventListener('click', (e) => {
-            if (e.target === elements.searchModal) elements.searchModal.classList.remove('show');
-        });
-
-        const doModalSearch = () => {
-            let val = elements.searchInput.value.trim();
-            if (val.includes(' ')) val = val.split(' ')[0];
-            if (val) {
-                elements.searchModal.classList.remove('show');
-                location.href = `?url=${encodeURIComponent(val)}`;
-            } else alert('请输入影片关键词');
-        };
-        elements.searchBtn.addEventListener('click', doModalSearch);
-        elements.searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doModalSearch(); });
-
-        // 主页搜索胶囊触发
-        const homeInput = document.getElementById('homeSearchInput');
-        const homeBtn = document.getElementById('homeSearchBtn');
-        const doHomeSearch = () => {
-            let val = homeInput.value.trim();
-            if (val.includes(' ')) val = val.split(' ')[0];
-            if (val) location.href = `?url=${encodeURIComponent(val)}`;
-            else alert('请输入影片关键词');
-        };
-        homeBtn.addEventListener('click', doHomeSearch);
-        homeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doHomeSearch(); });
-        if (homeInput) homeInput.focus();
-
-        // popstate 智能回退
-        window.addEventListener('popstate', () => {
-            const newKeyword = utils.getUrlKeyword();
-            if (!newKeyword) {
-                utils.toggleDisplayMode(false);
-                const listContainer = document.getElementById('hotSearchList');
-                if (listContainer && (!listContainer.children.length || listContainer.children.length <= 1)) {
-                    new DoubanRecommendManager('hotSearchList');
-                }
-            } else {
-                utils.toggleDisplayMode(true);
-                if (elements.iframe && (elements.iframe.src === 'about:blank' || !elements.iframe.src.includes(encodeURIComponent(newKeyword)))) {
-                    const activeBtn = document.querySelector('.nav-btn.active[data-prefix]');
-                    const prefix = activeBtn ? activeBtn.getAttribute('data-prefix') : CONSTANTS.DEFAULT_PREFIX;
-                    elements.iframe.src = `${prefix}${encodeURIComponent(newKeyword)}`;
-                    SearchLoadingManager.show();
-                    elements.iframe.onload = () => SearchLoadingManager.hide();
-                }
-            }
-        });
-    });
+window.goHome = goHome;
+window.switchType = switchType;
+window.switchPlayType = switchPlayType;
+window.switchSubCat = switchSubCat;
+window.goPage = goPage;
+window.doSearch = doSearch;
+window.doPlaySearch = doPlaySearch;
+window.playMovie = playMovie;
+window.openPlayer = openPlayer;
+window.closePlayer = closePlayer;
+window.loadData = loadData;
+window.toggleClearBtn = toggleClearBtn;
+window.clearSearch = clearSearch;
 </script>
+
 </body>
 </html>
