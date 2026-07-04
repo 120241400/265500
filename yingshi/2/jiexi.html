@@ -1,0 +1,316 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>请勿相信视频中的广告</title>
+    <style>
+        :root {
+            --color-bg-primary: #0a0f1d;
+            --color-bg-secondary: #111827;
+            --color-bg-third: #1a2235;
+            --color-btn-normal: #1e293b;
+            --color-btn-hover: #273449;
+            --color-btn-active: #1d4ed8;
+            --color-border-normal: #2d3748;
+            --color-text-primary: #e2e8f0;
+            --color-text-secondary: #94a3b8;
+            --color-accent: #3b82f6;
+            --shadow-normal: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-active: 0 0 15px rgba(29, 78, 216, 0.4);
+            --radius-btn: 20px;
+            --radius-modal: 16px;
+            --radius-input: 12px;
+            --radius-card: 12px;
+            --gradient-btn: linear-gradient(135deg, #1e293b 0%, #273449 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+            border: none;
+            outline: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            background: var(--color-bg-primary);
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        /* 顶部导航栏 */
+        .nav-box {
+            width: 100%;
+            background: var(--color-bg-secondary);
+            padding: 9px 10px;
+            box-shadow: var(--shadow-normal);
+            height: 46px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-scroll {
+            width: 100%;
+            max-width: 1200px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .nav-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-list {
+            display: flex;
+            gap: 8px;
+            width: max-content;
+            margin: 0 auto;
+        }
+
+        .nav-btn {
+            padding: 8px 20px;
+            background: var(--gradient-btn);
+            border: 1px solid var(--color-border-normal);
+            border-radius: var(--radius-btn);
+            font-size: 13px;
+            color: var(--color-text-primary);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+
+        .nav-btn:hover {
+            background: #273449;
+            border-color: #334155;
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.active {
+            background: var(--color-btn-active);
+            color: #ffffff;
+            font-weight: bold;
+            box-shadow: var(--shadow-active);
+            border-color: #3b82f6;
+            transform: translateY(-1px);
+        }
+
+        /* 搜索结果容器样式 */
+        .search-container {
+            flex: 1;
+            width: 100%;
+            background: var(--color-bg-secondary);
+            overflow: hidden;
+            position: relative;
+            display: block;
+        }
+
+        #search-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            object-fit: cover;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        .footer-box {
+            width: 100%;
+            background: var(--color-bg-secondary);
+            padding: 9px 10px;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
+            height: 46px;
+            flex-shrink: 0;
+            border-top: 1px solid #1e293b;
+        }
+
+        /* 手机端适配 */
+        @media (max-width: 768px) {
+            .nav-box, .footer-box {
+                padding: 8px 10px;
+                height: 42px;
+            }
+
+            .nav-btn {
+                padding: 7px 16px;
+                font-size: 12px;
+            }
+        }
+
+        /* 小屏幕手机适配 */
+        @media (max-width: 480px) {
+            .nav-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+        }
+
+        /* 全屏样式兼容 */
+        :-webkit-full-screen #search-iframe {
+            width: 100%;
+            height: 100%;
+        }
+        :-moz-full-screen #search-iframe {
+            width: 100%;
+            height: 100%;
+        }
+        :fullscreen #search-iframe {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="nav-box">
+            <div class="nav-scroll">
+                <div class="nav-list">
+                    <button class="nav-btn active" data-prefix="./1xian.html?url=">一线</button>
+                    <button class="nav-btn" data-prefix="./2xian.html?url=">二线</button>
+                    <button class="nav-btn" data-prefix="./3xian.html?url=">三线</button>
+                    <button class="nav-btn" id="goHome">福利</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 搜索结果容器 -->
+        <div class="search-container" id="searchContainer">
+            <iframe 
+                id="search-iframe" 
+                src="about:blank"
+                allowfullscreen="true"
+                webkitallowfullscreen="true"
+                mozallowfullscreen="true"
+                oallowfullscreen="true"
+                msallowfullscreen="true"
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture; gyroscope; accelerometer"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-fullscreen allow-forms"
+                frameborder="0"
+            ></iframe>
+        </div>
+
+        <div class="footer-box"></div>
+    </div>
+
+    <script>
+        const CONSTANTS = {
+            SOGOU_URL: '/bfq/lingquan.html',
+            DEFAULT_PREFIX: './1xian.html?url=',
+        };
+
+        const utils = {
+            getUrlKeyword() {
+                const params = new URLSearchParams(window.location.search);
+                let keyword = params.get('url') || '';
+                if (keyword.includes(' ')) {
+                    keyword = keyword.split(' ')[0];
+                }
+                return keyword.trim();
+            },
+
+            resizeContainer() {
+                const appContainer = document.querySelector('.app-container');
+                if (appContainer) {
+                    appContainer.style.height = window.innerHeight + 'px';
+                }
+            },
+
+            toggleActiveNavBtn(activeBtn) {
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    if (btn.id !== 'goHome') {
+                        btn.classList.toggle('active', btn === activeBtn);
+                    }
+                });
+            },
+        };
+
+        // 主程序
+        document.addEventListener('DOMContentLoaded', function () {
+            const elements = {
+                iframe: document.getElementById('search-iframe'),
+                navButtons: document.querySelectorAll('.nav-btn'),
+            };
+
+            const keyword = utils.getUrlKeyword();
+
+            // 初始化
+            utils.resizeContainer();
+            window.addEventListener('resize', utils.resizeContainer);
+            window.addEventListener('orientationchange', utils.resizeContainer);
+
+            // 加载播放地址
+            if (keyword) {
+                elements.iframe.src = `${CONSTANTS.DEFAULT_PREFIX}${encodeURIComponent(keyword)}`;
+            }
+
+            // 导航按钮事件
+            elements.navButtons.forEach(btn => {
+                if (keyword && btn.classList.contains('active')) {
+                    utils.toggleActiveNavBtn(btn);
+                }
+
+                btn.addEventListener('click', function () {
+                    if (this.id === 'goHome') {
+                        window.open(CONSTANTS.SOGOU_URL, '_blank');
+                        return;
+                    }
+
+                    if (!keyword) return;
+                    
+                    utils.toggleActiveNavBtn(this);
+                    const prefix = this.getAttribute('data-prefix');
+                    elements.iframe.src = `${prefix}${encodeURIComponent(keyword)}`;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
