@@ -1,5 +1,6 @@
 ﻿
 
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -154,11 +155,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .err-panel .retry:active{transform:scale(.95)}
 
 /* 暂停遮挡图片 */
-.pause-overlay{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .35s var(--ease);background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.pause-overlay{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .35s var(--ease);background:transparent;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .pause-overlay.on{opacity:1}
 .pause-overlay.fade-out{opacity:0;transition:opacity .6s var(--ease)}
-.pause-overlay img{width:100%;height:100%;object-fit:cover;display:block;filter:blur(2px) brightness(.55);transform:scale(1.04);transition:filter .35s,transform .6s var(--ease)}
-.pause-overlay.on img{filter:blur(0) brightness(.7);transform:scale(1)}
+.pause-overlay img{width:100%;height:100%;object-fit:cover;display:block;filter:blur(2px);transform:scale(1.04);transition:filter .35s,transform .6s var(--ease)}
+.pause-overlay.on img{filter:blur(0);transform:scale(1)}
 .toast-box{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   background:rgba(0,0,0,.68);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   color:#fff;font-size:14px;padding:8px 18px;border-radius:8px;z-index:30;
@@ -282,7 +283,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   </div>
 
   <div class="pause-overlay" id="pauseOverlay">
-    <img src="https://www.265500.vip/bfq/touming.png" alt="pause" id="pauseImg">
+    <img src="https://www.265500.vip/bfq/zantingtu.png" alt="pause" id="pauseImg">
   </div>
   <div class="toast-box" id="toastBox"></div>
 
