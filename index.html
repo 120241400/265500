@@ -1,0 +1,884 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>白象导航</title>
+  <meta name="description" content="永久免费，线路超多，资源超全">
+  <link rel="shortcut icon" href="./888/logo.png" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      position: relative;
+      color: #fff;
+    }
+
+    /* 壁纸层 深邃质感 */
+    .wallpaper-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+
+    .wallpaper-layer::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.85) 100%);
+    }
+
+    /* 状态栏 */
+    .status-bar {
+      height: 36px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 14px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .status-center {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.95);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+      letter-spacing: 0.5px;
+    }
+
+    /* 桌面容器 */
+    .desktop-container {
+      position: fixed;
+      top: 36px;
+      bottom: 90px;
+      left: 0;
+      right: 0;
+      overflow: hidden;
+      -webkit-overflow-scrolling: touch;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .desktop-wrapper {
+      display: flex;
+      height: 100%;
+      transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+
+    .desktop-page {
+      min-width: 100%;
+      height: 100%;
+      padding: 20px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: flex-start;
+      gap: 16px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 应用图标 */
+    .app-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      width: 20%;
+      min-width: 60px;
+      max-width: 80px;
+      padding: 8px 2px;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .app-icon:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .app-icon .icon-img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      border-radius: 18px;
+      object-fit: cover;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .app-icon:hover .icon-img {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .app-icon .name {
+      font-size: 12px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.95);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      margin-top: 6px;
+    }
+
+    /* 底部 Dock 栏 */
+    .dock {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 85px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.6) 50%, transparent 100%);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 0 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 80;
+    }
+
+    .dock .app-icon {
+      width: auto;
+      min-width: 50px;
+      max-width: 60px;
+      padding: 4px 6px;
+    }
+
+    .dock .app-icon .icon-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+    }
+
+    .dock .app-icon .name {
+      font-size: 10px;
+      margin-top: 3px;
+      font-weight: 500;
+    }
+
+    /* 页面指示器 */
+    .page-indicator {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 50;
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(20px);
+      pointer-events: none;
+    }
+
+    .page-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .page-dot.active {
+      width: 20px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    /* ========= 应用窗口 (新版带加载等待黑底) ========= */
+    .app-window {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 999;
+      display: none;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .app-window.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    .app-window .title-bar {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(20px);
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 1000;
+    }
+
+    .app-window.fullscreen .title-bar {
+      display: none;
+    }
+
+    .app-window .title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      margin: 0 8px;
+    }
+
+    .app-window .title-btn {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .app-window .btn {
+      background: #ff4757;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 60px;
+      font-weight: 500;
+    }
+
+    .app-window .btn:active {
+      transform: scale(0.95);
+    }
+
+    /* 内容区：黑色底 + 相对定位（用于loading绝对定位） */
+    .app-window .content {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      background: #000;    /* 嵌入页背景色绝对黑色 */
+    }
+
+    .app-window.fullscreen .content {
+      height: 100%;
+      top: 0;
+    }
+
+    .app-window .content iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: #000;    /* 保证iframe背景黑色（避免内部透明透白） */
+    }
+
+    /* 加载等待组件样式 (黑色沉浸感) */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      backdrop-filter: blur(2px);
+    }
+
+    .loading-spinner {
+      width: 44px;
+      height: 44px;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top: 3px solid #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      margin-top: 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: 0.5px;
+    }
+
+    .error-retry-btn {
+      margin-top: 20px;
+      background: rgba(255, 71, 87, 0.9);
+      border: none;
+      padding: 8px 18px;
+      border-radius: 30px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: 0.2s;
+    }
+
+    .error-retry-btn:active {
+      transform: scale(0.96);
+      background: #ff3344;
+    }
+
+    /* 响应式适配 */
+    @media (max-width: 320px) {
+      .app-icon { width: 25%; min-width: 55px; }
+      .app-icon .name { font-size: 10px; }
+      .dock { gap: 10px; padding: 0 10px 18px; }
+      .dock .app-icon .icon-img { width: 44px; height: 44px; }
+      .dock .app-icon .name { font-size: 9px; }
+      .page-indicator { bottom: 85px; }
+    }
+
+    @media (min-width: 321px) and (max-width: 375px) {
+      .app-icon { width: 20%; min-width: 60px; }
+      .dock .app-icon .icon-img { width: 46px; height: 46px; }
+    }
+
+    @media (min-width: 376px) and (max-width: 414px) {
+      .app-icon { width: 20%; min-width: 65px; }
+      .dock .app-icon .icon-img { width: 48px; height: 48px; }
+    }
+
+    @media (min-width: 415px) and (max-width: 767px) {
+      .app-icon { width: 20%; min-width: 70px; }
+      .dock { gap: 20px; }
+      .dock .app-icon .icon-img { width: 52px; height: 52px; }
+    }
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .app-icon { width: 16.666%; min-width: 80px; }
+      .dock .app-icon .icon-img { width: 58px; height: 58px; }
+    }
+
+    @media (min-width: 1024px) {
+      .app-icon { width: 14.285%; min-width: 90px; }
+      .dock .app-icon .icon-img { width: 60px; height: 60px; }
+    }
+
+    @media (orientation: landscape) and (max-height: 500px) {
+      .desktop-container { bottom: 70px; }
+      .desktop-page { padding: 12px 16px; gap: 12px; }
+      .app-icon { width: 12.5%; min-width: 55px; }
+      .dock { height: 65px; padding-bottom: 8px; gap: 12px; }
+      .dock .app-icon .icon-img { width: 44px; height: 44px; }
+      .page-indicator { bottom: 70px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wallpaper-layer" id="wallpaper"></div>
+  <div class="status-bar">
+    <div class="status-center" id="fullTime">加载中...</div>
+  </div>
+  <div class="desktop-container" id="desktopContainer">
+    <div class="desktop-wrapper" id="desktopWrapper">
+      <div class="desktop-page" id="page1"></div>
+      <div class="desktop-page" id="page2"></div>
+    </div>
+  </div>
+  <div class="page-indicator" id="pageIndicator">
+    <div class="page-dot active"></div>
+    <div class="page-dot"></div>
+  </div>
+  <div class="dock" id="dock"></div>
+
+  <!-- 应用窗口 (增强版：带黑色加载遮罩) -->
+  <div class="app-window" id="appWindow">
+    <div class="title-bar">
+      <div class="title-btn">
+        <button class="btn fullscreen-btn" id="fullscreenBtn">全屏</button>
+      </div>
+      <div class="title" id="appTitle"></div>
+      <div class="title-btn">
+        <button class="btn close-btn" id="closeAppBtn">关闭</button>
+      </div>
+    </div>
+    <div class="content" id="appContent"></div>
+  </div>
+
+  <script>
+    // ====================== 壁纸 ======================
+    const wallpapers = [
+      "http://bing.img.run/rand.php?https://picsum.photos/1920/1080",
+      "http://bing.img.run/rand.php?https://picsum.photos/1920/1080"
+    ];
+    function initWallpaper() {
+      const wallpaperEl = document.getElementById("wallpaper");
+      const randomIndex = Math.floor(Math.random() * wallpapers.length);
+      wallpaperEl.style.backgroundImage = `url(${wallpapers[randomIndex]})`;
+    }
+
+    // ====================== 应用列表 ======================
+    const allApps = [
+      [
+        { name: "影视一站", icon: "https://pp.myapp.com/ma_icon/0/icon_11213962_1755480427/256", url: "https://saas.bk-cdn01.com/t/eb5cddea-8710-4a43-af44-e9ceb4c9befe/u/76c8d21d-0c4b-45b4-93e9-aee594231a1b/1783238060325/3.html" },
+        { name: "影视二站", icon: "https://pp.myapp.com/ma_icon/0/icon_54432455_1763976606/256", url: "https://saas.bk-cdn01.com/t/eb5cddea-8710-4a43-af44-e9ceb4c9befe/u/76c8d21d-0c4b-45b4-93e9-aee594231a1b/1783238083140/5.html" },
+        { name: "影视三站", icon: "https://pp.myapp.com/ma_icon/0/icon_54400561_1773026322/256", url: "https://saas.bk-cdn01.com/t/eb5cddea-8710-4a43-af44-e9ceb4c9befe/u/76c8d21d-0c4b-45b4-93e9-aee594231a1b/1783238108319/6.html" },
+        { name: "备用一站", icon: "https://pp.myapp.com/ma_icon/0/icon_11213962_1755480427/256", url: "https://ms.188850.xyz/file/default/1783239411437_3.html" },
+        { name: "备用二站", icon: "https://pp.myapp.com/ma_icon/0/icon_54432455_1763976606/256", url: "https://ms.188850.xyz/file/default/1783239409364_5.html" },
+        { name: "备用三站", icon: "https://pp.myapp.com/ma_icon/0/icon_54400561_1773026322/256", url: "https://ms.188850.xyz/file/default/1783239412518_6.html" },
+        { name: "淘宝领券", icon: "https://pp.myapp.com/ma_icon/0/icon_54508324_1769481196/256", url: "./bfq/lingquan.html" }
+      ],
+      [
+        { name: "二维码生成", icon: "https://pp.myapp.com/ma_icon/0/icon_54328693_1705943040/256", url: "https://cli.im/" },
+        { name: "天气预报", icon: "http://pp.myapp.com/ma_icon/0/icon_54211715_1773305647/256", url: "https://tianqi.qq.com/" },
+        { name: "音乐电台", icon: "http://pp.myapp.com/ma_icon/0/icon_54054652_1726106842/256", url: "./888/yinyue.html" }
+      ]
+    ];
+    const dockApps = [
+      { name: "备用桌面", icon: "https://i0.wp.com/img.404ma.com/v2/zAdpYNP.png", url: "https://lele.bk-free02.com/4d92/7c12", openType: "newTab" },
+      { name: "搜狗搜索", icon: "http://pp.myapp.com/ma_icon/0/icon_6866_1778645092/256", url: "https://sogou.com/" }
+    ];
+
+    // 全局资源管理 (防止加载冲突)
+    let currentIframe = null;
+    let currentLoadingOverlay = null;
+    let loadTimeoutId = null;
+
+    // 清除当前应用窗口内的加载状态、iframe以及超时
+    function cleanAppResources() {
+      if (loadTimeoutId) {
+        clearTimeout(loadTimeoutId);
+        loadTimeoutId = null;
+      }
+      if (currentIframe) {
+        // 移除事件监听，避免残留
+        currentIframe.onload = null;
+        currentIframe.onerror = null;
+        currentIframe = null;
+      }
+      if (currentLoadingOverlay && currentLoadingOverlay.parentNode) {
+        currentLoadingOverlay.remove();
+        currentLoadingOverlay = null;
+      }
+      // 确保内容区残留的额外元素被清理干净，但不影响iframe主内容清理
+      const contentDiv = document.getElementById("appContent");
+      if (contentDiv) {
+        // 保留背景黑色，移除所有子节点（关窗口时彻底清空，但打开新应用前也会调用clean）
+        // 注意：这个函数也会在 closeApp 时调用，用于完全重置窗口
+        while (contentDiv.firstChild) {
+          contentDiv.removeChild(contentDiv.firstChild);
+        }
+      }
+    }
+
+    // 关闭应用窗口 (完全清理)
+    function closeApp() {
+      const appWindow = document.getElementById("appWindow");
+      if (!appWindow.classList.contains("show")) return;
+      cleanAppResources();          // 清空iframe、loading等
+      appWindow.classList.remove("show");
+      document.body.style.overflow = "";
+      // 重置全屏标记
+      if (isFullscreen) {
+        isFullscreen = false;
+        appWindow.classList.remove("fullscreen");
+      }
+    }
+
+    let isFullscreen = false;
+    function toggleFullscreen() {
+      const appWindow = document.getElementById("appWindow");
+      isFullscreen = !isFullscreen;
+      if (isFullscreen) {
+        appWindow.classList.add("fullscreen");
+      } else {
+        appWindow.classList.remove("fullscreen");
+      }
+    }
+
+    // 打开应用：带黑色加载等待提示，背景纯黑
+    function openApp(name, url) {
+      if (!url) return;
+      const appWindow = document.getElementById("appWindow");
+      const appTitle = document.getElementById("appTitle");
+      const appContent = document.getElementById("appContent");
+
+      // 关闭之前已经打开的内容（清理资源）
+      cleanAppResources();
+      
+      // 重置窗口全屏状态（每次新打开应用重置全屏UI）
+      if (isFullscreen) {
+        isFullscreen = false;
+        appWindow.classList.remove("fullscreen");
+      }
+      
+      // 设置标题
+      appTitle.innerText = name;
+      
+      // 显示窗口
+      appWindow.classList.add("show");
+      document.body.style.overflow = "hidden";
+      
+      // 1. 创建 iframe（但先不添加到可视区，先添加loading遮罩，最后插入iframe保证遮罩在上方）
+      const iframe = document.createElement("iframe");
+      iframe.src = url;
+      iframe.setAttribute("allow", "fullscreen; autoplay; encrypted-media");
+      iframe.setAttribute("allowfullscreen", "true");
+      iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-modals");
+      // 样式基础黑色
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.border = "none";
+      iframe.style.backgroundColor = "#000";
+      iframe.style.display = "block";
+      
+      // 先临时保存iframe引用
+      currentIframe = iframe;
+      
+      // 2. 创建黑色加载遮罩 (保证嵌入页背景黑色 + 等待提示)
+      const loadingDiv = document.createElement("div");
+      loadingDiv.className = "loading-overlay";
+      loadingDiv.innerHTML = `
+        <div class="loading-spinner"></div>
+        <div class="loading-text">精彩即将呈现，请稍候...</div>
+      `;
+      currentLoadingOverlay = loadingDiv;
+      
+      // 将iframe和loading遮罩都放入content (先放iframe，再放loading，loading绝对定位覆盖iframe)
+      appContent.appendChild(iframe);
+      appContent.appendChild(loadingDiv);
+      
+      // 设置加载超时（12秒未加载完成，认为失败，显示重试界面）
+      loadTimeoutId = setTimeout(() => {
+        if (currentLoadingOverlay && currentLoadingOverlay.parentNode) {
+          // 超时，展示错误重试界面（保留遮罩的内容改为错误样式，保留黑底）
+          currentLoadingOverlay.innerHTML = `
+            <div style="text-align:center; padding:20px;">
+              <div style="font-size:36px; margin-bottom:12px;">⚠️</div>
+              <div class="loading-text" style="margin-bottom:16px;">网络较慢或加载超时</div>
+              <button class="error-retry-btn" id="retryLoadBtn">🔄 重新加载</button>
+            </div>
+          `;
+          const retryBtn = currentLoadingOverlay.querySelector("#retryLoadBtn");
+          if (retryBtn) {
+            retryBtn.onclick = (e) => {
+              e.stopPropagation();
+              // 重新加载当前iframe
+              if (currentIframe) {
+                // 重置加载监听，清除超时，重新开始加载过程
+                if (loadTimeoutId) clearTimeout(loadTimeoutId);
+                // 让iframe重新加载
+                const originalSrc = currentIframe.src;
+                currentIframe.src = "";
+                currentIframe.src = originalSrc;
+                // 重新设置load/error侦听
+                attachIframeEvents(currentIframe, loadingDiv);
+                // 重置超时
+                loadTimeoutId = setTimeout(() => {
+                  if (currentLoadingOverlay && currentLoadingOverlay.parentNode) {
+                    currentLoadingOverlay.innerHTML = `
+                      <div style="text-align:center; padding:20px;">
+                        <div style="font-size:36px;">⏱️</div>
+                        <div class="loading-text">加载超时，请检查网络</div>
+                        <button class="error-retry-btn" id="timeoutRetry">重试</button>
+                      </div>
+                    `;
+                    const retryAgain = currentLoadingOverlay.querySelector("#timeoutRetry");
+                    if (retryAgain) retryAgain.onclick = (ev) => { ev.stopPropagation(); openApp(name, url); };
+                  }
+                }, 15000);
+              }
+            };
+          }
+        }
+        loadTimeoutId = null;
+      }, 12000);
+      
+      // 辅助函数：绑定加载成功/失败事件，成功后移除遮罩
+      function attachIframeEvents(iframeEl, overlayEl) {
+        iframeEl.onload = () => {
+          // 加载成功，移除遮罩层，显示iframe内容
+          if (overlayEl && overlayEl.parentNode) {
+            overlayEl.remove();
+          }
+          if (currentLoadingOverlay === overlayEl) currentLoadingOverlay = null;
+          if (loadTimeoutId) {
+            clearTimeout(loadTimeoutId);
+            loadTimeoutId = null;
+          }
+          // 确保iframe可见（本来就是可见的）
+          iframeEl.style.opacity = "1";
+        };
+        iframeEl.onerror = () => {
+          // 加载失败，展示失败重试界面（保留当前黑色遮罩，并修改为错误内容）
+          if (overlayEl && overlayEl.parentNode) {
+            overlayEl.innerHTML = `
+              <div style="text-align:center; padding:20px;">
+                <div style="font-size:40px; margin-bottom:10px;">📡</div>
+                <div class="loading-text" style="margin-bottom:16px;">连接失败，请检查网络或重试</div>
+                <button class="error-retry-btn" id="failRetryBtn">重新加载</button>
+              </div>
+            `;
+            const failBtn = overlayEl.querySelector("#failRetryBtn");
+            if (failBtn) {
+              failBtn.onclick = (e) => {
+                e.stopPropagation();
+                // 重试：重新打开相同应用
+                openApp(name, url);
+              };
+            }
+          }
+          if (loadTimeoutId) {
+            clearTimeout(loadTimeoutId);
+            loadTimeoutId = null;
+          }
+        };
+      }
+      
+      attachIframeEvents(iframe, loadingDiv);
+    }
+    
+    // 图标自适应宽度辅助 (保留原有动态布局)
+    function calculateIconSize() {
+      const page1Count = allApps[0].length;
+      const screenWidth = window.innerWidth;
+      let iconWidth = 20;
+      if (screenWidth <= 320) {
+        iconWidth = 25;
+      } else if (page1Count <= 8) {
+        iconWidth = 25;
+      } else if (page1Count <= 12) {
+        iconWidth = 20;
+      } else if (page1Count <= 18) {
+        iconWidth = 16.666;
+      } else {
+        iconWidth = 14.285;
+      }
+      if (window.innerHeight <= 500 && window.innerWidth > window.innerHeight) {
+        iconWidth = 12.5;
+      }
+      return iconWidth;
+    }
+    
+    function renderDesktop() {
+      const iconWidth = calculateIconSize();
+      allApps.forEach((pageApps, pageIndex) => {
+        const pageEl = document.getElementById(`page${pageIndex + 1}`);
+        pageEl.innerHTML = "";
+        pageApps.forEach((app, i) => {
+          const div = document.createElement("div");
+          div.className = "app-icon";
+          div.style.width = `${iconWidth}%`;
+          div.innerHTML = `
+            <img class="icon-img" src="${app.icon}" alt="${app.name}" loading="lazy">
+            <div class="name">${app.name}</div>
+          `;
+          div.onclick = () => {
+            if (app.openType === "newTab") {
+              window.open(app.url, "_blank");
+            } else {
+              openApp(app.name, app.url);
+            }
+          };
+          pageEl.appendChild(div);
+        });
+      });
+    }
+    
+    function renderDock() {
+      const dockEl = document.getElementById("dock");
+      dockEl.innerHTML = "";
+      dockApps.forEach((app, i) => {
+        const div = document.createElement("div");
+        div.className = "app-icon";
+        div.innerHTML = `
+          <img class="icon-img" src="${app.icon}" alt="${app.name}" loading="lazy">
+          <div class="name">${app.name}</div>
+        `;
+        div.onclick = () => {
+          if (app.openType && app.openType === "newTab") {
+            window.open(app.url, "_blank");
+          } else {
+            openApp(app.name, app.url);
+          }
+        };
+        dockEl.appendChild(div);
+      });
+    }
+    
+    // 页面滑动逻辑 (完整保留)
+    let currentPage = 0;
+    const totalPages = 2;
+    let startX = 0, currentX = 0, isDragging = false, hasSwiped = false;
+    const desktopContainer = document.getElementById("desktopContainer");
+    const desktopWrapper = document.getElementById("desktopWrapper");
+    const pageIndicator = document.getElementById("pageIndicator");
+    
+    function updatePageIndicator() {
+      const dots = pageIndicator.querySelectorAll(".page-dot");
+      dots.forEach((dot, i) => dot.classList.toggle("active", i === currentPage));
+    }
+    function goToPage(page) {
+      currentPage = Math.max(0, Math.min(page, totalPages - 1));
+      desktopWrapper.style.transform = `translateX(-${currentPage * 100}%)`;
+      updatePageIndicator();
+    }
+    
+    // 触摸拖拽
+    desktopContainer.addEventListener("touchstart", (e) => {
+      if (document.getElementById("appWindow").classList.contains("show")) return;
+      startX = e.touches[0].clientX;
+      isDragging = true;
+      hasSwiped = false;
+      desktopWrapper.style.transition = "none";
+    }, { passive: true });
+    desktopContainer.addEventListener("touchmove", (e) => {
+      if (!isDragging || document.getElementById("appWindow").classList.contains("show")) return;
+      currentX = e.touches[0].clientX;
+      const diff = currentX - startX;
+      const offset = -currentPage * 100 + (diff / desktopContainer.offsetWidth) * 100;
+      desktopWrapper.style.transform = `translateX(${offset}%)`;
+      if (Math.abs(diff) > 10) hasSwiped = true;
+    }, { passive: true });
+    desktopContainer.addEventListener("touchend", () => {
+      if (!isDragging || document.getElementById("appWindow").classList.contains("show")) return;
+      isDragging = false;
+      desktopWrapper.style.transition = "transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)";
+      const diff = currentX - startX;
+      if (Math.abs(diff) > 50 && hasSwiped) {
+        if (diff > 0 && currentPage > 0) goToPage(currentPage - 1);
+        else if (diff < 0 && currentPage < totalPages - 1) goToPage(currentPage + 1);
+        else goToPage(currentPage);
+      } else {
+        goToPage(currentPage);
+      }
+      hasSwiped = false;
+    });
+    
+    // 鼠标拖拽支持
+    desktopContainer.addEventListener("mousedown", (e) => {
+      if (document.getElementById("appWindow").classList.contains("show")) return;
+      startX = e.clientX;
+      isDragging = true;
+      hasSwiped = false;
+      desktopWrapper.style.transition = "none";
+      e.preventDefault();
+    });
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging || document.getElementById("appWindow").classList.contains("show")) return;
+      currentX = e.clientX;
+      const diff = currentX - startX;
+      const offset = -currentPage * 100 + (diff / desktopContainer.offsetWidth) * 100;
+      desktopWrapper.style.transform = `translateX(${offset}%)`;
+      if (Math.abs(diff) > 10) hasSwiped = true;
+    });
+    document.addEventListener("mouseup", () => {
+      if (!isDragging || document.getElementById("appWindow").classList.contains("show")) return;
+      isDragging = false;
+      desktopWrapper.style.transition = "transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)";
+      const diff = currentX - startX;
+      if (Math.abs(diff) > 50 && hasSwiped) {
+        if (diff > 0 && currentPage > 0) goToPage(currentPage - 1);
+        else if (diff < 0 && currentPage < totalPages - 1) goToPage(currentPage + 1);
+        else goToPage(currentPage);
+      } else goToPage(currentPage);
+      hasSwiped = false;
+    });
+    
+    // 时间更新
+    function updateTime() {
+      const now = new Date();
+      const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+      const days = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+      const timeString = `${months[now.getMonth()]}${now.getDate()}日 ${days[now.getDay()]} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      document.getElementById("fullTime").innerText = timeString;
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+    
+    // 绑定按钮事件
+    document.getElementById("fullscreenBtn").onclick = toggleFullscreen;
+    document.getElementById("closeAppBtn").onclick = closeApp;
+    document.getElementById("appWindow").addEventListener("click", (e) => {
+      if (e.target === document.getElementById("appWindow")) closeApp();
+    });
+    
+    // 键盘ESC
+    document.addEventListener("keydown", e => {
+      const win = document.getElementById("appWindow");
+      if (win.classList.contains("show")) {
+        if (e.key === "Escape") {
+          if (isFullscreen) toggleFullscreen();
+          else closeApp();
+        }
+        if (e.key === "f" || e.key === "F") toggleFullscreen();
+        return;
+      }
+    });
+    
+    // 启动所有
+    initWallpaper();
+    renderDesktop();
+    renderDock();
+    updatePageIndicator();
+    window.addEventListener("resize", () => {
+      goToPage(currentPage);
+      renderDesktop();
+    });
+  </script>
+</body>
+</html>
