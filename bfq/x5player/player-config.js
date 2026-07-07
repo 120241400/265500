@@ -8,7 +8,6 @@ window.PAUSE_OVERLAY_SECONDS = 3;
 
 
 
-
 // ========== 首次播放倒计时弹窗配置 ==========
 window.AD_CONFIG = {
   // 是否开启倒计时弹窗功能：yes 开启 / no 关闭
@@ -21,5 +20,5 @@ window.AD_CONFIG = {
   linkUrl: 'https://265500.vip',
 
   // 倒计时秒数
-  seconds: 5
+  seconds: 4
 };
