@@ -1,7 +1,7 @@
 ﻿
 // ========== 暂停遮挡图配置 ==========
 // 暂停时显示的图片链接
-window.PAUSE_IMAGE_URL = 'https://i0.wp.com/265500.vip/bfq/x5player/haibao.png';
+window.PAUSE_IMAGE_URL = 'https://bing.img.run/rand.php';
 
 // 暂停图片停留时间（秒），设为 0 表示不自动消失
 window.PAUSE_OVERLAY_SECONDS = 3;
@@ -15,7 +15,7 @@ window.AD_CONFIG = {
   enabled: 'yes',
 
   // 倒计时弹窗图片链接
-  imageUrl: 'https://bing.img.run/rand.php',
+  imageUrl: 'https://i0.wp.com/265500.vip/bfq/x5player/haibao.png',
 
   // 点击跳转的网址
   linkUrl: 'https://265500.vip',
