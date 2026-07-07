@@ -18,7 +18,7 @@ window.AD_CONFIG = {
   imageUrl: 'https://bing.img.run/rand.php',
 
   // 点击跳转的网址
-  linkUrl: 'https://www.baidu.com',
+  linkUrl: 'https://265500.vip',
 
   // 倒计时秒数
   seconds: 5
