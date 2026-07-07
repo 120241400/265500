@@ -20,5 +20,5 @@ window.AD_CONFIG = {
   linkUrl: 'https://265500.vip',
 
   // 倒计时秒数
-  seconds: 4
+  seconds: 3
 };
