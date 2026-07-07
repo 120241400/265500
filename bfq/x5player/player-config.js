@@ -1,7 +1,7 @@
 ﻿
 // ========== 暂停遮挡图配置 ==========
 // 暂停时显示的图片链接
-window.PAUSE_IMAGE_URL = 'https://aisearch.cdn.bcebos.com/fileManager/KxNSA_0f9QdRc1QJKNiqOg/1781180459409EixVFl.jpg';
+window.PAUSE_IMAGE_URL = 'https://i0.wp.com/265500.vip/bfq/x5player/haibao.png';
 
 // 暂停图片停留时间（秒），设为 0 表示不自动消失
 window.PAUSE_OVERLAY_SECONDS = 3;
