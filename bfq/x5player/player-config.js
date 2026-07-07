@@ -4,7 +4,7 @@
 window.PAUSE_IMAGE_URL = 'https://bing.img.run/rand.php';
 
 // 暂停图片停留时间（秒），设为 0 表示不自动消失
-window.PAUSE_OVERLAY_SECONDS = 3;
+window.PAUSE_OVERLAY_SECONDS = 2;
 
 
 
