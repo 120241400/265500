@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>忘情播放器 - 断点续播版</title>
+<title>忘情播放器</title>
 <style>
 :root {
   --primary:#FF8200;
@@ -154,6 +154,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .err-panel .retry:hover{background:#e67300}
 .err-panel .retry:active{transform:scale(.95)}
 
+/* 首次播放倒计时弹窗 */
+.ad-overlay{position:absolute;inset:0;z-index:26;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.ad-overlay.on{opacity:1;pointer-events:auto}
+.ad-link{position:relative;display:block;width:100%;height:100%;text-decoration:none}
+.ad-link img{width:100%;height:100%;object-fit:cover;display:block}
+.ad-countdown{position:absolute;top:calc(10px + var(--safe-top));right:10px;background:rgba(0,0,0,.65);color:#fff;font-size:12px;font-weight:500;padding:5px 10px;border-radius:20px;display:flex;align-items:center;gap:6px;white-space:nowrap;backdrop-filter:blur(6px)}
+.ad-cd-text{opacity:.8}
+.ad-cd-num{font-weight:700;font-variant-numeric:tabular-nums;min-width:18px;text-align:center}
+.ad-close{background:rgba(255,255,255,.15);color:#fff;font-size:12px;padding:2px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.25);cursor:pointer;transition:background .15s;margin-left:2px}
+.ad-close:hover{background:rgba(255,255,255,.3)}
+
 /* 暂停遮挡图片 */
 .pause-overlay{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .35s var(--ease);background:transparent;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .pause-overlay.on{opacity:1}
@@ -282,6 +293,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <button class="retry" id="retryBtn">重新加载</button>
   </div>
 
+  <!-- 首次播放倒计时弹窗 -->
+  <div class="ad-overlay" id="adOverlay">
+    <a class="ad-link" id="adLink" href="#" target="_blank">
+      <img src="" alt="ad" id="adImg">
+      <div class="ad-countdown" id="adCountdown">
+        <span class="ad-cd-text">倒计时</span>
+        <span class="ad-cd-num" id="adCdNum">5</span>
+        <button class="ad-close" id="adClose">跳过</button>
+      </div>
+    </a>
+  </div>
+
   <div class="pause-overlay" id="pauseOverlay">
     <img src="" alt="pause" id="pauseImg">
   </div>
@@ -353,6 +376,12 @@ const retryBtn  = $('retryBtn');
 const toastBox  = $('toastBox');
 const pauseOverlay = $('pauseOverlay');
 const pauseImg = $('pauseImg');
+const adOverlay = $('adOverlay');
+const adLink    = $('adLink');
+const adImg     = $('adImg');
+const adCountdown = $('adCountdown');
+const adCdNum   = $('adCdNum');
+const adClose   = $('adClose');
 
 const gBright   = $('gBright');
 const gbVal     = $('gbVal');
@@ -400,6 +429,10 @@ let tapTime = 0, tapTimer = null;
 const TAP_GAP = 280;
 let isPlayEndedNormally = false;
 let pauseOverlayTimer = null;
+let adTimer = null;
+let adSeconds = 0;
+let adConfig = null;
+let adShown = false;
 
 // ==================== 断点续播相关状态 ====================
 let saveProgressTimer = null;
@@ -562,6 +595,11 @@ async function startPlay(url){
   noVideo.classList.add('off');bottomBar.classList.remove('hide');autoHideUI();
   clearTimeout(pauseOverlayTimer);
   pauseOverlay.classList.remove('on','fade-out');
+  // 首次播放显示倒计时弹窗
+  if(!adShown && adConfig && adConfig.enabled === 'yes'){
+    showAdOverlay();
+    return;
+  }
 
   stopProgressSaving();
 
@@ -691,9 +729,12 @@ video.addEventListener('pause',()=>{
   pauseOverlay.classList.add('on');
   pauseOverlay.classList.remove('fade-out');
   clearTimeout(pauseOverlayTimer);
-  pauseOverlayTimer = setTimeout(()=>{
-    pauseOverlay.classList.add('fade-out');
-  }, 3000);
+  const ms = (typeof window.PAUSE_OVERLAY_MS === 'number' && window.PAUSE_OVERLAY_MS >= 0) ? window.PAUSE_OVERLAY_MS : 3000;
+  if(ms > 0){
+    pauseOverlayTimer = setTimeout(()=>{
+      pauseOverlay.classList.add('fade-out');
+    }, ms);
+  }
 });
 
 video.addEventListener('ended',()=>{
@@ -706,9 +747,12 @@ video.addEventListener('ended',()=>{
   pauseOverlay.classList.add('on');
   pauseOverlay.classList.remove('fade-out');
   clearTimeout(pauseOverlayTimer);
-  pauseOverlayTimer = setTimeout(()=>{
-    pauseOverlay.classList.add('fade-out');
-  }, 3000);
+  const ms = (typeof window.PAUSE_OVERLAY_MS === 'number' && window.PAUSE_OVERLAY_MS >= 0) ? window.PAUSE_OVERLAY_MS : 3000;
+  if(ms > 0){
+    pauseOverlayTimer = setTimeout(()=>{
+      pauseOverlay.classList.add('fade-out');
+    }, ms);
+  }
 });
 
 video.addEventListener('error', () => {
@@ -1156,21 +1200,71 @@ if(autoUrl){
   centerPlay.classList.add('hide');
 }
 
-// 从外部 JS 文件加载暂停遮挡图链接
-function loadPauseImage(){
+// 从外部 JS 文件加载配置
+function loadConfig(){
   const script = document.createElement('script');
-  script.src = 'https://www.265500.vip/bfq/x5player/zantingtu.js';
+  script.src = 'https://www.265500.vip/bfq/x5player/player-config.js?xiugai';
   script.onload = function(){
+    // 暂停图配置
     if(typeof window.PAUSE_IMAGE_URL === 'string' && window.PAUSE_IMAGE_URL){
       pauseImg.src = window.PAUSE_IMAGE_URL;
     }
+    // 暂停图停留时间（秒），默认3秒
+    if(typeof window.PAUSE_OVERLAY_SECONDS === 'number' && window.PAUSE_OVERLAY_SECONDS >= 0){
+      window.PAUSE_OVERLAY_MS = window.PAUSE_OVERLAY_SECONDS * 1000;
+    }else{
+      window.PAUSE_OVERLAY_MS = 3000;
+    }
+    // 倒计时弹窗配置
+    if(typeof window.AD_CONFIG === 'object' && window.AD_CONFIG){
+      adConfig = window.AD_CONFIG;
+      // 如果开启了倒计时且已有视频URL，立即显示
+      if(adConfig.enabled === 'yes' && autoUrl && !adShown){
+        showAdOverlay();
+      }
+    }
   };
   script.onerror = function(){
-    // 外部文件加载失败，静默处理，不显示遮挡图
+    // 外部文件加载失败，使用默认配置
+    window.PAUSE_OVERLAY_MS = 3000;
   };
   document.head.appendChild(script);
 }
-loadPauseImage();
+loadConfig();
+
+// 倒计时弹窗逻辑
+function showAdOverlay(){
+  if(!adConfig || adConfig.enabled !== 'yes' || adShown) return;
+  adShown = true;
+  adImg.src = adConfig.imageUrl || '';
+  adLink.href = adConfig.linkUrl || '#';
+  adSeconds = (typeof adConfig.seconds === 'number' && adConfig.seconds > 0) ? adConfig.seconds : 5;
+  adCdNum.textContent = String(adSeconds).padStart(2, '0');
+  adOverlay.classList.add('on');
+  // 暂停视频
+  if(!video.paused) video.pause();
+  clearInterval(adTimer);
+  adTimer = setInterval(function(){
+    adSeconds--;
+    adCdNum.textContent = String(adSeconds).padStart(2, '0');
+    if(adSeconds <= 0){
+      clearInterval(adTimer);
+      adOverlay.classList.remove('on');
+      // 自动播放
+      video.play().catch(function(){});
+    }
+  }, 1000);
+}
+
+adClose.addEventListener('click', function(){
+  clearInterval(adTimer);
+  adOverlay.classList.remove('on');
+  video.play().catch(function(){});
+});
+
+adLink.addEventListener('click', function(e){
+  // 允许正常跳转，不清除倒计时
+});
 
 player.focus();
 })();
