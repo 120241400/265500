@@ -1,7 +1,7 @@
 ﻿
 // ========== 暂停遮挡图配置 ==========
 // 暂停时显示的图片链接
-window.PAUSE_IMAGE_URL = 'https://bing.img.run/rand.php';
+window.PAUSE_IMAGE_URL = 'https://i0.wp.com/265500.vip/bfq/x5player/touming.png?https://bing.img.run/rand.php';
 
 // 暂停图片停留时间（秒），设为 0 表示不自动消失
 window.PAUSE_OVERLAY_SECONDS = 2;
@@ -11,7 +11,7 @@ window.PAUSE_OVERLAY_SECONDS = 2;
 // ========== 首次播放倒计时弹窗配置 ==========
 window.AD_CONFIG = {
   // 是否开启倒计时弹窗功能：yes 开启 / no 关闭
-  enabled: 'yes',
+  enabled: 'no',
 
   // 倒计时弹窗图片链接
   imageUrl: 'https://i0.wp.com/265500.vip/bfq/x5player/haibao.png',
