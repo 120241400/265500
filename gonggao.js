@@ -10,13 +10,13 @@
     // ============ 配置区域（在此修改）============
     const CONFIG = {
         // 是否启用弹窗：yes 启用 | no 禁用
-        enable: 'no',
+        enable: 'yes',
 
         // 窗口标题
         title: '友情提示',
 
         // 窗口内容（支持HTML）
-        content: '本站永久免费看全网视频',
+        content: '本站永久免费看全网视频，请勿相信视频中的广告',
 
         // 自动关闭时间（秒）
         autoCloseTime: 8,
