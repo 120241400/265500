@@ -11,7 +11,7 @@ window.PAUSE_OVERLAY_SECONDS = 2;
 // ========== 首次播放倒计时弹窗配置 ==========
 window.AD_CONFIG = {
   // 是否开启倒计时弹窗功能：yes 开启 / no 关闭
-  enabled: 'no',
+  enabled: 'yes',
 
   // 倒计时弹窗图片链接
   imageUrl: 'https://i0.wp.com/265500.vip/bfq/x5player/haibao.png',
