@@ -1,4 +1,4 @@
-﻿
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -427,6 +427,7 @@
       .page-indicator { bottom: 70px; }
     }
   </style>
+<base target="_blank">
 </head>
 <body>
   <div class="wallpaper-layer" id="wallpaper"></div>
@@ -618,6 +619,13 @@
           if (retryBtn) {
             retryBtn.onclick = (e) => {
               e.stopPropagation();
+              // 重置加载状态：先恢复 spinner，给用户视觉反馈
+              if (currentLoadingOverlay) {
+                currentLoadingOverlay.innerHTML = `
+                  <div class="loading-spinner"></div>
+                  <div class="loading-text">精彩即将呈现，请稍候...</div>
+                `;
+              }
               // 重新加载当前iframe
               if (currentIframe) {
                 // 重置加载监听，清除超时，重新开始加载过程
@@ -627,8 +635,8 @@
                 currentIframe.src = "";
                 currentIframe.src = originalSrc;
                 // 重新设置load/error侦听
-                attachIframeEvents(currentIframe, loadingDiv);
-                // 重置超时
+                attachIframeEvents(currentIframe);
+                // 重新设置超时
                 loadTimeoutId = setTimeout(() => {
                   if (currentLoadingOverlay && currentLoadingOverlay.parentNode) {
                     currentLoadingOverlay.innerHTML = `
@@ -650,13 +658,13 @@
       }, 12000);
       
       // 辅助函数：绑定加载成功/失败事件，成功后移除遮罩
-      function attachIframeEvents(iframeEl, overlayEl) {
+      function attachIframeEvents(iframeEl) {
         iframeEl.onload = () => {
           // 加载成功，移除遮罩层，显示iframe内容
-          if (overlayEl && overlayEl.parentNode) {
-            overlayEl.remove();
+          if (currentLoadingOverlay && currentLoadingOverlay.parentNode) {
+            currentLoadingOverlay.remove();
           }
-          if (currentLoadingOverlay === overlayEl) currentLoadingOverlay = null;
+          currentLoadingOverlay = null;
           if (loadTimeoutId) {
             clearTimeout(loadTimeoutId);
             loadTimeoutId = null;
@@ -666,15 +674,15 @@
         };
         iframeEl.onerror = () => {
           // 加载失败，展示失败重试界面（保留当前黑色遮罩，并修改为错误内容）
-          if (overlayEl && overlayEl.parentNode) {
-            overlayEl.innerHTML = `
+          if (currentLoadingOverlay && currentLoadingOverlay.parentNode) {
+            currentLoadingOverlay.innerHTML = `
               <div style="text-align:center; padding:20px;">
                 <div style="font-size:40px; margin-bottom:10px;">📡</div>
                 <div class="loading-text" style="margin-bottom:16px;">连接失败，请检查网络或重试</div>
                 <button class="error-retry-btn" id="failRetryBtn">重新加载</button>
               </div>
             `;
-            const failBtn = overlayEl.querySelector("#failRetryBtn");
+            const failBtn = currentLoadingOverlay.querySelector("#failRetryBtn");
             if (failBtn) {
               failBtn.onclick = (e) => {
                 e.stopPropagation();
@@ -690,7 +698,7 @@
         };
       }
       
-      attachIframeEvents(iframe, loadingDiv);
+      attachIframeEvents(iframe);
     }
     
     // 图标自适应宽度辅助 (保留原有动态布局)
