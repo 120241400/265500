@@ -432,7 +432,7 @@ function getURL(){
 const HLS_CDNS=[
   'https://unpkg.com/hls.js@1.6.18/dist/hls.min.js',
   'https://gcore.jsdelivr.net/npm/hls.js@1.6.18/dist/hls.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.6.18/hls.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.6.14/hls.min.js'
 ];
 function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s); }); }
 async function loadHLS(){ if(window.Hls) return true; for(const c of HLS_CDNS){ try{await loadScript(c);if(window.Hls)return true;}catch(e){} } return false; }
