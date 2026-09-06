@@ -1,4 +1,5 @@
-﻿
+
+
 
 
 
@@ -9,6 +10,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="renderer" content="webkit"> <!-- 360浏览器强制使用webkit极速模式渲染 -->
+<meta name="browsermode" content="application"> <!-- UC浏览器启用应用全屏模式 -->
+<meta name="full-screen" content="yes"> <!-- 通用声明：支持全屏显示 -->
 <title>忘情播放器</title>
 <style>
 :root {
@@ -55,6 +59,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   opacity:0;transition:opacity .15s;pointer-events:none;
   font-variant-numeric:tabular-nums}
 .spd-ind.on{opacity:1}
+.res-ind{position:absolute;top:calc(38px + var(--safe-top));right:16px;
+  background:var(--primary);color:#fff;font-size:11px;font-weight:700;
+  padding:2px 8px;border-radius:4px;z-index:15;
+  opacity:0;transition:opacity .15s;pointer-events:none;
+  font-variant-numeric:tabular-nums;text-transform:uppercase}
+.res-ind.on{opacity:1}
 
 .bottom-bar{position:absolute;bottom:0;left:0;right:0;z-index:10;
   padding:20px 10px calc(10px + var(--safe-bottom));
@@ -212,6 +222,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 }
 </style>
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -226,7 +237,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
   <div class="loader" id="loader"></div>
 
-  <div class="no-video" id="noVideo">
+  <div class="no-video off" id="noVideo">
     <div class="hint">请在链接后添加 <code>?url=视频地址</code></div>
   </div>
 
@@ -237,6 +248,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   </header>
 
   <div class="spd-ind" id="spdInd">1.0x</div>
+  <div class="res-ind" id="resInd"></div>
 
   <footer class="bottom-bar hide" id="bottomBar">
     <div class="prog-wrap" id="progWrap" role="slider" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
@@ -388,6 +400,7 @@ const seekInd   = $('seekInd');
 const seekCur   = $('seekCur');
 const seekDur   = $('seekDur');
 const spdInd    = $('spdInd');
+const resInd    = $('resInd');
 const brightFilter = $('brightFilter');
 const noVideo   = $('noVideo');
 
@@ -430,6 +443,10 @@ let adTimer = null;
 let adSeconds = 0;
 let adConfig = null;
 let adShown = false;
+let videoLoadStartTime = 0;
+let hasPlayedSuccessfully = false;
+let resHideTimer = null;
+let resShownForCurrent = false;
 
 // ==================== 断点续播相关状态 ====================
 let saveProgressTimer = null;
@@ -474,11 +491,11 @@ function getURL(){
 
 // ==================== HLS 支持 ====================
 const HLS_CDNS=[
-  'https://unpkg.com/hls.js@latest/dist/hls.min.js',
-  'https://gcore.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js'
+  'https://unpkg.com/hls.js@1.5.18/dist/hls.min.js',
+  'https://gcore.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.18/hls.min.js'
 ];
-function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s); }); }
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script');s.src=src+(src.includes('?')?'&t=':'?t=')+Date.now();s.onload=res;s.onerror=rej;document.head.appendChild(s); }); }  // 自动加时间戳防缓存
 async function loadHLS(){ if(window.Hls) return true; for(const c of HLS_CDNS){ try{await loadScript(c);if(window.Hls)return true;}catch(e){} } return false; }
 
 // ==================== 断点续播核心功能（仅本地） ====================
@@ -499,7 +516,7 @@ function saveProgress(isEmergency = false) {
 
   isSavingProgress = true;
   const storageKey = 'wq_prog_' + hashUrl(currentUrl);
-  const progressData = { time: currentTime, duration: video.duration, timestamp: Date.now() };
+  const progressData = { time: currentTime, duration: video.duration, timestamp: Date.now(), url: currentUrl };
   try {
     localStorage.setItem(storageKey, JSON.stringify(progressData));
     lastSavedTime = currentTime;
@@ -514,7 +531,13 @@ function getLocalProgress() {
     const data = localStorage.getItem('wq_prog_' + hashUrl(currentUrl));
     if (!data) return null;
     const parsed = JSON.parse(data);
-    if (parsed && typeof parsed.time === 'number' && parsed.time > 0) return parsed;
+    if (parsed && typeof parsed.time === 'number' && parsed.time > 0) {
+      if (parsed.url && parsed.url !== currentUrl) {
+        localStorage.removeItem('wq_prog_' + hashUrl(currentUrl));
+        return null;
+      }
+      return parsed;
+    }
     return null;
   } catch(e) { return null; }
 }
@@ -524,6 +547,12 @@ function tryRestoreProgress() {
   if (resumeAttempted || hasUserSeeked || isLive || !currentUrl || isPlayEndedNormally) return;
   const duration = video.duration;
   if (!duration || !isFinite(duration) || duration <= 0) return;
+
+  // 确保 video.src 已经指向 currentUrl，防止旧视频数据干扰
+  const videoSrc = video.src || '';
+  if (videoSrc && currentUrl && !videoSrc.includes(currentUrl.split('?')[0])) {
+    return;
+  }
 
   const progress = getLocalProgress();
   if (!progress) return;
@@ -581,7 +610,19 @@ function detectLive() {
 
 async function startPlay(url){
   if(!url) return;
+  // 1. 先停止旧视频的所有保存逻辑
+  stopProgressSaving();
+  // 2. 强制保存旧视频进度（如果还没保存）
+  if (currentUrl && hasVideo && !isPlayEndedNormally) {
+    forceSaveProgress();
+  }
+  // 3. 销毁旧 HLS 实例
+  if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
+
   currentUrl=url; hasVideo=true;
+  videoLoadStartTime = Date.now();
+  hasPlayedSuccessfully = false;
+  resShownForCurrent = false;
   resumeAttempted=false; resumeShowing=false;
   isPlayEndedNormally = false;
   lastSavedTime = 0;
@@ -595,13 +636,10 @@ async function startPlay(url){
   // 首次播放显示倒计时弹窗
   if(!adShown && adConfig && adConfig.enabled === 'yes'){
     showAdOverlay();
-    return;
+    return; // 视频加载延迟到广告结束后
   }
 
-  stopProgressSaving();
-
   const isHLS=/\.m3u8(\?|$)/i.test(url);
-  if(hlsInstance){hlsInstance.destroy();hlsInstance=null;}
   if(isHLS){
     if(video.canPlayType('application/vnd.apple.mpegurl')){video.src=url;video.load();}
     else{
@@ -610,7 +648,8 @@ async function startPlay(url){
       if(!window.Hls.isSupported()){showErr('当前浏览器不支持 HLS 播放');return;}
       hlsInstance=new Hls({enableWorker:true,lowLatencyMode:true,fragLoadingMaxRetry:6,manifestLoadingMaxRetry:4,levelLoadingMaxRetry:4,fragLoadingMaxRetryTimeout:64000});
       hlsInstance.loadSource(url);hlsInstance.attachMedia(video);
-      hlsInstance.on(Hls.Events.MANIFEST_PARSED,()=>{video.play().catch(()=>{});checkLiveMode();});
+      hlsInstance.on(Hls.Events.MANIFEST_PARSED,(e,data)=>{video.play().catch(()=>{});checkLiveMode();if(data.levels&&data.levels.length>0){const lvl=data.levels[0];showResolution(lvl.width,lvl.height);}});
+      hlsInstance.on(Hls.Events.LEVEL_SWITCHED,(e,data)=>{const lvl=hlsInstance.levels[data.level];if(lvl&&lvl.width&&lvl.height){showResolution(lvl.width,lvl.height);}});
       hlsInstance.on(Hls.Events.ERROR,(e,data)=>{
         if(data.fatal){
           forceSaveProgress();
@@ -631,12 +670,33 @@ function tryAutoRetry(){
   retryCount++;
   forceSaveProgress();
   if(retryCount<=MAX_RETRY){
-    toast('网络异常，第 '+retryCount+' 次重试...');
+    // 视频刚开始加载时（8秒内）且从未成功播放过，静默重试不打扰用户
+    const isInitialLoading = !hasPlayedSuccessfully && (Date.now() - videoLoadStartTime < 8000);
+    if (!isInitialLoading) {
+      toast('网络异常，第 '+retryCount+' 次重试...');
+    }
     if(hlsInstance)hlsInstance.startLoad();
     else video.load();
   }else{
-    showErr('加载失败，链接已失效');
+    showErr('加载失败，视频链接可能已失效');
   }
+}
+
+function formatResLabel(w,h){
+  return (w||0)+'×'+(h||0);
+}
+function showResolution(w,h){
+  if(!w||!h||w<=0||h<=0)return;
+  const lbl=formatResLabel(w,h);
+  if(resShownForCurrent){
+    if(resInd.classList.contains('on'))resInd.textContent=lbl;
+    return;
+  }
+  resShownForCurrent=true;
+  resInd.textContent=lbl;
+  resInd.classList.add('on');
+  clearTimeout(resHideTimer);
+  resHideTimer=setTimeout(()=>{resInd.classList.remove('on');},6000);
 }
 
 function showErr(msg){
@@ -681,6 +741,7 @@ function updateDuration(){
 
 video.addEventListener('canplay',()=>{
   loader.classList.remove('on');
+  hasPlayedSuccessfully = true;
   checkLiveMode();
   updateDuration();
   tryRestoreProgress();
@@ -765,11 +826,15 @@ video.addEventListener('timeupdate', throttle(function(){
 video.addEventListener('loadedmetadata',()=>{
   updateDuration();
   tryRestoreProgress();
+  if(!hlsInstance&&video.videoWidth&&video.videoHeight){showResolution(video.videoWidth,video.videoHeight);}
 });
 
 video.addEventListener('durationchange',()=>{
   updateDuration();
   tryRestoreProgress();
+});
+video.addEventListener('resize',()=>{
+  if(!hlsInstance&&video.videoWidth&&video.videoHeight){showResolution(video.videoWidth,video.videoHeight);}
 });
 
 video.addEventListener('progress', throttle(function(){
@@ -1192,6 +1257,7 @@ const autoUrl=getURL();
 if(autoUrl){
   startPlay(autoUrl);
 }else{
+  noVideo.classList.remove('off');
   topBar.classList.remove('hide');
   bottomBar.classList.add('hide');
   centerPlay.classList.add('hide');
@@ -1200,7 +1266,7 @@ if(autoUrl){
 // 从外部 JS 文件加载配置
 function loadConfig(){
   const script = document.createElement('script');
-  script.src = 'https://www.265500.vip/bfq/x5player/player-config.js?xiugai';
+  script.src = 'https://www.265500.vip/bfq/x5player/player-config.js?t=' + Date.now();  // 加时间戳防缓存
   script.onload = function(){
     // 暂停图配置
     if(typeof window.PAUSE_IMAGE_URL === 'string' && window.PAUSE_IMAGE_URL){
@@ -1247,16 +1313,49 @@ function showAdOverlay(){
     if(adSeconds <= 0){
       clearInterval(adTimer);
       adOverlay.classList.remove('on');
-      // 自动播放
-      video.play().catch(function(){});
+      // 广告结束后开始加载并播放视频
+      startVideoLoad();
     }
   }, 1000);
+}
+
+// 广告结束后开始加载视频
+function startVideoLoad(){
+  if(!currentUrl) return;
+  const isHLS=/\.m3u8(\?|$)/i.test(currentUrl);
+  if(isHLS){
+    if(video.canPlayType('application/vnd.apple.mpegurl')){
+      video.src=currentUrl;video.load();
+    } else {
+      loadHLS().then(ok=>{
+        if(!ok){showErr('HLS 播放库加载失败，请检查网络后刷新重试');return;}
+        if(!window.Hls.isSupported()){showErr('当前浏览器不支持 HLS 播放');return;}
+        hlsInstance=new Hls({enableWorker:true,lowLatencyMode:true,fragLoadingMaxRetry:6,manifestLoadingMaxRetry:4,levelLoadingMaxRetry:4,fragLoadingMaxRetryTimeout:64000});
+        hlsInstance.loadSource(currentUrl);hlsInstance.attachMedia(video);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED,(e,data)=>{video.play().catch(()=>{});checkLiveMode();if(data.levels&&data.levels.length>0){const lvl=data.levels[0];showResolution(lvl.width,lvl.height);}});
+        hlsInstance.on(Hls.Events.LEVEL_SWITCHED,(e,data)=>{const lvl=hlsInstance.levels[data.level];if(lvl&&lvl.width&&lvl.height){showResolution(lvl.width,lvl.height);}});
+        hlsInstance.on(Hls.Events.ERROR,(e,data)=>{
+          if(data.fatal){
+            forceSaveProgress();
+            switch(data.type){
+              case Hls.ErrorTypes.NETWORK_ERROR:tryAutoRetry();break;
+              case Hls.ErrorTypes.MEDIA_ERROR:hlsInstance.recoverMediaError();break;
+              default:showErr('HLS 播放出现不可恢复的错误');break;
+            }
+          }
+        });
+      });
+    }
+  } else {
+    video.src=currentUrl;video.load();
+  }
+  startProgressSaving();
 }
 
 adClose.addEventListener('click', function(){
   clearInterval(adTimer);
   adOverlay.classList.remove('on');
-  video.play().catch(function(){});
+  startVideoLoad();
 });
 
 adLink.addEventListener('click', function(e){
