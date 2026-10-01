@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f1c">
+<title>倒水排序 · 颜色拼图</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: radial-gradient(1200px 700px at 50% -15%, #1d2b4d 0%, #0b0f1c 62%), #0b0f1c;
+    color: #e8eefc;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body { display: flex; flex-direction: column; }
+
+  /* ---------- 顶部信息 ---------- */
+  header {
+    position: relative; z-index: 30;
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 14px 4px;
+    padding-top: calc(10px + env(safe-area-inset-top));
+  }
+  .stat {
+    display: flex; flex-direction: column; align-items: center;
+    min-width: 68px;
+    padding: 6px 14px 7px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.055);
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .stat .label { font-size: 10px; letter-spacing: .14em; color: #7f90b8; margin-bottom: 2px; }
+  .stat .value { font-size: 19px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat.clickable { cursor: pointer; transition: transform .12s, background .16s; }
+  .stat.clickable:hover { background: rgba(255,255,255,.1); }
+  .stat.clickable:active { transform: scale(.95); }
+
+  /* ---------- 棋盘 ---------- */
+  #board {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: var(--gap, 8px);
+    padding: 12px;
+    overflow: visible;
+    position: relative;
+  }
+
+  .bottle {
+    position: relative;
+    width: var(--bw, 56px);
+    height: calc(var(--bw, 56px) * 2.65);
+    flex: 0 0 auto;
+    cursor: pointer;
+    transition: transform .16s cubic-bezier(.2,.9,.3,1.2);
+    will-change: transform;
+    transform-origin: 50% 50%;
+  }
+  .bottle:active { transform: scale(.97); }
+  .bottle.selected { transform: translateY(-16px); }
+  .bottle.selected:active { transform: translateY(-16px) scale(.97); }
+
+  .tube {
+    position: absolute;
+    inset: 0;
+    border: 3px solid rgba(255,255,255,.26);
+    border-top: none;
+    border-radius: 5px 5px 42% 42% / 5px 5px 16% 16%;
+    background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+    overflow: hidden;
+    box-shadow: inset 0 0 14px rgba(255,255,255,.07), 0 4px 14px rgba(0,0,0,.35);
+    transition: box-shadow .18s;
+  }
+  .bottle.selected .tube {
+    box-shadow: 0 0 0 2px rgba(150,205,255,.9), 0 0 22px rgba(80,160,255,.6), inset 0 0 14px rgba(255,255,255,.1);
+  }
+  .bottle.hinted .tube {
+    box-shadow: 0 0 0 3px rgba(255,214,102,.95), 0 0 24px rgba(255,190,60,.6);
+  }
+
+  .seg {
+    position: absolute;
+    left: 0; right: 0;
+    transform-origin: bottom center;
+  }
+  .seg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,.30), rgba(255,255,255,.02) 38%, rgba(0,0,0,.14));
+    pointer-events: none;
+  }
+
+  @keyframes pourOut {
+    0%   { opacity: 1;   transform: translateY(0) scaleY(1); }
+    55%  { opacity: .95; transform: translateY(-14%) scaleY(.88); }
+    100% { opacity: 0;   transform: translateY(-42%) scaleY(.28); }
+  }
+
+  /* ---------- 底部按钮 ---------- */
+  footer {
+    position: relative; z-index: 30;
+    flex: 0 0 auto;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 8px 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  button {
+    -webkit-appearance: none;
+    appearance: none;
+    border: 1px solid rgba(255,255,255,.13);
+    background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.05));
+    color: #dbe6ff;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 11px 14px;
+    min-width: 72px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: transform .1s ease, filter .15s, opacity .15s;
+    white-space: nowrap;
+  }
+  button:hover { filter: brightness(1.18); }
+  button:active { transform: scale(.93); }
+  button:disabled { opacity: .3; pointer-events: none; }
+
+  #btnNext {
+    margin-top: 18px;
+    padding: 13px 34px;
+    font-size: 16px;
+    background: linear-gradient(180deg, #4f8cff, #2f63d8);
+    border-color: rgba(255,255,255,.25);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(64,120,255,.4);
+  }
+
+  /* ---------- 通关弹层 ---------- */
+  #overlay {
+    position: fixed; inset: 0; z-index: 60;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(4,7,15,.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0; pointer-events: none;
+    transition: opacity .28s ease;
+  }
+  #overlay.show { opacity: 1; pointer-events: auto; }
+  .modal {
+    text-align: center;
+    padding: 34px 44px 30px;
+    border-radius: 26px;
+    background: linear-gradient(180deg, rgba(38,52,88,.98), rgba(20,28,50,.98));
+    border: 1px solid rgba(255,255,255,.13);
+    box-shadow: 0 24px 70px rgba(0,0,0,.6);
+    transform: scale(.88) translateY(10px);
+    transition: transform .34s cubic-bezier(.2,1.1,.3,1.05);
+  }
+  #overlay.show .modal { transform: scale(1) translateY(0); }
+  .modal .emoji { font-size: 44px; line-height: 1; margin-bottom: 6px; }
+  .modal h2 { margin: 4px 0 8px; font-size: 26px; letter-spacing: .05em; }
+  .modal p { margin: 0; color: #9db0d6; font-size: 14px; }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed;
+    left: 50%; bottom: 118px;
+    transform: translate(-50%, 14px);
+    background: rgba(28,38,64,.96);
+    border: 1px solid rgba(255,255,255,.14);
+    color: #dce7ff;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .22s, transform .22s;
+    z-index: 90;
+    white-space: nowrap;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- 关卡选择面板 ---------- */
+  #levelPanel {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: min(88vw, 440px);
+    max-height: 70vh;
+    background: linear-gradient(180deg, rgba(38,52,88,.98), rgba(20,28,50,.98));
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 20px;
+    box-shadow: 0 24px 70px rgba(0,0,0,.65);
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(.92);
+    transition: opacity .22s ease, transform .22s cubic-bezier(.2,1.1,.3,1.05);
+  }
+  #levelPanel.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px 10px;
+    font-size: 15px; font-weight: 700;
+    color: #cfdcff;
+    letter-spacing: .06em;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    flex: 0 0 auto;
+  }
+  #panelClose {
+    min-width: auto;
+    padding: 4px 11px;
+    font-size: 13px;
+    border-radius: 9px;
+  }
+  .level-grid {
+    overflow-y: auto;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .level-cell {
+    display: flex; align-items: center; justify-content: center;
+    height: 44px;
+    border-radius: 11px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.08);
+    font-size: 14px;
+    font-weight: 600;
+    color: #cfdcff;
+    cursor: pointer;
+    transition: background .15s, transform .1s, box-shadow .15s;
+    font-variant-numeric: tabular-nums;
+  }
+  .level-cell:hover { background: rgba(120,170,255,.25); }
+  .level-cell:active { transform: scale(.94); }
+  .level-cell.current {
+    background: linear-gradient(180deg, #4f8cff, #2f63d8);
+    color: #fff;
+    border-color: rgba(255,255,255,.3);
+    box-shadow: 0 4px 14px rgba(64,120,255,.5);
+  }
+
+  /* ---------- 欢迎 / 玩法说明 ---------- */
+  #welcome {
+    position: fixed; inset: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 18px;
+    background: rgba(4,7,15,.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .32s ease;
+    cursor: pointer;
+  }
+  #welcome.show { opacity: 1; pointer-events: auto; }
+
+  .welcome-card {
+    position: relative;
+    width: min(92vw, 420px);
+    max-height: 88vh;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(40,55,92,.98), rgba(20,28,50,.98));
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 22px;
+    padding: 26px 22px 24px;
+    box-shadow: 0 24px 70px rgba(0,0,0,.7);
+    transform: scale(.92) translateY(14px);
+    transition: transform .4s cubic-bezier(.2,1.1,.3,1.05);
+    cursor: default;
+  }
+  #welcome.show .welcome-card { transform: scale(1) translateY(0); }
+
+  .welcome-emoji {
+    font-size: 42px;
+    text-align: center;
+    line-height: 1;
+    margin-bottom: 4px;
+    animation: bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50%      { transform: translateY(-7px) rotate(4deg); }
+  }
+
+  .welcome-card h2 {
+    text-align: center;
+    margin: 8px 0 6px;
+    font-size: 22px;
+    letter-spacing: .14em;
+    color: #eaf2ff;
+    font-weight: 800;
+  }
+  .welcome-sub {
+    text-align: center;
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #93a7cd;
+    line-height: 1.6;
+  }
+  .welcome-list {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .welcome-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.06);
+    font-size: 13px;
+    line-height: 1.55;
+    color: #c9d8f5;
+  }
+  .welcome-list li .ico {
+    flex: 0 0 auto;
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    border-radius: 8px;
+    background: rgba(120,170,255,.2);
+    border: 1px solid rgba(120,170,255,.25);
+  }
+  .welcome-list li b { color: #fff; font-weight: 700; }
+
+  .welcome-tip {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 12px;
+    color: #8fa6d2;
+    letter-spacing: .06em;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: rgba(120,170,255,.1);
+    border: 1px solid rgba(120,170,255,.16);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="stat clickable" id="levelStat">
+    <span class="label">关卡 ▾</span>
+    <span class="value" id="levelNum">1</span>
+  </div>
+  <div class="stat"><span class="label">步数</span><span class="value" id="moveNum">0</span></div>
+  <div class="stat"><span class="label">颜色</span><span class="value" id="colorNum">3</span></div>
+</header>
+
+<div id="board"></div>
+
+<footer>
+  <button id="btnUndo">↶ 撤销</button>
+  <button id="btnRestart">⟳ 重玩</button>
+  <button id="btnHint">💡 提示</button>
+  <button id="btnAdd">＋ 加瓶</button>
+</footer>
+
+<div id="overlay">
+  <div class="modal">
+    <div class="emoji">🎉</div>
+    <h2>过关！</h2>
+    <p id="winInfo">第 1 关 · 0 步</p>
+    <button id="btnNext">下一关 →</button>
+  </div>
+</div>
+
+<div id="levelPanel">
+  <div class="panel-head">
+    <span>选择关卡</span>
+    <button id="panelClose">✕</button>
+  </div>
+  <div class="level-grid" id="levelGrid"></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ============ 欢迎 / 玩法说明（无倒计时） ============ -->
+<div id="welcome">
+  <div class="welcome-card">
+    <div class="welcome-emoji">💧</div>
+    <h2>倒水排序</h2>
+    <p class="welcome-sub">把同色水倒进同一个瓶子<br>每个瓶子装满 4 格即完成一瓶</p>
+
+    <ul class="welcome-list">
+      <li>
+        <span class="ico">👆</span>
+        <div><b>点击瓶子</b>选中，再点另一个瓶子倒水；只能倒进同色瓶或空瓶</div>
+      </li>
+      <li>
+        <span class="ico">🔢</span>
+        <div>点击顶部<b>关卡数</b>可自由跳关，支持 <b>1~300 关</b></div>
+      </li>
+      <li>
+        <span class="ico">↶</span>
+        <div><b>撤销</b>可无限回退上一步，<b>重玩</b>一键重置本关</div>
+      </li>
+      <li>
+        <span class="ico">💡</span>
+        <div><b>提示</b>会高亮一步可行操作，<b>加瓶</b>每关最多加 3 个空瓶</div>
+      </li>
+      <li>
+        <span class="ico">⚡</span>
+        <div>可<b>多瓶同时倒水</b>，动作互不阻塞，连点更顺畅</div>
+      </li>
+    </ul>
+
+    <div class="welcome-tip">点击任意位置关闭</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =========================================================
+     常量与全局状态
+     ========================================================= */
+  const COLORS = Array.from({ length: 12 }, (_, i) => `hsl(${(i * 30 + 5) % 360}, 72%, 56%)`);
+  const RATIO = 2.65;
+  const MAX_EXTRA = 3;
+  const STORAGE_KEY = 'waterSort_level_v1';
+  const LEVEL_MAX = 300;
+
+  const T_LIFT   = 340;
+  const T_POUR   = 430;
+  const T_RETURN = 330;
+  const T_START  = T_LIFT;
+  const T_BACK   = T_LIFT + T_POUR + 60;
+  const T_TOTAL  = T_BACK + T_RETURN;
+
+  const state = {
+    level: 1,
+    colors: 3,
+    capacity: 4,
+    bottles: [],
+    initial: [],     // 关卡原始布局（不含加瓶，重玩时恢复到它）
+    history: [],
+    moves: 0,
+    selected: null,
+    extraUsed: 0,
+    locked: false
+  };
+
+  const busy = new Set();
+  let activeAnims = 0;
+  let animTimers = [];
+
+  const el = {
+    board: document.getElementById('board'),
+    levelNum: document.getElementById('levelNum'),
+    moveNum: document.getElementById('moveNum'),
+    colorNum: document.getElementById('colorNum'),
+    levelStat: document.getElementById('levelStat'),
+    btnUndo: document.getElementById('btnUndo'),
+    btnRestart: document.getElementById('btnRestart'),
+    btnHint: document.getElementById('btnHint'),
+    btnAdd: document.getElementById('btnAdd'),
+    overlay: document.getElementById('overlay'),
+    winInfo: document.getElementById('winInfo'),
+    btnNext: document.getElementById('btnNext'),
+    toast: document.getElementById('toast'),
+    levelPanel: document.getElementById('levelPanel'),
+    levelGrid: document.getElementById('levelGrid'),
+    panelClose: document.getElementById('panelClose'),
+    welcome: document.getElementById('welcome')
+  };
+
+  let hintTimer = null;
+  let toastTimer = null;
+
+  /* =========================================================
+     基础工具
+     ========================================================= */
+  const clone = (bottles) => bottles.map(b => b.slice());
+
+  function clearAnimTimers() {
+    animTimers.forEach(t => clearTimeout(t));
+    animTimers = [];
+    busy.clear();
+    activeAnims = 0;
+  }
+
+  function isSolved(bottles, capacity) {
+    for (const b of bottles) {
+      if (b.length === 0) continue;
+      if (b.length !== capacity) return false;
+      const c = b[0];
+      for (let i = 1; i < b.length; i++) if (b[i] !== c) return false;
+    }
+    return true;
+  }
+
+  function countCompleted(bottles, capacity) {
+    let n = 0;
+    for (const b of bottles) {
+      if (b.length === capacity && b.every(c => c === b[0])) n++;
+    }
+    return n;
+  }
+
+  function toast(msg) {
+    el.toast.textContent = msg;
+    el.toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.toast.classList.remove('show'), 1600);
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  /* =========================================================
+     求解器（可解性验证 + 提示）
+     ========================================================= */
+  function topRun(bottle) {
+    const len = bottle.length;
+    if (!len) return 0;
+    const c = bottle[len - 1];
+    let n = 0;
+    for (let k = len - 1; k >= 0 && bottle[k] === c; k--) n++;
+    return n;
+  }
+
+  function genMoves(bottles, capacity) {
+    const moves = [];
+    const n = bottles.length;
+    for (let i = 0; i < n; i++) {
+      const src = bottles[i];
+      const sl = src.length;
+      if (!sl) continue;
+      const cnt = topRun(src);
+      if (cnt === sl && sl === capacity) continue;
+
+      for (let j = 0; j < n; j++) {
+        if (i === j) continue;
+        const dst = bottles[j];
+        const dl = dst.length;
+        if (dl >= capacity) continue;
+
+        if (dl === 0) {
+          if (cnt === sl) continue;
+        } else if (dst[dl - 1] !== src[sl - 1]) {
+          continue;
+        }
+        moves.push([i, j, Math.min(cnt, capacity - dl)]);
+      }
+    }
+    return moves;
+  }
+
+  function applyMove(bottles, i, j, amount) {
+    const ns = bottles.map(b => b.slice());
+    for (let t = 0; t < amount; t++) ns[j].push(ns[i].pop());
+    return ns;
+  }
+
+  function solvePuzzle(start, capacity, limit) {
+    const seen = new Set();
+    const keyOf = (s) => s.map(b => b.join(',')).sort().join('|');
+    let expanded = 0;
+    let aborted = false;
+
+    function dfs(cur, path, depth) {
+      if (isSolved(cur, capacity)) return path;
+      if (aborted || depth > 160) return null;
+      if (++expanded > limit) { aborted = true; return null; }
+
+      const moves = genMoves(cur, capacity);
+      for (const m of moves) {
+        const dst = cur[m[1]];
+        let score = 0;
+        if (dst.length + m[2] === capacity) score += 2;
+        if (m[2] === topRun(cur[m[0]])) score += 1;
+        if (dst.length === 0) score -= 1;
+        m.score = score;
+      }
+      moves.sort((a, b) => b.score - a.score);
+
+      for (const m of moves) {
+        const ns = applyMove(cur, m[0], m[1], m[2]);
+        const k = keyOf(ns);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        const r = dfs(ns, path.concat([m]), depth + 1);
+        if (r) return r;
+        if (aborted) return null;
+      }
+      return null;
+    }
+
+    const solution = dfs(clone(start), [], 0);
+    return { solution, aborted };
+  }
+
+  /* =========================================================
+     关卡生成
+     ========================================================= */
+  function generateBottles(colors, capacity, empties) {
+    const pool = [];
+    for (let c = 0; c < colors; c++) {
+      for (let k = 0; k < capacity; k++) pool.push(c);
+    }
+    shuffle(pool);
+
+    const bottles = [];
+    for (let c = 0; c < colors; c++) {
+      bottles.push(pool.slice(c * capacity, (c + 1) * capacity));
+    }
+    for (let e = 0; e < empties; e++) bottles.push([]);
+
+    return shuffle(bottles);
+  }
+
+  function startLevel(level) {
+    clearAnimTimers();
+    state.level = level;
+    state.capacity = 4;
+    state.colors = Math.min(3 + Math.floor((level - 1) / 2), 11);
+    state.extraUsed = 0;
+    state.locked = false;
+    state.selected = null;
+    state.moves = 0;
+    state.history = [];
+    clearTimeout(hintTimer);
+    hintTimer = null;
+
+    const empties = 2;
+    let bottles = null;
+
+    for (let attempt = 0; attempt < 60; attempt++) {
+      const cand = generateBottles(state.colors, state.capacity, empties);
+      if (countCompleted(cand, state.capacity) > 0) continue;
+      const res = solvePuzzle(cand, state.capacity, 6000);
+      if (res.solution || res.aborted) { bottles = cand; break; }
+    }
+    if (!bottles) bottles = generateBottles(state.colors, state.capacity, empties);
+
+    state.bottles = bottles;
+    // 记录“原始布局”（不含加瓶），重玩时恢复到这里
+    state.initial = clone(bottles);
+
+    saveProgress();
+    render();
+    updateHud();
+    el.overlay.classList.remove('show');
+  }
+
+  /* =========================================================
+     渲染
+     ========================================================= */
+  function layout() {
+    const n = state.bottles.length || 1;
+    const W = el.board.clientWidth;
+    const H = el.board.clientHeight;
+    if (!W || !H) return;
+
+    const gap = 8;
+    const padX = 26;
+    const padY = 26;
+    const availW = W - padX;
+    const availH = H - padY;
+
+    let bestW = 0;
+    for (let rows = 1; rows <= 4; rows++) {
+      const perRow = Math.ceil(n / rows);
+      const wByW = (availW - gap * (perRow - 1)) / perRow;
+      const wByH = ((availH - gap * (rows - 1)) / rows) / RATIO;
+      const w = Math.min(wByW, wByH, 70);
+      if (w > bestW) bestW = w;
+    }
+    bestW = Math.max(18, bestW);
+
+    el.board.style.setProperty('--bw', bestW + 'px');
+    el.board.style.setProperty('--gap', gap + 'px');
+  }
+
+  function render() {
+    const cap = state.capacity;
+    const frag = document.createDocumentFragment();
+
+    state.bottles.forEach((b, i) => {
+      const bottle = document.createElement('div');
+      bottle.className = 'bottle';
+      bottle.dataset.i = i;
+      if (state.selected === i) bottle.classList.add('selected');
+
+      const tube = document.createElement('div');
+      tube.className = 'tube';
+
+      b.forEach((colorIdx, k) => {
+        const seg = document.createElement('div');
+        seg.className = 'seg';
+        seg.style.background = COLORS[colorIdx % COLORS.length];
+        seg.style.height = (100 / cap) + '%';
+        seg.style.bottom = (k * 100 / cap) + '%';
+        tube.appendChild(seg);
+      });
+
+      bottle.appendChild(tube);
+      frag.appendChild(bottle);
+    });
+
+    el.board.innerHTML = '';
+    el.board.appendChild(frag);
+    layout();
+  }
+
+  function updateHud() {
+    el.levelNum.textContent = state.level;
+    el.moveNum.textContent = state.moves;
+    el.colorNum.textContent = state.colors;
+    el.btnUndo.disabled = state.history.length === 0 || state.locked;
+    el.btnAdd.disabled = state.extraUsed >= MAX_EXTRA || state.locked;
+    el.btnRestart.disabled = state.locked;
+    el.btnHint.disabled = state.locked;
+  }
+
+  function selectBottle(i) {
+    document.querySelectorAll('.bottle.selected').forEach(b => b.classList.remove('selected'));
+    state.selected = i;
+    if (i !== null) {
+      const b = el.board.querySelector('.bottle[data-i="' + i + '"]');
+      if (b) b.classList.add('selected');
+    }
+  }
+
+  /* =========================================================
+     核心玩法
+     ========================================================= */
+  function canPour(from, to) {
+    if (from === to) return false;
+    const src = state.bottles[from];
+    const dst = state.bottles[to];
+    if (!src.length) return false;
+    if (dst.length >= state.capacity) return false;
+    if (dst.length === 0) return true;
+    return dst[dst.length - 1] === src[src.length - 1];
+  }
+
+  function onBottleClick(i) {
+    if (state.locked) return;
+    if (busy.has(i)) return;
+
+    if (hintTimer) {
+      clearTimeout(hintTimer);
+      hintTimer = null;
+      document.querySelectorAll('.bottle.hinted').forEach(b => b.classList.remove('hinted'));
+    }
+
+    const bottles = state.bottles;
+
+    if (state.selected === null) {
+      if (bottles[i].length === 0) return;
+      selectBottle(i);
+      return;
+    }
+
+    if (state.selected === i) {
+      selectBottle(null);
+      return;
+    }
+
+    const from = state.selected;
+    if (canPour(from, i)) {
+      doPour(from, i);
+    } else {
+      selectBottle(bottles[i].length ? i : null);
+    }
+  }
+
+  /* =========================================================
+     ★ 倒水动画（约 1 秒）· 支持多瓶同时进行
+     ========================================================= */
+  function doPour(from, to) {
+    if (busy.has(from) || busy.has(to)) return;
+
+    const src = state.bottles[from];
+    const dst = state.bottles[to];
+    if (!src.length || dst.length >= state.capacity) return;
+
+    const color = src[src.length - 1];
+    if (dst.length && dst[dst.length - 1] !== color) return;
+
+    let cnt = 0;
+    for (let k = src.length - 1; k >= 0 && src[k] === color; k--) cnt++;
+    const amount = Math.min(cnt, state.capacity - dst.length);
+    if (amount <= 0) return;
+
+    // 记录历史（含 extraUsed，撤销时一并恢复）
+    state.history.push({
+      bottles: clone(state.bottles),
+      moves: state.moves,
+      extraUsed: state.extraUsed
+    });
+
+    for (let t = 0; t < amount; t++) dst.push(src.pop());
+    state.moves++;
+    state.selected = null;
+
+    busy.add(from);
+    busy.add(to);
+    activeAnims++;
+
+    updateHud();
+    document.querySelectorAll('.bottle.selected').forEach(b => b.classList.remove('selected'));
+
+    const srcEl = el.board.querySelector('.bottle[data-i="' + from + '"]');
+    const dstEl = el.board.querySelector('.bottle[data-i="' + to + '"]');
+
+    if (!srcEl || !dstEl) { finishAnim(from, to); return; }
+
+    const r1 = srcEl.getBoundingClientRect();
+    const r2 = dstEl.getBoundingClientRect();
+    const dir = (r1.left + r1.width / 2) < (r2.left + r2.width / 2) ? 1 : -1;
+    const ANGLE = 125;
+    const rad = ANGLE * Math.PI / 180;
+    const h = r1.height;
+
+    const mouthOffX = 0.5 * h * Math.sin(rad) * dir;
+    const mouthOffY = -0.5 * h * Math.cos(rad);
+
+    const mouthTargetX = r2.left + r2.width / 2 + dir * r2.width * 0.05;
+    const mouthTargetY = r2.top + r2.height * 0.12;
+
+    const originTargetX = mouthTargetX - mouthOffX;
+    const originTargetY = mouthTargetY - mouthOffY;
+
+    const curCx = r1.left + r1.width / 2;
+    const curCy = r1.top + r1.height / 2;
+
+    const dx = originTargetX - curCx;
+    const dy = originTargetY - curCy;
+    const rot = dir * ANGLE;
+
+    /* ① 拿起并移动到目标瓶口 */
+    srcEl.style.zIndex = 40;
+    srcEl.style.transformOrigin = '50% 50%';
+    srcEl.style.transition = 'transform ' + T_LIFT + 'ms cubic-bezier(.34,.02,.3,1)';
+    void srcEl.offsetWidth;
+    srcEl.style.transform = 'translate(' + dx + 'px,' + dy + 'px) rotate(' + rot + 'deg)';
+
+    /* 源瓶「倒出」色块 */
+    const srcSegs = srcEl.querySelector('.tube').children;
+    const outSegs = [];
+    for (let i = srcSegs.length - amount; i < srcSegs.length; i++) {
+      if (srcSegs[i]) outSegs.push(srcSegs[i]);
+    }
+
+    /* 目标瓶「流入」色块 */
+    const dstTube = dstEl.querySelector('.tube');
+    const newSegs = [];
+    for (let k = 0; k < amount; k++) {
+      const seg = document.createElement('div');
+      seg.className = 'seg';
+      seg.style.background = COLORS[color % COLORS.length];
+      seg.style.height = (100 / state.capacity) + '%';
+      seg.style.bottom = ((dst.length - amount + k) * 100 / state.capacity) + '%';
+      seg.style.transformOrigin = 'bottom center';
+      seg.style.transform = 'scaleY(0)';
+      seg.style.opacity = '0.35';
+      dstTube.appendChild(seg);
+      newSegs.push(seg);
+    }
+
+    /* ② 开始倒水 */
+    animTimers.push(setTimeout(function () {
+      outSegs.forEach(function (s, i) {
+        s.style.transformOrigin = 'bottom center';
+        s.style.animation = 'pourOut ' + T_POUR + 'ms cubic-bezier(.4,0,.7,1) forwards';
+        s.style.animationDelay = (i * 55) + 'ms';
+      });
+
+      newSegs.forEach(function (s, i) {
+        const delay = i * 55 + 90;
+        s.style.transition = 'transform ' + (T_POUR - 40) + 'ms cubic-bezier(.2,.8,.3,1), opacity ' + (T_POUR - 40) + 'ms';
+        s.style.transitionDelay = delay + 'ms';
+        requestAnimationFrame(function () {
+          s.style.transform = 'scaleY(1)';
+          s.style.opacity = '1';
+        });
+      });
+    }, T_START));
+
+    /* ③ 归位 */
+    animTimers.push(setTimeout(function () {
+      srcEl.style.transition = 'transform ' + T_RETURN + 'ms cubic-bezier(.34,.02,.3,1)';
+      srcEl.style.transform = 'translate(0,0) rotate(0deg)';
+    }, T_BACK));
+
+    /* ④ 收尾 */
+    animTimers.push(setTimeout(function () {
+      finishAnim(from, to);
+    }, T_TOTAL));
+  }
+
+  function finishAnim(from, to) {
+    busy.delete(from);
+    busy.delete(to);
+    activeAnims = Math.max(0, activeAnims - 1);
+
+    if (activeAnims === 0) {
+      render();
+      updateHud();
+      checkWin();
+    }
+  }
+
+  function checkWin() {
+    if (isSolved(state.bottles, state.capacity)) {
+      state.locked = true;
+      updateHud();
+      setTimeout(function () {
+        el.winInfo.textContent = '第 ' + state.level + ' 关 · 用了 ' + state.moves + ' 步';
+        el.overlay.classList.add('show');
+      }, 260);
+    }
+  }
+
+  /* =========================================================
+     按钮功能
+     ========================================================= */
+  function undo() {
+    if (state.locked || !state.history.length) return;
+    clearAnimTimers();
+    const h = state.history.pop();
+    state.bottles = h.bottles;
+    state.moves = h.moves;
+    if (typeof h.extraUsed === 'number') state.extraUsed = h.extraUsed;
+    state.selected = null;
+    clearTimeout(hintTimer);
+    hintTimer = null;
+    render();
+    updateHud();
+  }
+
+  function restart() {
+    if (state.locked) return;
+    clearAnimTimers();
+    // 恢复到关卡原始布局（不包含任何手动增加的瓶子）
+    state.bottles = clone(state.initial);
+    state.history = [];
+    state.moves = 0;
+    state.extraUsed = 0;          // 加瓶次数一并重置
+    state.selected = null;
+    clearTimeout(hintTimer);
+    hintTimer = null;
+    render();
+    updateHud();
+    toast('已重玩本关');
+  }
+
+  function hint() {
+    if (state.locked || activeAnims > 0) return;
+
+    clearTimeout(hintTimer);
+    document.querySelectorAll('.bottle.hinted').forEach(b => b.classList.remove('hinted'));
+
+    const res = solvePuzzle(state.bottles, state.capacity, 90000);
+
+    if (res.solution && res.solution.length) {
+      const m = res.solution[0];
+      selectBottle(null);
+      [m[0], m[1]].forEach(function (idx) {
+        const b = el.board.querySelector('.bottle[data-i="' + idx + '"]');
+        if (b) b.classList.add('hinted');
+      });
+      toast(res.solution.length === 1 ? '最后一步了！' : '试试高亮的两个瓶子');
+      hintTimer = setTimeout(function () {
+        document.querySelectorAll('.bottle.hinted').forEach(b => b.classList.remove('hinted'));
+        hintTimer = null;
+      }, 2600);
+    } else if (res.aborted) {
+      toast('这局太复杂，暂时想不出来 😵');
+    } else {
+      toast('当前局面已经无解，撤销或重玩吧');
+    }
+  }
+
+  function addBottle() {
+    if (state.locked || activeAnims > 0) return;
+    if (state.extraUsed >= MAX_EXTRA) {
+      toast('本关最多加 ' + MAX_EXTRA + ' 个瓶子');
+      return;
+    }
+    // 记录历史，允许撤销这次加瓶
+    state.history.push({
+      bottles: clone(state.bottles),
+      moves: state.moves,
+      extraUsed: state.extraUsed
+    });
+
+    state.extraUsed++;
+    state.bottles.push([]);       // 只加进当前局面，不改动 initial
+    state.selected = null;
+    render();
+    updateHud();
+    toast('加了一个空瓶（' + state.extraUsed + '/' + MAX_EXTRA + '）');
+  }
+
+  /* =========================================================
+     关卡选择面板
+     ========================================================= */
+  function buildLevelGrid() {
+    const frag = document.createDocumentFragment();
+    for (let i = 1; i <= LEVEL_MAX; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'level-cell';
+      cell.dataset.level = i;
+      cell.textContent = i;
+      frag.appendChild(cell);
+    }
+    el.levelGrid.innerHTML = '';
+    el.levelGrid.appendChild(frag);
+  }
+
+  function openLevelPanel() {
+    el.levelPanel.classList.add('show');
+    el.levelGrid.querySelectorAll('.level-cell').forEach(function (c) {
+      c.classList.toggle('current', parseInt(c.dataset.level, 10) === state.level);
+    });
+    requestAnimationFrame(function () {
+      const cur = el.levelGrid.querySelector('.level-cell.current');
+      if (!cur) return;
+      const gridRect = el.levelGrid.getBoundingClientRect();
+      const curRect = cur.getBoundingClientRect();
+      el.levelGrid.scrollTop += curRect.top - gridRect.top - gridRect.height / 2 + curRect.height / 2;
+    });
+  }
+
+  function closeLevelPanel() {
+    el.levelPanel.classList.remove('show');
+  }
+
+  /* =========================================================
+     ★ 欢迎 / 玩法说明（无倒计时，点击任意位置关闭）
+     ========================================================= */
+  function showWelcome() {
+    el.welcome.classList.add('show');
+  }
+  function hideWelcome() {
+    el.welcome.classList.remove('show');
+  }
+  el.welcome.addEventListener('click', hideWelcome);
+
+  /* =========================================================
+     进度保存
+     ========================================================= */
+  function saveProgress() {
+    try { localStorage.setItem(STORAGE_KEY, String(state.level)); } catch (e) {}
+  }
+  function loadProgress() {
+    try {
+      const v = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+      if (!isNaN(v) && v >= 1) return Math.min(v, LEVEL_MAX);
+    } catch (e) {}
+    return 1;
+  }
+
+  /* =========================================================
+     事件绑定
+     ========================================================= */
+  el.board.addEventListener('click', function (e) {
+    const target = e.target.closest('.bottle');
+    if (!target) return;
+    onBottleClick(parseInt(target.dataset.i, 10));
+  });
+
+  el.btnUndo.addEventListener('click', undo);
+  el.btnRestart.addEventListener('click', restart);
+  el.btnHint.addEventListener('click', hint);
+  el.btnAdd.addEventListener('click', addBottle);
+
+  el.btnNext.addEventListener('click', function () {
+    el.overlay.classList.remove('show');
+    startLevel(state.level + 1);
+  });
+
+  el.levelStat.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (el.levelPanel.classList.contains('show')) closeLevelPanel();
+    else openLevelPanel();
+  });
+
+  el.panelClose.addEventListener('click', function (e) {
+    e.stopPropagation();
+    closeLevelPanel();
+  });
+
+  el.levelGrid.addEventListener('click', function (e) {
+    const cell = e.target.closest('.level-cell');
+    if (!cell) return;
+    const lv = parseInt(cell.dataset.level, 10);
+    closeLevelPanel();
+    startLevel(lv);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!el.levelPanel.classList.contains('show')) return;
+    if (e.target.closest('#levelPanel') || e.target.closest('#levelStat')) return;
+    closeLevelPanel();
+  });
+
+  window.addEventListener('resize', function () { layout(); });
+  window.addEventListener('orientationchange', function () { setTimeout(layout, 120); });
+  document.addEventListener('contextmenu', function (e) {
+    if (e.target.closest('#board')) e.preventDefault();
+  });
+
+  /* =========================================================
+     启动
+     ========================================================= */
+  buildLevelGrid();
+  requestAnimationFrame(function () {
+    startLevel(loadProgress());
+    showWelcome();
+  });
+
+})();
+</script>
+</body>
+</html>
