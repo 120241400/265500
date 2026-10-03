@@ -281,7 +281,10 @@
     position: relative;
     width: min(92vw, 420px);
     max-height: 88vh;
-    overflow: hidden;
+    overflow-y: auto;                /* 内容超出时可滚动 */
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     background: linear-gradient(180deg, rgba(40,55,92,.98), rgba(20,28,50,.98));
     border: 1px solid rgba(255,255,255,.14);
     border-radius: 22px;
@@ -441,7 +444,24 @@
   /* =========================================================
      常量与全局状态
      ========================================================= */
-  const COLORS = Array.from({ length: 12 }, (_, i) => `hsl(${(i * 30 + 5) % 360}, 72%, 56%)`);
+  /* ★ 重新设计的 12 色高区分度调色板
+     - 亮度/饱和度错开，避免相近色混淆
+     - 覆盖红→橙→黄→黄绿→绿→青→天蓝→蓝→紫→品红→粉→棕 */
+  const COLORS = [
+    'hsl(0, 76%, 56%)',    // 1 红
+    'hsl(28, 98%, 56%)',   // 2 橙
+    'hsl(50, 100%, 56%)',  // 3 黄
+    'hsl(78, 82%, 48%)',   // 4 黄绿
+    'hsl(142, 62%, 44%)',  // 5 绿
+    'hsl(174, 78%, 38%)',  // 6 青绿
+    'hsl(198, 92%, 55%)',  // 7 天蓝
+    'hsl(224, 82%, 60%)',  // 8 蓝
+    'hsl(265, 72%, 62%)',  // 9 紫
+    'hsl(308, 78%, 52%)',  // 10 品红
+    'hsl(336, 92%, 72%)',  // 11 粉
+    'hsl(22, 52%, 38%)'    // 12 棕
+  ];
+
   const RATIO = 2.65;
   const MAX_EXTRA = 3;
   const STORAGE_KEY = 'waterSort_level_v1';
