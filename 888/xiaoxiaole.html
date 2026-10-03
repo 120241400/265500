@@ -1,0 +1,1216 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>星光消消乐</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 20% 8%, #1b2a4a 0%, #0b1120 45%, #05070d 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    color: #e6edf7;
+    padding: 10px;
+    user-select: none;
+  }
+
+  /* 背景装饰光晕 */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: .3;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::before { width: 420px; height: 420px; background: #3b82f6; top: -140px; left: -140px; }
+  body::after  { width: 400px; height: 400px; background: #a855f7; bottom: -160px; right: -140px; }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    width: min(94vw, 480px);
+    max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== 顶部数据栏 ===== */
+  .hud {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .stat {
+    flex: 1;
+    padding: 6px 4px;
+    text-align: center;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.025));
+    border: 1px solid rgba(255,255,255,.1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.1);
+  }
+
+  .stat .label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #8ea3c0;
+    margin-bottom: 1px;
+  }
+
+  .stat .value {
+    display: block;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    background: linear-gradient(180deg, #fff, #9fb8d8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transition: transform .15s;
+  }
+
+  .stat .value.pop { transform: scale(1.18); }
+
+  .stat.warn .value {
+    background: linear-gradient(180deg, #ffd6d6, #ff4d4d);
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: blink 0.9s infinite;
+  }
+
+  @keyframes blink { 50% { opacity: .45; } }
+
+  /* ===== 进度条 ===== */
+  .progress {
+    height: 9px;
+    border-radius: 99px;
+    background: rgba(255,255,255,.07);
+    overflow: hidden;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,.06);
+    position: relative;
+  }
+
+  .progress .bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #22d3ee, #60a5fa, #a78bfa);
+    box-shadow: 0 0 14px rgba(96,165,250,.9);
+    transition: width .4s cubic-bezier(.3,1.4,.6,1);
+  }
+
+  /* ===== 棋盘 ===== */
+  .board-wrap {
+    position: relative;
+    border-radius: 24px;
+    padding: 5px;
+    background: linear-gradient(160deg, rgba(255,255,255,.09), rgba(255,255,255,.02));
+    border: 1px solid rgba(255,255,255,.11);
+    box-shadow:
+      0 22px 55px rgba(0,0,0,.55),
+      0 0 45px rgba(59,130,246,.13),
+      inset 0 1px 0 rgba(255,255,255,.12);
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 20px;
+    touch-action: none;
+    cursor: pointer;
+  }
+
+  /* ===== 按钮 ===== */
+  .controls {
+    display: flex;
+    gap: 7px;
+    margin-top: 9px;
+  }
+
+  button {
+    flex: 1;
+    padding: 10px 3px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
+    color: #dbe7f7;
+    font-size: 12.5px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all .16s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 5px 16px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1);
+    white-space: nowrap;
+  }
+
+  button:hover {
+    background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.07));
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(59,130,246,.28), inset 0 1px 0 rgba(255,255,255,.16);
+  }
+
+  button:active { transform: translateY(1px) scale(.97); }
+
+  button.off { opacity: .4; }
+
+  /* ===== 遮罩层 ===== */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    text-align: center;
+    background: rgba(6,10,20,.86);
+    backdrop-filter: blur(14px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+    z-index: 20;
+  }
+
+  .overlay.show { opacity: 1; pointer-events: auto; }
+
+  .ov-title {
+    font-size: 25px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #7dd3fc, #c4b5fd, #fda4af);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgba(139,92,246,.55));
+    animation: floatIn .45s cubic-bezier(.2,1.5,.5,1);
+  }
+
+  .ov-sub {
+    font-size: 13.5px;
+    line-height: 1.9;
+    color: #a5b8d4;
+  }
+
+  .ov-sub b { color: #7dd3fc; font-size: 16px; }
+
+  .ov-btn {
+    flex: none;
+    margin-top: 6px;
+    padding: 12px 34px;
+    border-radius: 99px;
+    font-size: 15px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border: none;
+    color: #fff;
+    box-shadow: 0 8px 26px rgba(99,102,241,.55);
+  }
+
+  .ov-btn:hover {
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    transform: translateY(-2px) scale(1.03);
+  }
+
+  @keyframes floatIn {
+    from { opacity: 0; transform: translateY(-14px) scale(.9); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* 小屏适配 */
+  @media (max-height: 700px) {
+    .stat .value { font-size: 16px; }
+    button { padding: 8px 2px; font-size: 11.5px; }
+    .ov-title { font-size: 21px; }
+    .ov-sub { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="hud">
+    <div class="stat">
+      <span class="label">关卡</span>
+      <span class="value" id="uiLevel">1</span>
+    </div>
+    <div class="stat">
+      <span class="label">总分</span>
+      <span class="value" id="uiScore">0</span>
+    </div>
+    <div class="stat" id="movesStat">
+      <span class="label">步数</span>
+      <span class="value" id="uiMoves">20</span>
+    </div>
+  </div>
+
+  <div class="progress"><div class="bar" id="uiBar"></div></div>
+
+  <div class="board-wrap">
+    <canvas id="game"></canvas>
+
+    <div class="overlay show" id="overlay">
+      <div class="ov-title" id="ovTitle">✨ 星光消消乐 ✨</div>
+      <div class="ov-sub" id="ovSub">交换相邻宝石，三个同色即可消除<br>在步数用尽前达成目标分数</div>
+      <button class="ov-btn" id="ovBtn">开始游戏</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="btnHint">💡 提示</button>
+    <button id="btnShuffle">♠ 洗牌</button>
+    <button id="btnSound">🔊 音效</button>
+    <button id="btnRestart">↻ 重开</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   基础配置
+   ========================================================= */
+const ROWS = 8, COLS = 8;
+const TILE = 64;
+const PAD  = 10;
+const W = COLS * TILE + PAD * 2;
+const H = ROWS * TILE + PAD * 2;
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let DPR = 1;
+
+/* 宝石类型定义 */
+const TYPES = [
+  { shape: 'circle',   color1: '#ffd3da', color2: '#f43f5e', color3: '#881337', glow: '#fb7185' }, // 红
+  { shape: 'square',   color1: '#d2e6ff', color2: '#3b82f6', color3: '#1e3a8a', glow: '#60a5fa' }, // 蓝
+  { shape: 'diamond',  color1: '#c9f7d8', color2: '#22c55e', color3: '#14532d', glow: '#4ade80' }, // 绿
+  { shape: 'triangle', color1: '#fff0c2', color2: '#f59e0b', color3: '#92400e', glow: '#fbbf24' }, // 黄
+  { shape: 'hexagon',  color1: '#ead9ff', color2: '#a855f7', color3: '#4c1d95', glow: '#c084fc' }, // 紫
+  { shape: 'star',     color1: '#c8fffb', color2: '#06b6d4', color3: '#164e63', glow: '#22d3ee' }, // 青
+];
+
+/* =========================================================
+   音效（Web Audio 合成，无外部资源）
+   ========================================================= */
+let audioCtx = null;
+let soundOn = true;
+
+function ensureAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function tone(freq, dur, type = 'sine', vol = 0.12, delay = 0, slideTo = null) {
+  if (!soundOn) return;
+  const ac = ensureAudio();
+  if (!ac) return;
+  const t0 = ac.currentTime + delay;
+  const osc = ac.createOscillator();
+  const gain = ac.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t0);
+  if (slideTo) osc.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo), t0 + dur);
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.linearRampToValueAtTime(vol, t0 + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(gain);
+  gain.connect(ac.destination);
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.03);
+}
+
+const SFX = {
+  click()   { tone(760, 0.05, 'square', 0.035); },
+  swap()    { tone(430, 0.09, 'sine', 0.07, 0, 660); },
+  invalid() { tone(190, 0.16, 'sawtooth', 0.055, 0, 110); },
+  match(combo) {
+    const base = 500 * Math.pow(1.13, Math.min(combo - 1, 8));
+    tone(base, 0.13, 'triangle', 0.09);
+    tone(base * 1.5, 0.15, 'sine', 0.055, 0.045);
+  },
+  land()    { tone(280, 0.07, 'sine', 0.035, 0, 190); },
+  shuffle() { [400, 500, 600, 720].forEach((f, i) => tone(f, 0.1, 'sine', 0.05, i * 0.05)); },
+  levelup() { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.28, 'sine', 0.1, i * 0.09)); },
+  gameover(){ [420, 340, 270, 200].forEach((f, i) => tone(f, 0.34, 'sawtooth', 0.07, i * 0.14)); },
+};
+
+/* =========================================================
+   游戏状态
+   ========================================================= */
+class Gem {
+  constructor(type, r, c) {
+    this.type = type;
+    this.r = r; this.c = c;      // 逻辑格坐标
+    this.rx = c; this.ry = r;    // 渲染坐标（可为小数）
+    this.scale = 1;
+    this.alpha = 1;
+  }
+}
+
+let board = [];
+let state = 'over';            // idle | busy | over
+let selected = null;
+let hintCells = null;
+let hintTimer = 0;
+
+let level = 1;
+let levelScore = 0;
+let totalScore = 0;
+let moves = 20;
+let target = 900;
+let typeCount = 5;
+
+const particles = [];
+const floaters = [];
+
+/* =========================================================
+   工具函数
+   ========================================================= */
+function roundRectPath(c, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function shapePath(shape, r) {
+  ctx.beginPath();
+  switch (shape) {
+    case 'circle':
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      break;
+    case 'square':
+      roundRectPath(ctx, -r * 0.86, -r * 0.86, r * 1.72, r * 1.72, r * 0.34);
+      break;
+    case 'diamond':
+      ctx.moveTo(0, -r);
+      ctx.lineTo(r * 0.86, 0);
+      ctx.lineTo(0, r);
+      ctx.lineTo(-r * 0.86, 0);
+      ctx.closePath();
+      break;
+    case 'triangle':
+      ctx.moveTo(0, -r * 1.05);
+      ctx.lineTo(r * 0.94, r * 0.72);
+      ctx.lineTo(-r * 0.94, r * 0.72);
+      ctx.closePath();
+      break;
+    case 'hexagon': {
+      for (let i = 0; i < 6; i++) {
+        const a = Math.PI / 3 * i - Math.PI / 2;
+        const x = Math.cos(a) * r, y = Math.sin(a) * r;
+        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.closePath();
+      break;
+    }
+    case 'star': {
+      for (let i = 0; i < 10; i++) {
+        const a = Math.PI / 5 * i - Math.PI / 2;
+        const rr = i % 2 ? r * 0.46 : r;
+        const x = Math.cos(a) * rr, y = Math.sin(a) * rr;
+        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.closePath();
+      break;
+    }
+  }
+}
+
+function randType() { return Math.floor(Math.random() * typeCount); }
+function cellX(c) { return PAD + c * TILE + TILE / 2; }
+function cellY(r) { return PAD + r * TILE + TILE / 2; }
+
+function animateTween(duration, onUpdate, ease) {
+  ease = ease || (t => 1 - Math.pow(1 - t, 3));
+  return new Promise(resolve => {
+    const start = performance.now();
+    function step(now) {
+      const raw = Math.min(1, (now - start) / duration);
+      onUpdate(ease(raw), raw);
+      if (raw < 1) requestAnimationFrame(step);
+      else resolve();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+/* =========================================================
+   棋盘生成
+   ========================================================= */
+function createBoard() {
+  board = [];
+  for (let r = 0; r < ROWS; r++) {
+    board[r] = [];
+    for (let c = 0; c < COLS; c++) board[r][c] = null;
+  }
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      let t, tries = 0;
+      do {
+        t = randType();
+        tries++;
+      } while (tries < 40 && (
+        (c >= 2 && board[r][c - 1] && board[r][c - 1].type === t &&
+                  board[r][c - 2] && board[r][c - 2].type === t) ||
+        (r >= 2 && board[r - 1][c] && board[r - 1][c].type === t &&
+                  board[r - 2][c] && board[r - 2][c].type === t)
+      ));
+      const g = new Gem(t, r, c);
+      g.ry = r - ROWS - 1.5;   // 从上方掉落入场
+      board[r][c] = g;
+    }
+  }
+
+  if (!hasPossibleMove()) createBoard();
+}
+
+/* =========================================================
+   匹配检测
+   ========================================================= */
+function findMatches() {
+  const matched = new Set();
+
+  // 横向
+  for (let r = 0; r < ROWS; r++) {
+    let run = 1;
+    for (let c = 1; c <= COLS; c++) {
+      const same = c < COLS && board[r][c] && board[r][c - 1] &&
+                   board[r][c].type === board[r][c - 1].type;
+      if (same) {
+        run++;
+      } else {
+        if (run >= 3) for (let k = c - run; k < c; k++) matched.add(board[r][k]);
+        run = 1;
+      }
+    }
+  }
+
+  // 纵向
+  for (let c = 0; c < COLS; c++) {
+    let run = 1;
+    for (let r = 1; r <= ROWS; r++) {
+      const same = r < ROWS && board[r][c] && board[r - 1][c] &&
+                   board[r][c].type === board[r - 1][c].type;
+      if (same) {
+        run++;
+      } else {
+        if (run >= 3) for (let k = r - run; k < r; k++) matched.add(board[k][c]);
+        run = 1;
+      }
+    }
+  }
+
+  return matched;
+}
+
+function hasPossibleMove() {
+  const test = (r1, c1, r2, c2) => {
+    const a = board[r1][c1], b = board[r2][c2];
+    if (!a || !b) return false;
+    board[r1][c1] = b; board[r2][c2] = a;
+    const ok = findMatches().size > 0;
+    board[r1][c1] = a; board[r2][c2] = b;
+    return ok;
+  };
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (c + 1 < COLS && test(r, c, r, c + 1)) return { a: { r, c }, b: { r, c: c + 1 } };
+      if (r + 1 < ROWS && test(r, c, r + 1, c)) return { a: { r, c }, b: { r: r + 1, c } };
+    }
+  }
+  return null;
+}
+
+/* =========================================================
+   核心操作
+   ========================================================= */
+function swapGems(a, b) {
+  const ga = board[a.r][a.c];
+  const gb = board[b.r][b.c];
+  board[a.r][a.c] = gb;
+  board[b.r][b.c] = ga;
+  if (ga) { ga.r = b.r; ga.c = b.c; }
+  if (gb) { gb.r = a.r; gb.c = a.c; }
+}
+
+function waitSettle() {
+  return new Promise(resolve => {
+    let frames = 0;
+    const check = () => {
+      frames++;
+      if (frames > 2) {
+        let settled = true;
+        for (let r = 0; r < ROWS && settled; r++) {
+          for (let c = 0; c < COLS; c++) {
+            const g = board[r][c];
+            if (g && (Math.abs(g.rx - g.c) > 0.012 || Math.abs(g.ry - g.r) > 0.012)) {
+              settled = false;
+              break;
+            }
+          }
+        }
+        if (settled) { SFX.land(); return resolve(); }
+      }
+      if (frames > 900) return resolve();
+      requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  });
+}
+
+function applyGravity() {
+  for (let c = 0; c < COLS; c++) {
+    let write = ROWS - 1;
+    for (let r = ROWS - 1; r >= 0; r--) {
+      const g = board[r][c];
+      if (g) {
+        if (r !== write) {
+          board[write][c] = g;
+          board[r][c] = null;
+          g.r = write;
+        }
+        write--;
+      }
+    }
+    // 补充新宝石
+    for (let r = write; r >= 0; r--) {
+      const g = new Gem(randType(), r, c);
+      g.ry = r - (write + 1) - 0.3;
+      g.rx = c;
+      board[r][c] = g;
+    }
+  }
+}
+
+/* =========================================================
+   特效
+   ========================================================= */
+function spawnParticles(x, y, type) {
+  const t = TYPES[type];
+  for (let i = 0; i < 9; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 50 + Math.random() * 190;
+    particles.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - 70,
+      life: 0.45 + Math.random() * 0.45,
+      maxLife: 0.9,
+      size: 2 + Math.random() * 4.2,
+      color: Math.random() < 0.6 ? t.color1 : t.glow,
+    });
+  }
+}
+
+function spawnFloater(x, y, text, combo) {
+  floaters.push({ x, y, text, combo: combo || 1, life: 1.15, maxLife: 1.15 });
+}
+
+/* =========================================================
+   消除主流程
+   ========================================================= */
+async function resolveBoard() {
+  let combo = 0;
+
+  while (true) {
+    const matched = findMatches();
+    if (matched.size === 0) break;
+
+    combo++;
+    const gems = Array.from(matched);
+    const gained = Math.round(gems.length * 20 * (1 + (combo - 1) * 0.5));
+    levelScore += gained;
+    totalScore += gained;
+    updateHUD(true);
+
+    SFX.match(combo);
+
+    // 粒子 + 飘分
+    let sx = 0, sy = 0;
+    gems.forEach(g => {
+      const x = cellX(g.rx), y = cellY(g.ry);
+      sx += x; sy += y;
+      spawnParticles(x, y, g.type);
+    });
+    sx /= gems.length; sy /= gems.length;
+    spawnFloater(sx, sy, '+' + gained, combo);
+    if (combo >= 2) spawnFloater(W / 2, H * 0.28, 'COMBO ×' + combo, combo + 2);
+
+    // 消除动画
+    await animateTween(230, t => {
+      gems.forEach(g => {
+        g.scale = Math.max(0.01, 1 - t);
+        g.alpha = 1 - t;
+      });
+    }, t => t * t);
+
+    // 从棋盘移除
+    const gset = new Set(gems);
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (gset.has(board[r][c])) board[r][c] = null;
+      }
+    }
+
+    applyGravity();
+    await waitSettle();
+  }
+
+  // 死局检测
+  if (!hasPossibleMove()) {
+    await autoShuffle();
+  }
+}
+
+async function autoShuffle() {
+  spawnFloater(W / 2, H * 0.4, '无可用移动 · 自动洗牌', 1);
+  await animateTween(200, () => {}, () => {});
+  await shuffleBoard();
+}
+
+async function shuffleBoard() {
+  const types = [];
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (board[r][c]) types.push(board[r][c].type);
+
+  let guard = 0;
+  do {
+    for (let i = types.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [types[i], types[j]] = [types[j], types[i]];
+    }
+    let i = 0;
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        if (board[r][c]) board[r][c].type = types[i++];
+    guard++;
+  } while (guard < 80 && (findMatches().size > 0 || !hasPossibleMove()));
+
+  SFX.shuffle();
+  await animateTween(420, t => {
+    const s = Math.abs(Math.cos(t * Math.PI));
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        if (board[r][c]) board[r][c].scale = 0.12 + 0.88 * s;
+  });
+}
+
+/* =========================================================
+   交换尝试
+   ========================================================= */
+async function trySwap(a, b) {
+  if (state !== 'idle') return;
+  state = 'busy';
+  selected = null;
+  hintCells = null;
+  hintTimer = 0;
+
+  SFX.swap();
+  swapGems(a, b);
+  await waitSettle();
+
+  if (findMatches().size === 0) {
+    SFX.invalid();
+    swapGems(a, b);
+    await waitSettle();
+    state = 'idle';
+    return;
+  }
+
+  moves--;
+  updateHUD();
+
+  await resolveBoard();
+
+  state = 'idle';
+  checkEnd();
+}
+
+function checkEnd() {
+  if (levelScore >= target) {
+    state = 'over';
+    SFX.levelup();
+    setTimeout(() => showOverlay('levelup'), 420);
+  } else if (moves <= 0) {
+    state = 'over';
+    SFX.gameover();
+    setTimeout(() => showOverlay('gameover'), 420);
+  }
+}
+
+/* =========================================================
+   HUD / 关卡
+   ========================================================= */
+const uiLevel = document.getElementById('uiLevel');
+const uiScore = document.getElementById('uiScore');
+const uiMoves = document.getElementById('uiMoves');
+const uiBar   = document.getElementById('uiBar');
+const movesStat = document.getElementById('movesStat');
+
+function updateHUD(pop) {
+  uiLevel.textContent = level;
+  uiScore.textContent = totalScore;
+  uiMoves.textContent = Math.max(0, moves);
+
+  const pct = Math.min(100, (levelScore / target) * 100);
+  uiBar.style.width = pct + '%';
+
+  movesStat.classList.toggle('warn', moves <= 5);
+
+  if (pop) {
+    const el = uiScore;
+    el.classList.add('pop');
+    setTimeout(() => el.classList.remove('pop'), 150);
+  }
+}
+
+function startLevel(lv) {
+  level = lv;
+  target = 900 + (lv - 1) * 480;
+  moves = 20 + (lv - 1) * 2;
+  levelScore = 0;
+  selected = null;
+  hintCells = null;
+  hintTimer = 0;
+  particles.length = 0;
+  floaters.length = 0;
+  typeCount = lv >= 2 ? 6 : 5;
+
+  createBoard();
+  updateHUD();
+  state = 'idle';
+  hideOverlay();
+}
+
+/* =========================================================
+   遮罩层
+   ========================================================= */
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ovTitle');
+const ovSub   = document.getElementById('ovSub');
+const ovBtn   = document.getElementById('ovBtn');
+let ovAction = null;
+
+function showOverlay(kind) {
+  if (kind === 'start') {
+    ovTitle.textContent = '✨ 星光消消乐 ✨';
+    ovSub.innerHTML = '交换相邻宝石，三个同色即可消除<br>在步数用尽前达成目标分数';
+    ovBtn.textContent = '开始游戏';
+    ovAction = () => { totalScore = 0; startLevel(1); };
+  } else if (kind === 'levelup') {
+    ovTitle.textContent = `🎉 第 ${level} 关完成！`;
+    ovSub.innerHTML = `本关得分 <b>${levelScore}</b><br>总分 <b>${totalScore}</b>`;
+    ovBtn.textContent = `进入第 ${level + 1} 关`;
+    ovAction = () => startLevel(level + 1);
+  } else if (kind === 'gameover') {
+    ovTitle.textContent = '💀 步数用尽';
+    ovSub.innerHTML = `到达第 <b>${level}</b> 关<br>总分 <b>${totalScore}</b>`;
+    ovBtn.textContent = '重新开始';
+    ovAction = () => { totalScore = 0; startLevel(1); };
+  }
+  overlay.classList.add('show');
+}
+
+function hideOverlay() {
+  overlay.classList.remove('show');
+}
+
+ovBtn.addEventListener('click', () => {
+  ensureAudio();
+  SFX.click();
+  if (ovAction) ovAction();
+});
+
+/* =========================================================
+   输入
+   ========================================================= */
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) / rect.width * W,
+    y: (e.clientY - rect.top) / rect.height * H,
+  };
+}
+
+function toCell(x, y) {
+  const c = Math.floor((x - PAD) / TILE);
+  const r = Math.floor((y - PAD) / TILE);
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return null;
+  return { r, c };
+}
+
+function isAdjacent(a, b) {
+  return Math.abs(a.r - b.r) + Math.abs(a.c - b.c) === 1;
+}
+
+let drag = null;
+
+canvas.addEventListener('pointerdown', e => {
+  if (state !== 'idle') return;
+  e.preventDefault();
+  const p = getPos(e);
+  const cell = toCell(p.x, p.y);
+  if (!cell) return;
+  drag = { cell, x: p.x, y: p.y, swiped: false };
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+});
+
+canvas.addEventListener('pointermove', e => {
+  if (!drag || drag.swiped || state !== 'idle') return;
+  const p = getPos(e);
+  const dx = p.x - drag.x, dy = p.y - drag.y;
+  if (Math.hypot(dx, dy) < TILE * 0.42) return;
+
+  drag.swiped = true;
+  let tr = drag.cell.r, tc = drag.cell.c;
+  if (Math.abs(dx) > Math.abs(dy)) tc += dx > 0 ? 1 : -1;
+  else tr += dy > 0 ? 1 : -1;
+
+  const from = drag.cell;
+  drag = null;
+
+  if (tr < 0 || tr >= ROWS || tc < 0 || tc >= COLS) return;
+  selected = null;
+  trySwap(from, { r: tr, c: tc });
+});
+
+canvas.addEventListener('pointerup', e => {
+  if (!drag) return;
+  const wasSwipe = drag.swiped;
+  const cell = drag.cell;
+  drag = null;
+  if (wasSwipe || state !== 'idle') return;
+
+  // 点击逻辑
+  if (!selected) {
+    selected = cell;
+    SFX.click();
+    return;
+  }
+  if (selected.r === cell.r && selected.c === cell.c) {
+    selected = null;
+    return;
+  }
+  if (isAdjacent(selected, cell)) {
+    const a = selected;
+    selected = null;
+    trySwap(a, cell);
+  } else {
+    selected = cell;
+    SFX.click();
+  }
+});
+
+canvas.addEventListener('pointercancel', () => { drag = null; });
+
+/* =========================================================
+   按钮
+   ========================================================= */
+const btnHint = document.getElementById('btnHint');
+const btnShuffle = document.getElementById('btnShuffle');
+const btnSound = document.getElementById('btnSound');
+const btnRestart = document.getElementById('btnRestart');
+
+btnHint.addEventListener('click', () => {
+  if (state !== 'idle') return;
+  ensureAudio();
+  SFX.click();
+  const mv = hasPossibleMove();
+  if (mv) {
+    hintCells = mv;
+    hintTimer = 2.6;
+  }
+});
+
+btnShuffle.addEventListener('click', async () => {
+  if (state !== 'idle') return;
+  ensureAudio();
+  state = 'busy';
+  selected = null;
+  hintCells = null;
+  await shuffleBoard();
+  // 洗牌后可能产生新的三连，一并结算
+  await resolveBoard();
+  state = 'idle';
+  checkEnd();
+});
+
+btnSound.addEventListener('click', () => {
+  soundOn = !soundOn;
+  btnSound.textContent = soundOn ? '🔊 音效' : '🔇 静音';
+  btnSound.classList.toggle('off', !soundOn);
+  if (soundOn) { ensureAudio(); SFX.click(); }
+});
+
+btnRestart.addEventListener('click', () => {
+  ensureAudio();
+  SFX.click();
+  if (confirm('确定要重新开始吗？当前进度将丢失。')) {
+    totalScore = 0;
+    startLevel(1);
+  }
+});
+
+/* =========================================================
+   更新 & 渲染
+   ========================================================= */
+function update(dt) {
+  // 宝石位置插值
+  const k = 1 - Math.exp(-dt * 19);
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const g = board[r][c];
+      if (!g) continue;
+      g.rx += (g.c - g.rx) * k;
+      g.ry += (g.r - g.ry) * k;
+      if (Math.abs(g.rx - g.c) < 0.002) g.rx = g.c;
+      if (Math.abs(g.ry - g.r) < 0.002) g.ry = g.r;
+      // 非消除状态时恢复尺寸
+      if (!g._dying) g.scale += (1 - g.scale) * Math.min(1, dt * 8);
+    }
+  }
+
+  // 粒子
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.vy += 620 * dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vx *= (1 - 1.8 * dt);
+    p.life -= dt;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // 飘字
+  for (let i = floaters.length - 1; i >= 0; i--) {
+    const f = floaters[i];
+    f.y -= 46 * dt;
+    f.life -= dt;
+    if (f.life <= 0) floaters.splice(i, 1);
+  }
+
+  // 提示计时
+  if (hintTimer > 0) {
+    hintTimer -= dt;
+    if (hintTimer <= 0) hintCells = null;
+  }
+}
+
+function drawGem(g) {
+  const t = TYPES[g.type];
+  const cx = cellX(g.rx);
+  const cy = cellY(g.ry);
+  const size = TILE * 0.40 * g.scale;
+  if (size <= 0.4 || g.alpha <= 0.02) return;
+
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, g.alpha));
+  ctx.translate(cx, cy);
+
+  // 外发光
+  ctx.shadowColor = t.glow;
+  ctx.shadowBlur = 15;
+
+  // 宝石主体
+  const grd = ctx.createRadialGradient(-size * 0.32, -size * 0.38, size * 0.08, 0, 0, size * 1.1);
+  grd.addColorStop(0, t.color1);
+  grd.addColorStop(0.5, t.color2);
+  grd.addColorStop(1, t.color3);
+  ctx.fillStyle = grd;
+  shapePath(t.shape, size);
+  ctx.fill();
+
+  // 内描边
+  ctx.shadowBlur = 0;
+  ctx.lineWidth = Math.max(1, size * 0.085);
+  ctx.strokeStyle = 'rgba(255,255,255,0.42)';
+  shapePath(t.shape, size * 0.92);
+  ctx.stroke();
+
+  // 高光
+  ctx.beginPath();
+  ctx.ellipse(-size * 0.3, -size * 0.4, size * 0.3, size * 0.18, -0.6, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.62)';
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function render() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  // 棋盘底
+  ctx.save();
+  roundRectPath(ctx, 0.5, 0.5, W - 1, H - 1, 22);
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, 'rgba(255,255,255,0.06)');
+  bg.addColorStop(1, 'rgba(255,255,255,0.015)');
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.restore();
+
+  // 格子底纹
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const x = PAD + c * TILE, y = PAD + r * TILE;
+      ctx.save();
+      roundRectPath(ctx, x + 3, y + 3, TILE - 6, TILE - 6, 13);
+      ctx.fillStyle = (r + c) % 2 === 0 ? 'rgba(255,255,255,0.038)' : 'rgba(255,255,255,0.015)';
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  const now = performance.now();
+
+  // 提示高亮
+  if (hintCells) {
+    const pulse = 0.5 + 0.5 * Math.sin(now / 150);
+    [hintCells.a, hintCells.b].forEach(cell => {
+      const x = PAD + cell.c * TILE, y = PAD + cell.r * TILE;
+      ctx.save();
+      roundRectPath(ctx, x + 3, y + 3, TILE - 6, TILE - 6, 14);
+      ctx.strokeStyle = `rgba(34,211,238,${0.45 + 0.5 * pulse})`;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#22d3ee';
+      ctx.shadowBlur = 16;
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // 选中高亮
+  if (selected && state === 'idle') {
+    const x = PAD + selected.c * TILE, y = PAD + selected.r * TILE;
+    const pulse = 0.5 + 0.5 * Math.sin(now / 180);
+    ctx.save();
+    roundRectPath(ctx, x + 3, y + 3, TILE - 6, TILE - 6, 14);
+    ctx.strokeStyle = `rgba(255,255,255,${0.5 + 0.45 * pulse})`;
+    ctx.lineWidth = 3.2;
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 18;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 宝石
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const g = board[r][c];
+      if (g) drawGem(g);
+    }
+  }
+
+  // 粒子
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    const a = Math.max(0, p.life / p.maxLife);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(0.5, p.size * a), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // 飘字
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < floaters.length; i++) {
+    const f = floaters[i];
+    const a = Math.min(1, f.life / f.maxLife * 1.8);
+    const scale = 1 + Math.max(0, (1 - f.life / f.maxLife)) * 0.15;
+    ctx.globalAlpha = a;
+    const fs = (f.combo >= 5 ? 30 : f.combo >= 3 ? 25 : 21) * scale;
+    ctx.font = `900 ${fs}px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif`;
+    ctx.shadowColor = 'rgba(96,165,250,0.95)';
+    ctx.shadowBlur = 16;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(f.text, f.x, f.y);
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+/* =========================================================
+   主循环
+   ========================================================= */
+let lastT = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+  update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* =========================================================
+   初始化
+   ========================================================= */
+function initCanvas() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+}
+
+window.addEventListener('resize', () => {
+  initCanvas();
+});
+
+window.addEventListener('load', () => {
+  initCanvas();
+
+  // 初始背景棋盘
+  level = 1;
+  target = 900;
+  moves = 20;
+  levelScore = 0;
+  typeCount = 5;
+  createBoard();
+  updateHUD();
+
+  state = 'over';
+  showOverlay('start');
+
+  requestAnimationFrame(loop);
+});
+
+// 防止移动端双击缩放
+document.addEventListener('gesturestart', e => e.preventDefault());
+</script>
+</body>
+</html>
