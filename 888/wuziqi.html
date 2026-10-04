@@ -1,0 +1,765 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1b1e2b">
+<meta name="format-detection" content="telephone=no">
+<title>五子棋</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #1b1e2b;
+  background-image: radial-gradient(circle at 18% 0%, #2b3254 0%, rgba(27,30,43,0) 58%),
+                    radial-gradient(circle at 92% 100%, #33264a 0%, rgba(27,30,43,0) 55%);
+  color: #eef1f8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  padding: 10px 12px 12px;
+  overflow: hidden;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 2px 2px 8px;
+  flex: 0 0 auto;
+}
+.title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #e9edfb;
+  text-shadow: 0 2px 10px rgba(110, 140, 255, 0.35);
+}
+.leveltag {
+  font-size: 12px;
+  color: #8b93b3;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+/* ---------- 关卡按钮：居中 + 小屏自适应 ---------- */
+.levels-scroll {
+  flex: 0 0 auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.levels-scroll::-webkit-scrollbar { display: none; }
+
+.levels {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 6px;
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+  min-width: 100%;
+  margin: 0 auto;
+  padding-bottom: 9px;
+}
+.lvl {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 auto;
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #b3bbd6;
+  font-size: 12px;
+  line-height: 1.35;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .18s, color .18s, box-shadow .18s;
+  outline: none;
+}
+.lvl.on {
+  background: linear-gradient(135deg, #5b8cff, #9a6bff);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 14px rgba(105, 125, 255, 0.42);
+}
+
+.status {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 13.5px;
+  color: #a6aecb;
+  padding: 0 0 10px;
+  min-height: 22px;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #20232e;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
+  transition: background .2s, border-color .2s;
+  flex: 0 0 auto;
+}
+.boardwrap {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#board {
+  display: block;
+  border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.07);
+  touch-action: manipulation;
+  cursor: pointer;
+}
+.controls {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding-top: 12px;
+}
+.btn {
+  flex: 1 1 0;
+  max-width: 170px;
+  padding: 11px 0;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.07);
+  color: #dde3f4;
+  font-size: 14px;
+  font-family: inherit;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  outline: none;
+}
+.btn:active { background: rgba(255, 255, 255, 0.18); transform: scale(0.98); }
+.btn.primary {
+  background: linear-gradient(135deg, #5b8cff, #9a6bff);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  box-shadow: 0 5px 16px rgba(105, 125, 255, 0.35);
+}
+.btn.primary:active { background: linear-gradient(135deg, #4d7df0, #8a5cf0); }
+
+/* ---------- 小屏自适应：按钮逐步缩小，保证不溢出 ---------- */
+@media (max-width: 480px) {
+  .lvl { padding: 6px 10px; font-size: 11.5px; }
+  .levels { gap: 5px; }
+}
+@media (max-width: 400px) {
+  .lvl { padding: 5px 8px; font-size: 11px; }
+  .levels { gap: 4px; }
+  .title { font-size: 17px; letter-spacing: 3px; }
+  .leveltag { font-size: 11px; }
+}
+@media (max-width: 350px) {
+  .lvl { padding: 4px 6px; font-size: 10px; letter-spacing: 0; }
+  .levels { gap: 3px; }
+  .title { font-size: 16px; letter-spacing: 2px; }
+  .leveltag { font-size: 10px; letter-spacing: 0; }
+}
+@media (max-width: 300px) {
+  .lvl { padding: 3px 4px; font-size: 9px; border-radius: 8px; }
+  .levels { gap: 2px; }
+  .status { font-size: 12px; }
+}
+/* 矮屏适配 */
+@media (max-height: 560px) {
+  .title { font-size: 16px; }
+  .status { font-size: 12px; padding-bottom: 7px; }
+  .btn { padding: 9px 0; font-size: 13px; }
+  .lvl { padding-top: 4px; padding-bottom: 4px; }
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="title">五子棋</div>
+  <div class="leveltag" id="leveltag">第 1 关 · 新手</div>
+</div>
+
+<div class="levels-scroll">
+  <div class="levels" id="levels"></div>
+</div>
+
+<div class="status">
+  <span class="dot" id="dot"></span>
+  <span id="statusText">轮到你落子</span>
+</div>
+
+<div class="boardwrap" id="boardwrap">
+  <canvas id="board"></canvas>
+</div>
+
+<div class="controls">
+  <button class="btn" id="undoBtn" type="button">悔棋</button>
+  <button class="btn primary" id="restartBtn" type="button">重新开始</button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= 配置 ================= */
+  var LEVELS = [
+    { name: '新手', size: 9,  diff: 1 },
+    { name: '简单', size: 11, diff: 2 },
+    { name: '普通', size: 13, diff: 3 },
+    { name: '困难', size: 15, diff: 4 },
+    { name: '大师', size: 15, diff: 5 }
+  ];
+
+  var DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]];
+
+  /* 棋型分值表（按分值从高到低匹配） */
+  var SHAPES = [
+    ['11111', 5000000],
+    ['011110', 500000],
+    ['11011', 60000],
+    ['10111', 60000],
+    ['11101', 60000],
+    ['011112', 60000],
+    ['211110', 60000],
+    ['011100', 8000],
+    ['001110', 8000],
+    ['011010', 8000],
+    ['010110', 8000],
+    ['001100', 900],
+    ['011000', 300],
+    ['000110', 300],
+    ['010100', 400],
+    ['001010', 400],
+    ['001000', 90],
+    ['000100', 90]
+  ];
+
+  /* 各难度参数：防守权重 / 随机噪声 / 落子延迟 */
+  var AI_CFG = [
+    null,
+    { def: 0.55, noise: 12000, delay: 180 },
+    { def: 0.75, noise: 4000,  delay: 160 },
+    { def: 0.95, noise: 900,   delay: 140 },
+    { def: 1.05, noise: 200,   delay: 120 },
+    { def: 1.15, noise: 0,     delay: 110 }
+  ];
+
+  /* ================= 元素 ================= */
+  var canvas    = document.getElementById('board');
+  var ctx       = canvas.getContext('2d');
+  var wrap      = document.getElementById('boardwrap');
+  var levelsEl  = document.getElementById('levels');
+  var levelTag  = document.getElementById('leveltag');
+  var statusTxt = document.getElementById('statusText');
+  var dotEl     = document.getElementById('dot');
+  var undoBtn   = document.getElementById('undoBtn');
+  var restartBtn= document.getElementById('restartBtn');
+
+  /* ================= 状态 ================= */
+  var S = {
+    level: 0,
+    size: 9,
+    board: null,
+    turn: 1,          /* 1 = 玩家(黑)  2 = 电脑(白) */
+    over: false,
+    moves: [],
+    winLine: null,
+    thinking: false,
+    gen: 0            /* 用于作废旧的对局回调 */
+  };
+
+  var geo = { size: 0, cell: 0, pad: 0 };
+
+  /* ================= 工具 ================= */
+  function inBoard(x, y) {
+    return x >= 0 && y >= 0 && x < S.size && y < S.size;
+  }
+
+  function setStatus(text, who) {
+    statusTxt.textContent = text;
+    if (who === 'black') {
+      dotEl.style.background = '#20232e';
+      dotEl.style.borderColor = 'rgba(255,255,255,0.4)';
+    } else if (who === 'white') {
+      dotEl.style.background = '#ffffff';
+      dotEl.style.borderColor = 'rgba(255,255,255,0.75)';
+    } else {
+      dotEl.style.background = 'transparent';
+      dotEl.style.borderColor = 'rgba(255,255,255,0.22)';
+    }
+  }
+
+  /* ================= 关卡按钮 ================= */
+  function buildLevelButtons() {
+    var i, b;
+    levelsEl.innerHTML = '';
+    for (i = 0; i < LEVELS.length; i++) {
+      b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'lvl';
+      b.setAttribute('data-lvl', i);
+      b.textContent = '第 ' + (i + 1) + ' 关';
+      levelsEl.appendChild(b);
+    }
+    levelsEl.onclick = function (e) {
+      var t = e.target || e.srcElement;
+      if (t && t.getAttribute && t.getAttribute('data-lvl') !== null) {
+        var idx = parseInt(t.getAttribute('data-lvl'), 10);
+        if (!isNaN(idx)) newGame(idx);
+      }
+    };
+  }
+
+  function updateLevelButtons() {
+    var btns = levelsEl.getElementsByTagName('button');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].className = (i === S.level) ? 'lvl on' : 'lvl';
+    }
+  }
+
+  /* ================= 尺寸 / 布局 ================= */
+  function layout() {
+    var w = wrap.clientWidth;
+    var h = wrap.clientHeight;
+    if (!h || h < 60) h = window.innerHeight * 0.55;
+    if (!w || w < 60) w = window.innerWidth - 24;
+
+    var size = Math.floor(Math.min(w, h));
+    if (size < 200) size = 200;
+    if (size > 620) size = 620;
+
+    var dpr = window.devicePixelRatio || 1;
+    if (dpr > 2) dpr = 2;
+
+    canvas.width  = Math.round(size * dpr);
+    canvas.height = Math.round(size * dpr);
+    canvas.style.width  = size + 'px';
+    canvas.style.height = size + 'px';
+
+    if (ctx.setTransform) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    } else {
+      ctx.scale(dpr, dpr);
+    }
+
+    geo.size = size;
+    var n = S.size;
+    geo.cell = size / (n + 0.6);
+    geo.pad  = (size - geo.cell * (n - 1)) / 2;
+
+    draw();
+  }
+
+  /* ================= 绘制 ================= */
+  function drawStone(cx, cy, r, player) {
+    /* 阴影 */
+    ctx.beginPath();
+    ctx.arc(cx + r * 0.07, cy + r * 0.15, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(64, 38, 6, 0.30)';
+    ctx.fill();
+
+    /* 棋子本体 */
+    var g = ctx.createRadialGradient(
+      cx - r * 0.35, cy - r * 0.4, r * 0.08,
+      cx, cy, r * 1.15
+    );
+    if (player === 1) {
+      g.addColorStop(0, '#6e7484');
+      g.addColorStop(0.42, '#2c303b');
+      g.addColorStop(1, '#080a10');
+    } else {
+      g.addColorStop(0, '#ffffff');
+      g.addColorStop(0.55, '#f3f5fa');
+      g.addColorStop(1, '#bfc6d4');
+    }
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    if (player === 2) {
+      ctx.strokeStyle = 'rgba(120, 130, 152, 0.45)';
+      ctx.lineWidth = Math.max(0.8, r * 0.06);
+      ctx.stroke();
+    }
+  }
+
+  function draw() {
+    var size = geo.size, cell = geo.cell, pad = geo.pad, n = S.size;
+    if (!size || !S.board) return;
+
+    ctx.clearRect(0, 0, size, size);
+
+    /* 棋盘底色 */
+    var bg = ctx.createLinearGradient(0, 0, size, size);
+    bg.addColorStop(0, '#f3ddb6');
+    bg.addColorStop(0.5, '#e9d0a2');
+    bg.addColorStop(1, '#d8b67e');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, size, size);
+
+    /* 网格 */
+    ctx.strokeStyle = 'rgba(92, 62, 20, 0.42)';
+    ctx.lineWidth = Math.max(1, size / 520);
+    ctx.beginPath();
+    var i, p;
+    for (i = 0; i < n; i++) {
+      p = pad + i * cell;
+      ctx.moveTo(pad, p);
+      ctx.lineTo(pad + (n - 1) * cell, p);
+      ctx.moveTo(p, pad);
+      ctx.lineTo(p, pad + (n - 1) * cell);
+    }
+    ctx.stroke();
+
+    /* 星位 */
+    var mid = (n - 1) / 2;
+    var stars = [[mid, mid]];
+    if (n >= 13) {
+      stars.push([3, 3], [3, n - 4], [n - 4, 3], [n - 4, n - 4]);
+    }
+    ctx.fillStyle = 'rgba(80, 52, 16, 0.62)';
+    for (i = 0; i < stars.length; i++) {
+      ctx.beginPath();
+      ctx.arc(pad + stars[i][0] * cell, pad + stars[i][1] * cell,
+              Math.max(2, cell * 0.1), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    /* 棋子 */
+    var x, y;
+    for (x = 0; x < n; x++) {
+      for (y = 0; y < n; y++) {
+        if (S.board[x][y] !== 0) {
+          drawStone(pad + x * cell, pad + y * cell, cell * 0.44, S.board[x][y]);
+        }
+      }
+    }
+
+    /* 最后一手标记 */
+    if (S.moves.length > 0) {
+      var last = S.moves[S.moves.length - 1];
+      var lx = pad + last.x * cell, ly = pad + last.y * cell;
+      ctx.beginPath();
+      ctx.arc(lx, ly, Math.max(2.2, cell * 0.11), 0, Math.PI * 2);
+      ctx.fillStyle = last.p === 1 ? '#ff5d5d' : '#ff4d4d';
+      ctx.fill();
+    }
+
+    /* 胜利连线 */
+    if (S.winLine && S.winLine.length > 1) {
+      var a = S.winLine[0];
+      var b = S.winLine[S.winLine.length - 1];
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 70, 70, 0.9)';
+      ctx.lineWidth = Math.max(2, cell * 0.13);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(pad + a.x * cell, pad + a.y * cell);
+      ctx.lineTo(pad + b.x * cell, pad + b.y * cell);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  /* ================= 胜负判断 ================= */
+  function checkWin(x, y, player) {
+    for (var d = 0; d < 4; d++) {
+      var dx = DIRS[d][0], dy = DIRS[d][1];
+      var cells = [{ x: x, y: y }];
+      var nx, ny, s;
+
+      for (s = 1; s < 5; s++) {
+        nx = x + dx * s; ny = y + dy * s;
+        if (!inBoard(nx, ny) || S.board[nx][ny] !== player) break;
+        cells.push({ x: nx, y: ny });
+      }
+      for (s = 1; s < 5; s++) {
+        nx = x - dx * s; ny = y - dy * s;
+        if (!inBoard(nx, ny) || S.board[nx][ny] !== player) break;
+        cells.unshift({ x: nx, y: ny });
+      }
+      if (cells.length >= 5) return cells;
+    }
+    return null;
+  }
+
+  /* ================= AI ================= */
+  /* 构造以 (x,y) 为中心、假设该点已落 player 子的 11 格线型字符串 */
+  function buildLine(x, y, dx, dy, player) {
+    var s = '';
+    for (var k = -5; k <= 5; k++) {
+      if (k === 0) { s += '1'; continue; }
+      var nx = x + dx * k, ny = y + dy * k;
+      if (nx < 0 || ny < 0 || nx >= S.size || ny >= S.size) { s += '2'; continue; }
+      var v = S.board[nx][ny];
+      s += (v === 0) ? '0' : (v === player ? '1' : '2');
+    }
+    return s;
+  }
+
+  function dirScore(x, y, dx, dy, player) {
+    var s = buildLine(x, y, dx, dy, player);
+    for (var i = 0; i < SHAPES.length; i++) {
+      if (s.indexOf(SHAPES[i][0]) !== -1) return SHAPES[i][1];
+    }
+    return 0;
+  }
+
+  function evalPoint(x, y, player) {
+    var t = 0;
+    for (var d = 0; d < 4; d++) {
+      t += dirScore(x, y, DIRS[d][0], DIRS[d][1], player);
+    }
+    return t;
+  }
+
+  function getCandidates() {
+    var n = S.size, res = [], seen = {}, k, dx, dy, x, y, key;
+
+    if (S.moves.length === 0) {
+      var c = Math.floor(n / 2);
+      return [{ x: c, y: c }];
+    }
+
+    for (k = 0; k < S.moves.length; k++) {
+      var mx = S.moves[k].x, my = S.moves[k].y;
+      for (dx = -2; dx <= 2; dx++) {
+        for (dy = -2; dy <= 2; dy++) {
+          x = mx + dx; y = my + dy;
+          if (x < 0 || y < 0 || x >= n || y >= n) continue;
+          if (S.board[x][y] !== 0) continue;
+          key = x * n + y;
+          if (seen[key]) continue;
+          seen[key] = 1;
+          res.push({ x: x, y: y });
+        }
+      }
+    }
+    return res;
+  }
+
+  function aiChoose() {
+    var cands = getCandidates();
+    var n = S.size;
+    if (cands.length === 0) return { x: Math.floor(n / 2), y: Math.floor(n / 2) };
+
+    var cfg = AI_CFG[LEVELS[S.level].diff];
+    var i, c, a, d, sc;
+    var best = cands[0], bestSc = -1e18;
+
+    /* 1. 自己能赢，立刻赢 */
+    for (i = 0; i < cands.length; i++) {
+      c = cands[i];
+      if (evalPoint(c.x, c.y, 2) >= 5000000) return c;
+    }
+    /* 2. 对手能赢，必须堵 */
+    for (i = 0; i < cands.length; i++) {
+      c = cands[i];
+      if (evalPoint(c.x, c.y, 1) >= 5000000) return c;
+    }
+    /* 3. 综合评分 */
+    for (i = 0; i < cands.length; i++) {
+      c = cands[i];
+      a = evalPoint(c.x, c.y, 2);   /* 进攻价值 */
+      d = evalPoint(c.x, c.y, 1);   /* 防守价值 */
+      sc = a * 1.15 + d * cfg.def;
+      if (cfg.noise > 0) sc += Math.random() * cfg.noise;
+      if (sc > bestSc) { bestSc = sc; best = c; }
+    }
+    return best;
+  }
+
+  /* ================= 落子 ================= */
+  function doMove(x, y, player) {
+    S.board[x][y] = player;
+    S.moves.push({ x: x, y: y, p: player });
+
+    var line = checkWin(x, y, player);
+
+    if (line) {
+      S.winLine = line;
+      S.over = true;
+      draw();
+      if (player === 1) {
+        setStatus('🎉 恭喜！你赢了，进入下一关试试', null);
+      } else {
+        setStatus('😅 电脑赢了，再来一局吧', null);
+      }
+      return;
+    }
+
+    if (S.moves.length >= S.size * S.size) {
+      S.over = true;
+      draw();
+      setStatus('平局！', null);
+      return;
+    }
+
+    S.turn = (player === 1) ? 2 : 1;
+    draw();
+
+    if (S.turn === 2) {
+      S.thinking = true;
+      setStatus('电脑思考中…', 'white');
+      var gen = S.gen;
+      setTimeout(function () {
+        if (gen !== S.gen || S.over) return;
+        var mv = aiChoose();
+        S.thinking = false;
+        if (!S.over && mv) doMove(mv.x, mv.y, 2);
+      }, AI_CFG[LEVELS[S.level].diff].delay);
+    } else {
+      setStatus('轮到你落子', 'black');
+    }
+  }
+
+  /* ================= 交互 ================= */
+  function toBoardPos(clientX, clientY) {
+    var rect = canvas.getBoundingClientRect();
+    if (!rect.width || !geo.cell) return null;
+
+    var scale = geo.size / rect.width;
+    var lx = (clientX - rect.left) * scale;
+    var ly = (clientY - rect.top) * scale;
+
+    var i = Math.round((lx - geo.pad) / geo.cell);
+    var j = Math.round((ly - geo.pad) / geo.cell);
+
+    if (i < 0 || j < 0 || i >= S.size || j >= S.size) return null;
+    return { x: i, y: j };
+  }
+
+  function handleClick(e) {
+    if (S.over || S.thinking || S.turn !== 1) return;
+
+    var cx, cy;
+    if (e.changedTouches && e.changedTouches.length) {
+      cx = e.changedTouches[0].clientX;
+      cy = e.changedTouches[0].clientY;
+    } else if (e.touches && e.touches.length) {
+      cx = e.touches[0].clientX;
+      cy = e.touches[0].clientY;
+    } else {
+      cx = e.clientX; cy = e.clientY;
+    }
+
+    var pos = toBoardPos(cx, cy);
+    if (!pos) return;
+    if (S.board[pos.x][pos.y] !== 0) return;
+
+    doMove(pos.x, pos.y, 1);
+  }
+
+  /* ================= 悔棋 ================= */
+  function undo() {
+    if (S.thinking || S.moves.length === 0) return;
+
+    while (S.moves.length > 0) {
+      var m = S.moves.pop();
+      S.board[m.x][m.y] = 0;
+      if (m.p === 1) break;
+    }
+
+    S.over = false;
+    S.winLine = null;
+    S.turn = 1;
+    draw();
+    setStatus('轮到你落子', 'black');
+  }
+
+  /* ================= 新开一局 ================= */
+  function newGame(levelIdx) {
+    if (typeof levelIdx === 'number') S.level = levelIdx;
+    if (S.level < 0) S.level = 0;
+    if (S.level >= LEVELS.length) S.level = LEVELS.length - 1;
+
+    S.gen++;
+    S.size = LEVELS[S.level].size;
+    S.board = [];
+    for (var i = 0; i < S.size; i++) {
+      var row = [];
+      for (var j = 0; j < S.size; j++) row.push(0);
+      S.board.push(row);
+    }
+
+    S.turn = 1;
+    S.over = false;
+    S.moves = [];
+    S.winLine = null;
+    S.thinking = false;
+
+    levelTag.textContent = '第 ' + (S.level + 1) + ' 关 · ' + LEVELS[S.level].name;
+    updateLevelButtons();
+    setStatus('轮到你落子', 'black');
+    layout();
+  }
+
+  /* ================= 事件绑定 ================= */
+  function bindEvents() {
+    if ('ontouchstart' in window) {
+      canvas.addEventListener('touchend', function (e) {
+        e.preventDefault();
+        handleClick(e);
+      }, false);
+    }
+    canvas.addEventListener('click', handleClick, false);
+
+    undoBtn.onclick = undo;
+    restartBtn.onclick = function () { newGame(S.level); };
+
+    var rtimer = null;
+    function onResize() {
+      if (rtimer) clearTimeout(rtimer);
+      rtimer = setTimeout(layout, 80);
+    }
+    window.addEventListener('resize', onResize, false);
+    window.addEventListener('orientationchange', function () {
+      setTimeout(layout, 250);
+    }, false);
+  }
+
+  /* ================= 启动 ================= */
+  buildLevelButtons();
+  bindEvents();
+  newGame(0);
+
+  window.addEventListener('load', function () {
+    setTimeout(layout, 50);
+  }, false);
+
+  /* 兜底：部分低端浏览器视口计算偏差 */
+  setTimeout(layout, 300);
+
+})();
+</script>
+</body>
+</html>
