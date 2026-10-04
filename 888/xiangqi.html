@@ -30,7 +30,8 @@ body.dark{
 }
 .app{width:100%;max-width:900px;margin:0 auto;height:100%;display:flex;display:-webkit-flex;flex-direction:column;
   padding:6px 10px 6px}
-.main{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-orient:vertical;flex-direction:column;align-items:center}
+.main{-webkit-box-flex:1;flex:1;min-height:0;display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-box-orient:vertical;flex-direction:column;align-items:center}
 
 /* ---------- 顶栏 ---------- */
 .top{display:flex;display:-webkit-flex;align-items:center;height:42px;flex:0 0 auto}
@@ -45,7 +46,9 @@ body.dark .icobtn{background:#2c3138;color:#e8e3d8}
 .icobtn:active{opacity:.6}
 
 /* ---------- 棋盘 ---------- */
-.boardbox{position:relative;flex:0 0 auto;display:flex;display:-webkit-flex;justify-content:center;padding:2px 0}
+.boardbox{position:relative;-webkit-box-flex:1;flex:1;min-height:120px;
+  display:-webkit-box;display:-webkit-flex;display:flex;align-items:center;-webkit-box-align:center;
+  justify-content:center;-webkit-box-pack:center;padding:2px 0 6px}
 canvas{border-radius:12px;box-shadow:0 3px 12px rgba(90,60,20,.18);box-shadow:var(--shadow);display:block;
   -webkit-touch-action:none;touch-action:none}
 .badge{flex:0 1 auto;min-width:0;max-width:52%;overflow:hidden;white-space:nowrap;
@@ -54,65 +57,50 @@ canvas{border-radius:12px;box-shadow:0 3px 12px rgba(90,60,20,.18);box-shadow:va
   padding:3px 9px;border-radius:8px;margin-left:8px}
 body.dark .badge{background:#2c3138;color:#e8e3d8}
 
-/* ---------- 侧栏 ---------- */
-.side{width:100%;flex:1;min-height:0;display:flex;display:-webkit-flex;flex-direction:column;padding-top:6px}
+/* ---------- 控制区 ---------- */
+.side{width:100%;flex:0 0 auto;padding:0}
 .row{display:-webkit-box;display:-webkit-flex;display:flex;align-items:center;-webkit-box-align:center}
 .scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:2px 1px 6px}
 .scroll::-webkit-scrollbar{display:none}
-.chip{-webkit-box-flex:0;flex:0 0 auto;padding:7px 13px;margin-right:6px;border-radius:999px;border:none;
+.chip{-webkit-box-flex:0;flex:0 0 auto;padding:7px 14px;margin-right:7px;border-radius:999px;border:none;
   background:#e6d5b8;background:var(--chip);color:#3a2a18;color:var(--fg);
   font-size:13px;font-weight:600;white-space:nowrap;line-height:1.2}
 .chip.on{background:#c1272d;background:var(--acc);color:#fff}
 .chip:active{opacity:.7}
 body.dark .chip{background:#2c3138;color:#e8e3d8}
-.seg{display:-webkit-box;display:-webkit-flex;display:flex;background:#e6d5b8;background:var(--chip);border-radius:12px;padding:3px;
-  margin-right:8px;flex:0 0 auto}
+.seg{display:-webkit-box;display:-webkit-flex;display:flex;background:#e6d5b8;background:var(--chip);
+  border-radius:12px;padding:3px;margin:0 8px 0 0;-webkit-box-flex:0;flex:0 0 auto;white-space:nowrap;
+  -webkit-flex-shrink:0;flex-shrink:0}
 body.dark .seg{background:#2c3138}
-.seg button{border:none;background:transparent;color:#3a2a18;color:var(--fg);font-size:13px;font-weight:600;
-  padding:6px 11px;border-radius:9px;line-height:1.2}
+.seg button{-webkit-box-flex:0;flex:0 0 auto;border:none;background:transparent;color:#3a2a18;color:var(--fg);
+  font-size:13px;font-weight:600;padding:6px 12px;border-radius:9px;line-height:1.2;white-space:nowrap}
 body.dark .seg button{color:#e8e3d8}
 .seg button.on{background:#fffdf7;background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.18)}
 body.dark .seg button.on{background:#22262c}
 
 /* ---------- 状态 ---------- */
-.status{display:flex;display:-webkit-flex;align-items:center;background:#fffdf7;background:var(--card);
-  border-radius:14px;padding:9px 12px;margin-bottom:7px;box-shadow:0 3px 12px rgba(90,60,20,.18);
-  box-shadow:var(--shadow);font-size:13px;min-height:42px}
+.status{display:-webkit-box;display:-webkit-flex;display:flex;align-items:center;-webkit-box-align:center;
+  background:#fffdf7;background:var(--card);border-radius:14px;padding:10px 13px;margin-bottom:8px;
+  box-shadow:0 3px 12px rgba(90,60,20,.18);box-shadow:var(--shadow);font-size:14px;min-height:46px}
 body.dark .status{background:#22262c}
-.turn{width:13px;height:13px;border-radius:50%;flex:0 0 auto;margin-right:8px}
+.turn{width:14px;height:14px;border-radius:50%;flex:0 0 auto;margin-right:9px}
 .turn.r{background:#c1272d;background:var(--acc);box-shadow:0 0 0 3px rgba(193,39,45,.16)}
 .turn.b{background:#262626;box-shadow:0 0 0 3px rgba(0,0,0,.12)}
-.status .txt{flex:1;line-height:1.35}
+.status .txt{-webkit-box-flex:1;flex:1;line-height:1.35}
 .status .txt b{color:#c1272d;color:var(--acc)}
-.mini{font-size:11px;opacity:.6;flex:0 0 auto;margin-left:6px}
+.mini{font-size:11px;opacity:.6;flex:0 0 auto;margin-left:8px}
 
 /* ---------- 按钮 ---------- */
-.acts{display:flex;display:-webkit-flex;margin-bottom:7px}
-.btn{flex:1;border:none;border-radius:13px;background:#fffdf7;background:var(--card);
-  color:#3a2a18;color:var(--fg);font-size:13px;font-weight:600;padding:9px 2px;margin-right:6px;
+.acts{display:-webkit-box;display:-webkit-flex;display:flex;margin-bottom:2px}
+.btn{-webkit-box-flex:1;flex:1;border:none;border-radius:14px;background:#fffdf7;background:var(--card);
+  color:#3a2a18;color:var(--fg);font-size:13px;font-weight:600;padding:11px 2px;margin-right:7px;
   box-shadow:0 3px 12px rgba(90,60,20,.18);box-shadow:var(--shadow);line-height:1.2}
 .btn:last-child{margin-right:0}
-.btn i{display:block;font-style:normal;font-size:16px;line-height:1.3}
+.btn i{display:block;font-style:normal;font-size:17px;line-height:1.35}
 .btn:active{background:#e6d5b8;background:var(--chip)}
 body.dark .btn{background:#22262c;color:#e8e3d8}
 body.dark .btn:active{background:#2c3138}
 .btn[disabled]{opacity:.45}
-
-/* ---------- 棋谱 ---------- */
-.rec{background:#fffdf7;background:var(--card);border-radius:14px;
-  box-shadow:0 3px 12px rgba(90,60,20,.18);box-shadow:var(--shadow);
-  padding:8px 10px;flex:1;min-height:0;display:flex;display:-webkit-flex;flex-direction:column;overflow:hidden}
-body.dark .rec{background:#22262c}
-.rec h4{margin:0 0 6px;font-size:12px;opacity:.6;font-weight:600;
-  display:flex;display:-webkit-flex;justify-content:space-between}
-.rec .list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;font-size:13px;line-height:1.95}
-.rec .mv{display:inline-block;min-width:66px;padding:0 5px;border-radius:6px}
-.rec .mv.r{color:#c1272d;color:var(--acc)}
-.rec .mv.b{color:#4a4a4a}
-body.dark .rec .mv.b{color:#b9c2cf}
-.rec .mv.last{background:rgba(193,39,45,.12)}
-.rec .no{opacity:.45;margin-right:2px}
-.rec .empty{opacity:.45;font-size:12px;text-align:center;padding:12px 0}
 
 /* ---------- 弹层 ---------- */
 .mask{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.45);
@@ -167,13 +155,17 @@ body.dark .ghost{background:#2c3138;color:#e8e3d8}
 
 /* ---------- 桌面端：左右分栏 ---------- */
 @media (min-width:760px) and (min-height:520px){
-  body{display:flex;display:-webkit-flex;align-items:center;justify-content:center}
-  .app{max-width:960px;height:88vh;max-height:760px;padding:10px 12px}
-  .main{flex-direction:row;align-items:stretch}
+  body{display:-webkit-box;display:-webkit-flex;display:flex;align-items:center;-webkit-box-align:center;
+    justify-content:center;-webkit-box-pack:center}
+  .app{max-width:940px;height:92vh;max-height:820px;padding:10px 12px}
+  .main{-webkit-box-flex:1;flex:1;min-height:0;-webkit-box-orient:horizontal;flex-direction:row;
+    align-items:stretch;-webkit-box-align:stretch}
   .badge{font-size:12px;padding:4px 11px;max-width:none}
-  .boardbox{width:58%;align-items:center;padding:0}
-  .side{width:42%;max-width:340px;padding:0 0 0 16px}
-  .mask.show{display:flex;display:-webkit-flex;align-items:center}
+  .boardbox{width:56%;padding:0;-webkit-box-flex:1;flex:1}
+  .side{width:44%;max-width:320px;padding:0 0 0 18px;
+    display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-orient:vertical;flex-direction:column;
+    justify-content:center;-webkit-box-pack:center}
+  .mask.show{display:-webkit-box;display:-webkit-flex;display:flex;align-items:center;-webkit-box-align:center}
   .sheet{position:relative;bottom:auto;border-radius:18px;max-height:80vh;padding:18px 20px 20px}
 }
 </style>
@@ -193,11 +185,9 @@ body.dark .ghost{background:#2c3138;color:#e8e3d8}
     </div>
 
     <div class="side">
-      <div class="row scroll" id="modeRow">
-        <button class="chip" data-mode="pve">人机对战</button>
-        <button class="chip" data-mode="pvp">双人对战</button>
-      </div>
-      <div class="row scroll" id="subRow"></div>
+      <div class="row scroll" id="modeRow"></div>
+      <div class="row scroll" id="diffRow"></div>
+      <div class="row scroll" id="optRow"></div>
 
       <div class="status">
         <span class="turn r" id="turnDot"></span>
@@ -210,11 +200,6 @@ body.dark .ghost{background:#2c3138;color:#e8e3d8}
         <button class="btn" id="btnHint"><i>💡</i>提示</button>
         <button class="btn" id="btnReset"><i>⟳</i>重开</button>
         <button class="btn" id="btnMore"><i>☰</i>菜单</button>
-      </div>
-
-      <div class="rec">
-        <h4><span>棋谱记录</span><span id="recCount"></span></h4>
-        <div class="list" id="recList"><div class="empty">尚未落子</div></div>
       </div>
     </div>
   </div>
@@ -738,13 +723,13 @@ function beep(type){
 /* ---------- 布局 ---------- */
 var CS=0,OX=0,OY=0,W=0,H=0;
 function layout(){
-  var wide=window.innerWidth>=760&&window.innerHeight>=520;
   var box=document.querySelector('.boardbox');
-  var availW=box.clientWidth-6; if(availW<160) availW=Math.min(window.innerWidth-20,420);
-  var availH=window.innerHeight-(wide?110:270);
-  if(!wide) availH=availH+40;
-  var byW=availW/9.3, byH=(availH>180?availH:window.innerHeight*0.5)/10.3;
+  var availW=box.clientWidth-8, availH=box.clientHeight-10;
+  if(availW<160) availW=Math.min(window.innerWidth-24,420);
+  if(availH<160) availH=Math.max(240,window.innerHeight*0.52);
+  var byW=availW/9.3, byH=availH/10.3;
   CS=Math.max(26,Math.floor(Math.min(byW,byH)));
+  if(8*CS+CS*1.24>availW+8) CS=Math.floor((availW+8)/9.24);
   OX=Math.round(CS*0.62); OY=Math.round(CS*0.62);
   W=8*CS+OX*2; H=9*CS+OY*2;
   var dpr=Math.min(window.devicePixelRatio||1,2);
@@ -1012,21 +997,25 @@ function hint(){
 /* ---------- UI ---------- */
 function render(){
   if(CFG.dark) document.body.className='dark'; else document.body.className='';
-  var ms=document.querySelectorAll('#modeRow .chip');
-  for(var i=0;i<ms.length;i++){
-    var on=ms[i].getAttribute('data-mode')===S.mode;
-    if(on) ms[i].className='chip on'; else ms[i].className='chip';
-  }
-  var sr=$('subRow'); sr.innerHTML='';
+  var mr=$('modeRow'); mr.innerHTML='';
+  mr.appendChild(chip('人机对战','pve',S.mode==='pve'));
+  mr.appendChild(chip('双人对战','pvp',S.mode==='pvp'));
+
+  var dr=$('diffRow'); dr.innerHTML='';
+  var or_=$('optRow'); or_.innerHTML='';
   if(S.mode==='pve'){
-    sr.appendChild(seg(DIFF.map(function(d){return d.n;}),S.diff,'diff'));
-    sr.appendChild(seg(['我执红','我执黑'],(S.human===RED?0:1),'color'));
-    sr.appendChild(seg([CFG.aiFast?'⚡ 快速':'🧠 深度'],0,'fast'));
+    dr.appendChild(seg(DIFF.map(function(d){return d.n;}),S.diff,'diff'));
+    or_.appendChild(seg(['我执红','我执黑'],(S.human===RED?0:1),'color'));
+    or_.appendChild(seg([CFG.aiFast?'⚡ 快速':'🧠 深度'],0,'fast'));
   }else{
     var t=document.createElement('div');
     t.className='chip'; t.style.opacity='.75';
     t.textContent='双人同机对弈 · 红先';
-    sr.appendChild(t);
+    dr.appendChild(t);
+    var f=document.createElement('button');
+    f.className='chip'; f.setAttribute('data-sw','flip');
+    f.textContent='换边 ⇅';
+    or_.appendChild(f);
   }
   $('badge').textContent=(S.mode==='pve'?('人机 · '+DIFF[S.diff].n+' · 我执'+(S.human===RED?'红':'黑')):'双人对战');
   var dot=$('turnDot'); dot.className='turn '+(S.side===RED?'r':'b');
@@ -1038,22 +1027,17 @@ function render(){
     if(S.mode==='pve') txt.innerHTML=(S.side===S.human?'<b>轮到你了</b>':'电脑思考')+ex;
     else txt.innerHTML='<b>'+who+'</b>走棋'+ex;
   }
-  $('stMini').textContent='第 '+(Math.floor(S.hist.length/2)+1)+' 回合';
-  var rl=$('recList');
-  if(!S.hist.length){ rl.innerHTML='<div class="empty">尚未落子</div>'; $('recCount').textContent=''; }
-  else{
-    var h='';
-    for(var j=0;j<S.hist.length;j++){
-      var it=S.hist[j];
-      if(j%2===0) h+='<span class="no">'+(Math.floor(j/2)+1)+'.</span>';
-      h+='<span class="mv '+(it.side===RED?'r':'b')+(j===S.hist.length-1?' last':'')+'">'+it.cn+'</span>';
-      if(j%2===1) h+='<br>';
-    }
-    rl.innerHTML=h; rl.scrollTop=rl.scrollHeight;
-    $('recCount').textContent='共 '+S.hist.length+' 着 · '+fmt(Date.now()-S.t0);
-  }
+  $('stMini').textContent='第 '+(Math.floor(S.hist.length/2)+1)+' 回合 · '+fmt(Date.now()-S.t0);
   $('btnUndo').disabled=S.thinking;
+  $('btnUndo').disabled=S.thinking||!S.hist.length;
   draw();
+}
+function chip(text,mode,on){
+  var b=document.createElement('button');
+  b.className='chip'+(on?' on':'');
+  b.setAttribute('data-mode',mode);
+  b.textContent=text;
+  return b;
 }
 function seg(labels,idx,act){
   var g=document.createElement('div'); g.className='seg';
@@ -1087,6 +1071,7 @@ function near(e,attr){
 }
 document.addEventListener('click',function(e){
   var sw=near(e,'data-sw');
+  if(sw&&sw.getAttribute('data-sw')==='flip'){ S.flipped=!S.flipped; draw(); return; }
   if(sw){
     var key=sw.getAttribute('data-sw');
     CFG[key]=!CFG[key]; save('xq_cfg2',CFG);
@@ -1155,8 +1140,11 @@ window.addEventListener('orientationchange',function(){ setTimeout(layout,250); 
 
 /* ---------- 启动：直接进入对局界面 ---------- */
 S.diff=LAST.diff;
-newGame(LAST.mode);
 layout();
+newGame(LAST.mode);
+setInterval(function(){
+  if(!S.over&&S.hist.length) $('stMini').textContent='第 '+(Math.floor(S.hist.length/2)+1)+' 回合 · '+fmt(Date.now()-S.t0);
+},1000);
 })();
 </script>
 </body>
