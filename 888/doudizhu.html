@@ -82,6 +82,20 @@ body {
 }
 .bottom-cards .card { display:inline-block; vertical-align:top; margin:0 3px; }
 
+/* ================= 积分（顶栏） ================= */
+#score {
+  position:absolute; left:50%;
+  -webkit-transform:translateX(-50%); transform:translateX(-50%);
+  z-index:14;
+  color:#ffe082;
+  font-weight:700;
+  letter-spacing:0.3px;
+  text-shadow:0 2px 6px #000, 0 0 3px #000;
+  white-space:nowrap;
+  text-align:center;
+  pointer-events:none;
+}
+
 /* ================= 对手面板 ================= */
 .opponent {
   position:absolute;
@@ -113,6 +127,7 @@ body {
 .opponent .count  { color:#ffe082; margin-top:1px; white-space:nowrap; }
 .opponent .count b { color:#fff; }
 .opponent .role   { color:#ffab40; margin-top:2px; white-space:nowrap; min-height:1em; }
+.opponent .pscore { color:#a5d6a7; margin-top:1px; white-space:nowrap; font-weight:700; }
 .opponent.active {
   box-shadow:0 0 0 2px #ffd54f, 0 0 20px rgba(255,213,79,.55);
 }
@@ -236,9 +251,20 @@ body {
   box-shadow:0 20px 60px rgba(0,0,0,.65);
   text-align:center;
   padding:26px 44px;
+  max-width:92%;
 }
 .dialog h2 { font-size:26px; margin-bottom:8px; }
 .dialog p  { color:#cfe8d9; font-size:14px; margin-bottom:18px; }
+/* 结算积分行：优先于动态字体设置 */
+.dialog p.score-line {
+  color:#ffe082;
+  font-size:16px;
+  font-weight:700;
+  line-height:1.6;
+  margin-bottom:20px;
+  white-space:normal;
+}
+.dialog p.score-line b { color:#fff; }
 </style>
 </head>
 <body>
@@ -247,11 +273,14 @@ body {
 
   <div class="bottom-cards" id="bottomCards"></div>
 
+  <div id="score">我的积分 0</div>
+
   <div class="opponent left" id="opp2">
     <div class="avatar"><i></i><i></i></div>
     <div class="name">电脑A</div>
     <div class="count"><b id="count2">17</b> 张</div>
     <div class="role" id="role2"></div>
+    <div class="pscore" id="oppScore2">积分 0</div>
   </div>
 
   <div class="opponent right" id="opp1">
@@ -259,6 +288,7 @@ body {
     <div class="name">电脑B</div>
     <div class="count"><b id="count1">17</b> 张</div>
     <div class="role" id="role1"></div>
+    <div class="pscore" id="oppScore1">积分 0</div>
   </div>
 
   <div class="play-area" id="play2"></div>
@@ -286,6 +316,7 @@ body {
     <div class="dialog">
       <h2 id="overTitle"></h2>
       <p id="overText"></p>
+      <p id="overScore" class="score-line"></p>
       <button class="btn primary" id="btnRestart">再来一局</button>
     </div>
   </div>
@@ -409,6 +440,10 @@ function applyLayout() {
   var msgSize     = Math.max(14, Math.round(gh * 0.033));
   var pOverlap    = Math.round(sw * 0.44);
 
+  /* ---------- 积分位置 ---------- */
+  var scoreTop  = bottomTop + bh + Math.round(gh * 0.012);
+  var scoreFont = Math.max(11, Math.round(Math.min(gh * 0.028, gw * 0.028)));
+
   /* ---------- 记录 ---------- */
   LAYOUT.gw = gw; LAYOUT.gh = gh; LAYOUT.rotate = rotate;
   LAYOUT.mobile = isMobile; LAYOUT.cw = cw; LAYOUT.ch = ch;
@@ -443,11 +478,15 @@ function applyLayout() {
   /* 底牌 */
   c.push('.bottom-cards{top:' + bottomTop + 'px;}');
 
+  /* 积分 */
+  c.push('#score{top:' + scoreTop + 'px;font-size:' + scoreFont + 'px;}');
+
   /* 对手面板 */
   c.push('.opponent{width:' + oppW + 'px;padding:' + oppPad + 'px ' + Math.round(oppPad * 0.7) + 'px;border-radius:' + Math.round(oppW * 0.10) + 'px;}');
   c.push('.opponent .name{font-size:' + oppFont + 'px;}');
   c.push('.opponent .count{font-size:' + oppFont + 'px;}');
   c.push('.opponent .role{font-size:' + Math.round(oppFont * 0.92) + 'px;}');
+  c.push('.opponent .pscore{font-size:' + Math.round(oppFont * 0.92) + 'px;}');
   c.push('.opponent.left{left:' + oppSide + 'px;top:' + oppTop + 'px;}');
   c.push('.opponent.right{right:' + oppSide + 'px;top:' + oppTop + 'px;}');
 
@@ -790,7 +829,9 @@ var state = {
   plays: [null, null, null],
   phase: 'idle',
   selected: {},
-  bottomRevealed: false
+  bottomRevealed: false,
+  multiplier: 1,          /* 当前倍数 */
+  playCount: [0, 0, 0]    /* 每家实际出牌次数（用于春天判定） */
 };
 
 var playResolver = null;
@@ -799,6 +840,19 @@ var lastHintKey = '';
 var hintIdx = 0;
 var selectedCount = 0;
 
+/* ------- 三方积分（仅本次会话有效，退出页面即清零） ------- */
+var scores = [0, 0, 0];   /* 0=你  1=电脑B  2=电脑A */
+var BASE_SCORE = 10;      /* 底分：每次加减 10 分 */
+
+function formatScore(v) {
+  return v > 0 ? '+' + v : (v < 0 ? '' + v : '0');
+}
+function renderScores() {
+  document.getElementById('score').textContent = '我的积分 ' + formatScore(scores[0]);
+  document.getElementById('oppScore1').textContent = '积分 ' + formatScore(scores[1]);
+  document.getElementById('oppScore2').textContent = '积分 ' + formatScore(scores[2]);
+}
+
 function playerName(p) { return p === 0 ? '你' : (p === 1 ? '电脑B' : '电脑A'); }
 
 function sortHand(p) {
@@ -806,6 +860,86 @@ function sortHand(p) {
     return b.value - a.value || a.suitIndex - b.suitIndex;
   });
 }
+
+/* =========================================================
+ *  4.5 滑动多选牌
+ * ========================================================= */
+var dragActive = false;        /* 是否正在拖动选牌 */
+var dragIsTouch = false;       /* 当前拖动是否由触摸触发 */
+var dragMode = 'select';       /* 'select' | 'deselect' */
+var dragStartCard = null;      /* 鼠标拖动起始卡 */
+var dragStartCardEl = null;
+var dragStartX = 0, dragStartY = 0;
+var mouseMoved = false;
+var suppressClickUntil = 0;    /* 该时间点之前的 click 忽略 */
+
+function canSelectCards() {
+  return state.phase === 'play' && state.current === 0 && !!playResolver;
+}
+
+function applyDragCard(card, el) {
+  var want = (dragMode === 'select');
+  var has = !!state.selected[card.id];
+  if (want === has) return;
+  if (want) {
+    state.selected[card.id] = 1;
+    if (el && el.classList) el.classList.add('selected');
+    selectedCount++;
+  } else {
+    delete state.selected[card.id];
+    if (el && el.classList) el.classList.remove('selected');
+    selectedCount--;
+  }
+}
+
+function handleDragMove(x, y) {
+  if (typeof document.elementFromPoint !== 'function') return;
+  var el = document.elementFromPoint(x, y);
+  while (el && !el.__card) el = el.parentNode;
+  if (el && el.__card) applyDragCard(el.__card, el);
+}
+
+document.addEventListener('touchmove', function (e) {
+  if (dragActive) {
+    e.preventDefault();
+    var t = e.touches && e.touches[0];
+    if (t) handleDragMove(t.clientX, t.clientY);
+    return;
+  }
+  if (e.touches && e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('touchend', function () {
+  if (dragIsTouch) {
+    dragActive = false;
+    setTimeout(function () { dragIsTouch = false; }, 400);
+  }
+}, false);
+
+document.addEventListener('touchcancel', function () {
+  dragActive = false;
+  dragIsTouch = false;
+}, false);
+
+document.addEventListener('mousemove', function (e) {
+  if (!dragActive || dragIsTouch) return;
+  if (!mouseMoved) {
+    if (Math.abs(e.clientX - dragStartX) < 4 && Math.abs(e.clientY - dragStartY) < 4) return;
+    mouseMoved = true;
+    applyDragCard(dragStartCard, dragStartCardEl);
+  }
+  handleDragMove(e.clientX, e.clientY);
+}, false);
+
+document.addEventListener('mouseup', function () {
+  if (dragIsTouch) return;
+  if (!dragActive) return;
+  dragActive = false;
+  if (mouseMoved) {
+    suppressClickUntil = Date.now() + 250;
+    mouseMoved = false;
+  }
+}, false);
 
 /* =========================================================
  *  5. 渲染
@@ -887,6 +1021,42 @@ function renderPlays() {
   }
 }
 
+function bindCardEvents(ce, card) {
+  /* 单击（桌面端） */
+  ce.addEventListener('click', function () {
+    if (Date.now() < suppressClickUntil) return;
+    onCardClick(card);
+  }, false);
+
+  /* 触摸：按下即切换，并进入滑动多选模式 */
+  ce.addEventListener('touchstart', function (e) {
+    if (!canSelectCards()) return;
+    e.preventDefault();
+    dragIsTouch = true;
+    suppressClickUntil = Date.now() + 800;
+    dragActive = true;
+    dragMode = state.selected[card.id] ? 'deselect' : 'select';
+    dragStartCard = card;
+    dragStartCardEl = ce;
+    applyDragCard(card, ce);
+  }, { passive: false });
+
+  /* 鼠标：按下只记录，移动超过阈值才切换，避免与 click 冲突 */
+  ce.addEventListener('mousedown', function (e) {
+    if (!canSelectCards()) return;
+    if (e.button !== 0) return;
+    if (Date.now() < suppressClickUntil) return;
+    dragIsTouch = false;
+    dragActive = true;
+    mouseMoved = false;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragMode = state.selected[card.id] ? 'deselect' : 'select';
+    dragStartCard = card;
+    dragStartCardEl = ce;
+  }, false);
+}
+
 function renderHand() {
   var el = document.getElementById('playerHand');
   el.innerHTML = '';
@@ -894,10 +1064,9 @@ function renderHand() {
   for (var i = 0; i < state.hands[0].length; i++) {
     var c = state.hands[0][i];
     var ce = createCardEl(c);
+    ce.__card = c;
     if (state.selected[c.id]) { ce.className += ' selected'; selectedCount++; }
-    (function (card) {
-      ce.addEventListener('click', function () { onCardClick(card); }, false);
-    })(c);
+    bindCardEvents(ce, c);
     el.appendChild(ce);
   }
 }
@@ -916,6 +1085,7 @@ function render() {
   renderPlays();
   renderHand();
   updateControls();
+  renderScores();
 }
 
 var msgTimer = null;
@@ -1048,9 +1218,19 @@ function playCards(p, cards) {
   }
   state.hands[p] = rest;
 
+  var info = analyze(cards);
+
+  /* 计数 & 炸弹翻倍 */
+  state.playCount[p]++;
+  if (info && (info.type === 'bomb' || info.type === 'rocket')) {
+    state.multiplier *= 2;
+    toast('💥 ' + (info.type === 'rocket' ? '王炸' : '炸弹') +
+          '！倍数 ×' + state.multiplier);
+  }
+
   state.plays = [null, null, null];
   state.plays[p] = cards;
-  state.lastPlay = { player: p, cards: cards, info: analyze(cards) };
+  state.lastPlay = { player: p, cards: cards, info: info };
   clearSelection();
   render();
 
@@ -1110,13 +1290,13 @@ function gameLoop() {
  * ========================================================= */
 function aiBidDecision(p) {
   var cnt = countMap(state.hands[p]);
-  var score = 0, k;
-  if (cnt[17]) score += 6;
-  if (cnt[16]) score += 5;
-  if (cnt[15]) score += 3;
-  if (cnt[14]) score += 2;
-  for (k in cnt) if (cnt.hasOwnProperty(k) && cnt[k] === 4) score += 5;
-  return score >= 7 || Math.random() < 0.38;
+  var sc = 0, k;
+  if (cnt[17]) sc += 6;
+  if (cnt[16]) sc += 5;
+  if (cnt[15]) sc += 3;
+  if (cnt[14]) sc += 2;
+  for (k in cnt) if (cnt.hasOwnProperty(k) && cnt[k] === 4) sc += 5;
+  return sc >= 7 || Math.random() < 0.38;
 }
 
 function freePlay(hand) {
@@ -1237,10 +1417,16 @@ function startGame() {
   state.bottomRevealed = false;
   state.phase = 'dealing';
   state.current = 0;
+  state.multiplier = 1;
+  state.playCount = [0, 0, 0];
   playResolver = null;
   bidResolver = null;
   lastHintKey = '';
   hintIdx = 0;
+  dragActive = false;
+  dragIsTouch = false;
+  mouseMoved = false;
+  suppressClickUntil = 0;
 
   showBidControls(false);
   setMessage('发牌中…');
@@ -1260,12 +1446,50 @@ function startGame() {
 
 function endGame(winner) {
   var landlordWin = (winner === state.landlord);
+
+  /* ---- 春天 / 反春 判定 ---- */
+  var spring = false;
+  var springName = '';
+  if (landlordWin) {
+    var farmers = [], f;
+    for (f = 0; f < 3; f++) if (f !== state.landlord) farmers.push(f);
+    if (state.playCount[farmers[0]] === 0 && state.playCount[farmers[1]] === 0) {
+      spring = true; springName = '春天';
+    }
+  } else {
+    if (state.playCount[state.landlord] <= 1) {
+      spring = true; springName = '反春';
+    }
+  }
+  if (spring) state.multiplier *= 2;
+
+  /* ---- 三方结算：底分10，倍数相乘，地主双份 ---- */
+  var unit = BASE_SCORE * state.multiplier;
+  var delta = [0, 0, 0];
+  var i;
+  if (landlordWin) {
+    delta[state.landlord] = 2 * unit;
+    for (i = 0; i < 3; i++) if (i !== state.landlord) delta[i] = -unit;
+  } else {
+    delta[state.landlord] = -2 * unit;
+    for (i = 0; i < 3; i++) if (i !== state.landlord) delta[i] = unit;
+  }
+  for (i = 0; i < 3; i++) scores[i] += delta[i];
+
   var playerWin = (state.landlord === 0) ? landlordWin : !landlordWin;
 
   document.getElementById('overTitle').textContent = playerWin ? '🎉 你赢了！' : '😢 你输了';
   document.getElementById('overText').textContent =
-      (landlordWin ? '地主获胜' : '农民获胜') + ' · ' +
-      (state.landlord === 0 ? '你是地主' : '你是农民');
+      (landlordWin ? '地主获胜' : '农民获胜') +
+      ' · ' + (state.landlord === 0 ? '你是地主' : '你是农民') +
+      ' · 倍数 ×' + state.multiplier +
+      (spring ? '（' + springName + '）' : '');
+
+  /* 只显示本局得分，不显示总分 */
+  document.getElementById('overScore').innerHTML =
+      '本局：你 <b>' + formatScore(delta[0]) + '</b>' +
+      ' · 电脑B <b>' + formatScore(delta[1]) + '</b>' +
+      ' · 电脑A <b>' + formatScore(delta[2]) + '</b>';
 
   document.getElementById('overlay').className = '';
   render();
@@ -1292,9 +1516,6 @@ if (window.visualViewport) {
 
 /* 禁用双指缩放 / 双击缩放 */
 document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, false);
-document.addEventListener('touchmove', function (e) {
-  if (e.touches && e.touches.length > 1) e.preventDefault();
-}, { passive: false });
 
 applyLayout();
 startGame();
