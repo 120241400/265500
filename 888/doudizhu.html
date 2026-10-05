@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -304,10 +304,12 @@ body {
     <button id="btnPlay" class="btn primary">出牌</button>
   </div>
 
-  <!-- 叫地主按钮组：不叫 / 叫地主 -->
+  <!-- 叫地主按钮组：不叫 / 1倍 / 2倍 / 3倍（竞价，样式统一） -->
   <div id="bidControls">
     <button id="btnNoCall" class="btn">不叫</button>
-    <button id="btnCall" class="btn primary">叫地主</button>
+    <button id="btnBid1" class="btn">1倍</button>
+    <button id="btnBid2" class="btn">2倍</button>
+    <button id="btnBid3" class="btn">3倍</button>
   </div>
 
   <div id="message"></div>
@@ -520,6 +522,8 @@ function applyLayout() {
   /* 按钮 */
   c.push('.btn{font-size:' + btnFont + 'px;padding:' + Math.round(btnH * 0.28) + 'px ' + btnPadX + 'px;border-radius:' + Math.round(btnH * 0.55) + 'px;min-width:' + Math.round(btnH * 2.15) + 'px;margin:0 ' + Math.round(btnGap / 2) + 'px;}');
   c.push('#controls,#bidControls{bottom:' + ctrlBottom + 'px;}');
+  /* 竞价按钮较多，稍微收窄，保证一行放下 */
+  c.push('#bidControls .btn{min-width:' + Math.round(btnH * 1.35) + 'px;padding-left:' + Math.round(btnH * 0.55) + 'px;padding-right:' + Math.round(btnH * 0.55) + 'px;}');
 
   /* 消息 */
   c.push('#message{font-size:' + msgSize + 'px;}');
@@ -1127,19 +1131,29 @@ function selectCards(cards) {
   renderHand();
 }
 
-function showBidControls(show) {
+/* ---- 竞价面板显示/隐藏，并根据当前最高分禁用不足的按钮 ---- */
+function showBidControls(show, currentMax) {
   document.getElementById('bidControls').style.display = show ? 'flex' : 'none';
   document.getElementById('controls').style.display = show ? 'none' : 'flex';
+  if (show) {
+    var cm = currentMax || 0;
+    document.getElementById('btnBid1').disabled = (cm >= 1);
+    document.getElementById('btnBid2').disabled = (cm >= 2);
+    document.getElementById('btnBid3').disabled = (cm >= 3);
+  }
 }
 
-document.getElementById('btnCall').onclick = function () {
-  showBidControls(false);
-  if (bidResolver) { var r = bidResolver; bidResolver = null; r(true); }
-};
-document.getElementById('btnNoCall').onclick = function () {
-  showBidControls(false);
-  if (bidResolver) { var r = bidResolver; bidResolver = null; r(false); }
-};
+/* ---- 竞价按钮：返回叫分（0=不叫，1/2/3=倍数） ---- */
+function makeBidHandler(val) {
+  return function () {
+    showBidControls(false, 0);
+    if (bidResolver) { var r = bidResolver; bidResolver = null; r(val); }
+  };
+}
+document.getElementById('btnNoCall').onclick = makeBidHandler(0);
+document.getElementById('btnBid1').onclick   = makeBidHandler(1);
+document.getElementById('btnBid2').onclick   = makeBidHandler(2);
+document.getElementById('btnBid3').onclick   = makeBidHandler(3);
 
 document.getElementById('btnPlay').onclick = function () {
   if (!playResolver) return;
@@ -1156,6 +1170,9 @@ document.getElementById('btnPlay').onclick = function () {
 document.getElementById('btnPass').onclick = function () {
   if (!playResolver) return;
   if (!state.lastPlay || state.lastPlay.player === 0) { toast('你需要出牌'); return; }
+  /* 不出时收回已选中的牌 */
+  clearSelection();
+  renderHand();
   var r = playResolver; playResolver = null;
   updateControls();
   r(null);
@@ -1176,7 +1193,28 @@ document.getElementById('btnHint').onclick = function () {
     for (var i = 0; i < beats.length; i++) list.push(beats[i].cards);
   }
 
-  if (!list.length) { toast('没有能出的牌'); return; }
+  if (!list.length) {
+    /* 没有能出的牌：提示后短暂停顿，自动过 */
+    if (state.lastPlay && state.lastPlay.player !== 0 && playResolver) {
+      toast('没有能出的牌');
+      var resolved = false;
+      setTimeout(function () {
+        if (resolved) return;
+        resolved = true;
+        if (!playResolver) return;               /* 期间玩家可能已手动操作 */
+        if (state.phase !== 'play') return;
+        if (!state.lastPlay || state.lastPlay.player === 0) return;
+        clearSelection();
+        renderHand();
+        var r = playResolver; playResolver = null;
+        updateControls();
+        r(null);
+      }, 800);
+    } else {
+      toast('没有能出的牌');
+    }
+    return;
+  }
 
   var key = target ? (target.player + ':' + target.cards.length + ':' + target.info.value) : 'free';
   if (key !== lastHintKey) { lastHintKey = key; hintIdx = 0; }
@@ -1193,10 +1231,10 @@ document.getElementById('btnRestart').onclick = function () {
 /* =========================================================
  *  7. 等待玩家
  * ========================================================= */
-function waitPlayerBid() {
+function waitPlayerBid(currentMax) {
   return new Promise(function (resolve) {
     bidResolver = resolve;
-    showBidControls(true);
+    showBidControls(true, currentMax);
   });
 }
 function waitPlayerPlay() {
@@ -1245,6 +1283,27 @@ function playCards(p, cards) {
 function gameLoop() {
   if (state.phase !== 'play') return;
 
+  /* ---- 玩家：上一次自己出的牌两家都没人管，且手牌能一次出完 → 自动出完 ---- */
+  if (state.current === 0 &&
+      state.lastPlay && state.lastPlay.player === 0 &&
+      state.hands[0].length > 0 &&
+      analyze(state.hands[0])) {
+    var autoCards = state.hands[0].slice();
+    setMessage('两家都不要，自动出完剩余的牌');
+    setTimeout(function () {
+      setMessage('');
+      if (state.phase !== 'play') return;
+      if (!state.lastPlay || state.lastPlay.player !== 0) return;
+      if (state.hands[0].length === 0) return;
+      if (!analyze(state.hands[0])) return;
+      if (playCards(0, autoCards)) return;
+      state.current = 1;
+      updateControls();
+      setTimeout(gameLoop, 240);
+    }, 700);
+    return;
+  }
+
   if (state.lastPlay && state.lastPlay.player === state.current) {
     state.lastPlay = null;
     state.plays = [null, null, null];
@@ -1288,7 +1347,8 @@ function gameLoop() {
 /* =========================================================
  *  9. 电脑 AI
  * ========================================================= */
-function aiBidDecision(p) {
+/* 根据手牌强度给出 0~3 的叫分，只能高于 currentMax */
+function aiBidDecision(p, currentMax) {
   var cnt = countMap(state.hands[p]);
   var sc = 0, k;
   if (cnt[17]) sc += 6;
@@ -1296,7 +1356,19 @@ function aiBidDecision(p) {
   if (cnt[15]) sc += 3;
   if (cnt[14]) sc += 2;
   for (k in cnt) if (cnt.hasOwnProperty(k) && cnt[k] === 4) sc += 5;
-  return sc >= 7 || Math.random() < 0.38;
+
+  var want;
+  if (sc >= 13) want = 3;
+  else if (sc >= 10) want = 2;
+  else if (sc >= 7) want = 1;
+  else want = 0;
+
+  /* 小概率搏一把 */
+  if (want === 0 && Math.random() < 0.12) want = 1;
+  if (want === 1 && Math.random() < 0.10) want = 2;
+
+  if (want <= currentMax) return 0;
+  return want;
 }
 
 function freePlay(hand) {
@@ -1350,48 +1422,62 @@ function aiChoose(p) {
 }
 
 /* =========================================================
- * 10. 叫地主 & 开局
+ * 10. 叫地主（竞价） & 开局
  * ========================================================= */
 function runBid() {
   state.phase = 'bid';
   var first = Math.floor(Math.random() * 3);
-  var landlord = -1;
-  var i = 0;
+  var highest = 0;          /* 当前最高叫分 */
+  var highestPlayer = -1;   /* 当前最高叫分者 */
+  var i = 0;                /* 已询问人数 */
 
   function nextBid() {
-    if (i >= 3) {
-      if (landlord === -1) {
+    /* 已叫到 3 倍，或一轮结束 → 结算 */
+    if (highest >= 3 || i >= 3) {
+      if (highestPlayer === -1) {
         setMessage('无人叫地主，重新发牌…');
         setTimeout(function () { startGame(); }, 1100);
       } else {
-        assignLandlord(landlord);
+        assignLandlord(highestPlayer, highest);
       }
       return;
     }
+
     var p = (first + i) % 3;
     i++;
-    setMessage(playerName(p) + ' 正在叫地主…');
+    setMessage(playerName(p) + ' 正在叫分…');
 
     if (p === 0) {
-      waitPlayerBid().then(function (call) {
-        if (call) { landlord = 0; nextBid(); }
-        else nextBid();
+      waitPlayerBid(highest).then(function (bid) {
+        if (bid > highest) {
+          highest = bid; highestPlayer = 0;
+          setMessage('你叫 ' + bid + ' 倍！');
+        } else {
+          setMessage('你选择不叫');
+        }
+        setTimeout(nextBid, 450);
       });
     } else {
       setTimeout(function () {
-        var call = aiBidDecision(p);
-        if (call) { landlord = p; nextBid(); }
-        else nextBid();
+        var bid = aiBidDecision(p, highest);
+        if (bid > highest) {
+          highest = bid; highestPlayer = p;
+          setMessage(playerName(p) + ' 叫 ' + bid + ' 倍！');
+        } else {
+          setMessage(playerName(p) + ' 不叫');
+        }
+        setTimeout(nextBid, 500);
       }, 600);
     }
   }
   nextBid();
 }
 
-function assignLandlord(landlord) {
+function assignLandlord(landlord, bid) {
   state.landlord = landlord;
+  state.multiplier = bid || 1;      /* 叫分即初始倍数 */
   state.bottomRevealed = true;
-  setMessage(playerName(landlord) + ' 成为地主！');
+  setMessage(playerName(landlord) + ' 成为地主！' + bid + ' 倍');
 
   state.hands[landlord] = state.hands[landlord].concat(state.bottom);
   sortHand(landlord);
@@ -1404,7 +1490,7 @@ function assignLandlord(landlord) {
     state.phase = 'play';
     render();
     gameLoop();
-  }, 900);
+  }, 1000);
 }
 
 function startGame() {
@@ -1428,7 +1514,7 @@ function startGame() {
   mouseMoved = false;
   suppressClickUntil = 0;
 
-  showBidControls(false);
+  showBidControls(false, 0);
   setMessage('发牌中…');
 
   var deck = shuffle(makeDeck());
@@ -1463,7 +1549,7 @@ function endGame(winner) {
   }
   if (spring) state.multiplier *= 2;
 
-  /* ---- 三方结算：底分10，倍数相乘，地主双份 ---- */
+  /* ---- 三方结算：底分10 × 倍数，地主双份 ---- */
   var unit = BASE_SCORE * state.multiplier;
   var delta = [0, 0, 0];
   var i;
@@ -1485,7 +1571,7 @@ function endGame(winner) {
       ' · 倍数 ×' + state.multiplier +
       (spring ? '（' + springName + '）' : '');
 
-  /* 只显示本局得分，不显示总分 */
+  /* 只显示本局得分 */
   document.getElementById('overScore').innerHTML =
       '本局：你 <b>' + formatScore(delta[0]) + '</b>' +
       ' · 电脑B <b>' + formatScore(delta[1]) + '</b>' +
@@ -1523,4 +1609,4 @@ startGame();
 })();
 </script>
 </body>
-</html>
+                                         </html>
