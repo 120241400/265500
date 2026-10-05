@@ -1283,25 +1283,33 @@ function playCards(p, cards) {
 function gameLoop() {
   if (state.phase !== 'play') return;
 
-  /* ---- 玩家：上一次自己出的牌两家都没人管，且手牌能一次出完 → 自动出完 ---- */
+  /* ---- 玩家：上一次自己出的牌两家都没人管，且手牌能一次出完 → 自动出完 ----
+   * 排除四带二 / 四带两对：不希望系统把炸弹当成带牌打出去
+   * ------------------------------------------------------------------ */
   if (state.current === 0 &&
       state.lastPlay && state.lastPlay.player === 0 &&
-      state.hands[0].length > 0 &&
-      analyze(state.hands[0])) {
-    var autoCards = state.hands[0].slice();
-    setMessage('两家都不要，自动出完剩余的牌');
-    setTimeout(function () {
-      setMessage('');
-      if (state.phase !== 'play') return;
-      if (!state.lastPlay || state.lastPlay.player !== 0) return;
-      if (state.hands[0].length === 0) return;
-      if (!analyze(state.hands[0])) return;
-      if (playCards(0, autoCards)) return;
-      state.current = 1;
-      updateControls();
-      setTimeout(gameLoop, 240);
-    }, 700);
-    return;
+      state.hands[0].length > 0) {
+    var autoInfo = analyze(state.hands[0]);
+    var autoAllowed = autoInfo &&
+        autoInfo.type !== 'four_two' &&
+        autoInfo.type !== 'four_two_pair';
+    if (autoAllowed) {
+      var autoCards = state.hands[0].slice();
+      setMessage('两家都不要，自动出完剩余的牌');
+      setTimeout(function () {
+        setMessage('');
+        if (state.phase !== 'play') return;
+        if (!state.lastPlay || state.lastPlay.player !== 0) return;
+        if (state.hands[0].length === 0) return;
+        var info2 = analyze(state.hands[0]);
+        if (!info2 || info2.type === 'four_two' || info2.type === 'four_two_pair') return;
+        if (playCards(0, autoCards)) return;
+        state.current = 1;
+        updateControls();
+        setTimeout(gameLoop, 240);
+      }, 700);
+      return;
+    }
   }
 
   if (state.lastPlay && state.lastPlay.player === state.current) {
@@ -1608,5 +1616,5 @@ startGame();
 
 })();
 </script>
-</body>
-                                         </html>
+</body> 
+</html>
