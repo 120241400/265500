@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -29,9 +29,9 @@ body.dark{
   background:#16181c;color:#e8e3d8;
 }
 .app{width:100%;max-width:900px;margin:0 auto;height:100%;display:flex;display:-webkit-flex;flex-direction:column;
-  padding:6px 10px 6px}
+  padding:6px 8px 6px}
 .main{-webkit-box-flex:1;flex:1;min-height:0;display:-webkit-box;display:-webkit-flex;display:flex;
-  -webkit-box-orient:vertical;flex-direction:column;align-items:center}
+  -webkit-box-orient:vertical;flex-direction:column;align-items:stretch;-webkit-box-align:stretch}
 
 /* ---------- 顶栏 ---------- */
 .top{display:flex;display:-webkit-flex;align-items:center;height:42px;flex:0 0 auto}
@@ -46,10 +46,11 @@ body.dark .icobtn{background:#2c3138;color:#e8e3d8}
 .icobtn:active{opacity:.6}
 
 /* ---------- 棋盘 ---------- */
-.boardbox{position:relative;-webkit-box-flex:1;flex:1;min-height:120px;
+.boardbox{position:relative;-webkit-box-flex:1;flex:1;min-height:120px;width:100%;
   display:-webkit-box;display:-webkit-flex;display:flex;align-items:center;-webkit-box-align:center;
-  justify-content:center;-webkit-box-pack:center;padding:2px 0 6px}
+  justify-content:center;-webkit-box-pack:center;padding:0 0 4px}
 canvas{border-radius:12px;box-shadow:0 3px 12px rgba(90,60,20,.18);box-shadow:var(--shadow);display:block;
+  -webkit-box-flex:0;flex:0 0 auto;max-width:100%;max-height:100%;
   -webkit-touch-action:none;touch-action:none}
 .badge{flex:0 1 auto;min-width:0;max-width:52%;overflow:hidden;white-space:nowrap;
   text-overflow:ellipsis;-o-text-overflow:ellipsis;font-size:11px;line-height:1.5;
@@ -59,24 +60,21 @@ body.dark .badge{background:#2c3138;color:#e8e3d8}
 
 /* ---------- 控制区 ---------- */
 .side{width:100%;flex:0 0 auto;padding:0}
-.row{display:-webkit-box;display:-webkit-flex;display:flex;align-items:center;-webkit-box-align:center}
-.scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:2px 1px 6px}
-.scroll::-webkit-scrollbar{display:none}
-.chip{-webkit-box-flex:0;flex:0 0 auto;padding:7px 14px;margin-right:7px;border-radius:999px;border:none;
-  background:#e6d5b8;background:var(--chip);color:#3a2a18;color:var(--fg);
-  font-size:13px;font-weight:600;white-space:nowrap;line-height:1.2}
-.chip.on{background:#c1272d;background:var(--acc);color:#fff}
-.chip:active{opacity:.7}
-body.dark .chip{background:#2c3138;color:#e8e3d8}
-.seg{display:-webkit-box;display:-webkit-flex;display:flex;background:#e6d5b8;background:var(--chip);
-  border-radius:12px;padding:3px;margin:0 8px 0 0;-webkit-box-flex:0;flex:0 0 auto;white-space:nowrap;
-  -webkit-flex-shrink:0;flex-shrink:0}
+#modeRow,#diffRow{width:100%;margin-bottom:7px}
+#diffRow:empty{display:none;margin:0}
+
+.seg{display:-webkit-box;display:-webkit-flex;display:flex;width:100%;
+  background:#e6d5b8;background:var(--chip);border-radius:13px;padding:3px}
 body.dark .seg{background:#2c3138}
-.seg button{-webkit-box-flex:0;flex:0 0 auto;border:none;background:transparent;color:#3a2a18;color:var(--fg);
-  font-size:13px;font-weight:600;padding:6px 12px;border-radius:9px;line-height:1.2;white-space:nowrap}
+.seg button{-webkit-box-flex:1;flex:1 1 0;min-width:0;border:none;background:transparent;
+  color:#3a2a18;color:var(--fg);font-size:13px;font-weight:600;padding:9px 2px;border-radius:10px;
+  line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:background .16s,box-shadow .16s;-webkit-transition:background .16s,box-shadow .16s}
 body.dark .seg button{color:#e8e3d8}
 .seg button.on{background:#fffdf7;background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.18)}
 body.dark .seg button.on{background:#22262c}
+.seg button:active{opacity:.75}
+#diffRow .seg button{font-size:12px;padding:8px 1px}
 
 /* ---------- 状态 ---------- */
 .status{display:-webkit-box;display:-webkit-flex;display:flex;align-items:center;-webkit-box-align:center;
@@ -125,6 +123,12 @@ body.dark .xclose i{background:#e8e3d8}
 .grp{margin-bottom:14px}
 .lb{font-size:12px;opacity:.6;margin-bottom:7px;font-weight:600}
 .opt{padding-bottom:2px}
+.chip{-webkit-box-flex:0;flex:0 0 auto;padding:7px 14px;margin:0 7px 7px 0;border-radius:999px;border:none;
+  background:#e6d5b8;background:var(--chip);color:#3a2a18;color:var(--fg);
+  font-size:13px;font-weight:600;white-space:nowrap;line-height:1.2}
+.chip.on{background:#c1272d;background:var(--acc);color:#fff}
+.chip:active{opacity:.7}
+body.dark .chip{background:#2c3138;color:#e8e3d8}
 .sw{display:flex;display:-webkit-flex;align-items:center;justify-content:space-between;font-size:14px;
   padding:10px 2px;border-bottom:1px solid #cbb392;border-bottom-color:var(--line)}
 body.dark .sw{border-bottom-color:#3a3f47}
@@ -157,12 +161,12 @@ body.dark .ghost{background:#2c3138;color:#e8e3d8}
 @media (min-width:760px) and (min-height:520px){
   body{display:-webkit-box;display:-webkit-flex;display:flex;align-items:center;-webkit-box-align:center;
     justify-content:center;-webkit-box-pack:center}
-  .app{max-width:940px;height:92vh;max-height:820px;padding:10px 12px}
+  .app{max-width:960px;height:92vh;max-height:840px;padding:10px 14px}
   .main{-webkit-box-flex:1;flex:1;min-height:0;-webkit-box-orient:horizontal;flex-direction:row;
     align-items:stretch;-webkit-box-align:stretch}
   .badge{font-size:12px;padding:4px 11px;max-width:none}
-  .boardbox{width:56%;padding:0;-webkit-box-flex:1;flex:1}
-  .side{width:44%;max-width:320px;padding:0 0 0 18px;
+  .boardbox{width:auto;padding:0;-webkit-box-flex:1;flex:1;min-width:0}
+  .side{width:300px;-webkit-box-flex:0;flex:0 0 300px;padding:0 0 0 16px;
     display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-orient:vertical;flex-direction:column;
     justify-content:center;-webkit-box-pack:center}
   .mask.show{display:-webkit-box;display:-webkit-flex;display:flex;align-items:center;-webkit-box-align:center}
@@ -185,9 +189,8 @@ body.dark .ghost{background:#2c3138;color:#e8e3d8}
     </div>
 
     <div class="side">
-      <div class="row scroll" id="modeRow"></div>
-      <div class="row scroll" id="diffRow"></div>
-      <div class="row scroll" id="optRow"></div>
+      <div id="modeRow"></div>
+      <div id="diffRow"></div>
 
       <div class="status">
         <span class="turn r" id="turnDot"></span>
@@ -658,20 +661,21 @@ var HAS_TOUCH=('ontouchstart' in window)||(window.DocumentTouch&&document instan
 var HAS_VAR=(window.CSS&&CSS.supports&&CSS.supports('color','var(--x)'))||false;
 
 /* ---------- 存储 ---------- */
-var DEF={sound:true,anim:true,showMoves:true,coords:true,dark:false,aiFast:false};
+var DEF={sound:true,anim:true,showMoves:true,coords:true,dark:false};
 var CFG=load('xq_cfg2',{});
 for(var kk in DEF) if(!(kk in CFG)) CFG[kk]=DEF[kk];
-var LAST={mode:'pve',diff:1,color:RED};
+var LAST={mode:'pve',diff:1};
 var savedLast=load('xq_last',null); if(savedLast&&savedLast.mode) LAST=savedLast;
 function load(k,d){try{var v=window.localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
 function save(k,v){try{window.localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 
+/* ---------- 难度：已整体缩短思考时间，走子更快 ---------- */
 var DIFF=[
- {n:'新手',d:1,t:200,r:170},
- {n:'初级',d:2,t:520,r:60},
- {n:'中级',d:3,t:1100,r:20},
- {n:'高级',d:4,t:1900,r:6},
- {n:'大师',d:5,t:2800,r:0}
+ {n:'新手',d:1,t:60,r:180},
+ {n:'初级',d:2,t:150,r:70},
+ {n:'中级',d:3,t:320,r:30},
+ {n:'高级',d:4,t:600,r:10},
+ {n:'大师',d:5,t:950,r:0}
 ];
 
 /* ---------- 状态 ---------- */
@@ -720,18 +724,45 @@ function beep(type){
   }catch(e){}
 }
 
-/* ---------- 布局 ---------- */
+/* ---------- 布局（自适应棋盘） ---------- */
 var CS=0,OX=0,OY=0,W=0,H=0;
+var _layoutPending=false;
+function scheduleLayout(){
+  if(_layoutPending) return;
+  _layoutPending=true;
+  RAF(function(){ _layoutPending=false; layout(); });
+}
 function layout(){
   var box=document.querySelector('.boardbox');
-  var availW=box.clientWidth-8, availH=box.clientHeight-10;
-  if(availW<160) availW=Math.min(window.innerWidth-24,420);
-  if(availH<160) availH=Math.max(240,window.innerHeight*0.52);
-  var byW=availW/9.3, byH=availH/10.3;
-  CS=Math.max(26,Math.floor(Math.min(byW,byH)));
-  if(8*CS+CS*1.24>availW+8) CS=Math.floor((availW+8)/9.24);
+  if(!box||!cv) return;
+
+  // 释放 canvas 占位，避免测量受到上一次尺寸影响
+  cv.style.width='0px';
+  cv.style.height='0px';
+
+  var cs=getComputedStyle(box);
+  var padL=parseFloat(cs.paddingLeft)||0, padR=parseFloat(cs.paddingRight)||0;
+  var padT=parseFloat(cs.paddingTop)||0, padB=parseFloat(cs.paddingBottom)||0;
+  var availW=box.clientWidth-padL-padR;
+  var availH=box.clientHeight-padT-padB;
+
+  // 容器尚未完成布局或尺寸异常时的兜底
+  if(!isFinite(availW)||availW<80) availW=Math.max(180,Math.min(window.innerWidth-24,600));
+  if(!isFinite(availH)||availH<80) availH=Math.max(220,Math.round(window.innerHeight*0.52));
+
+  // 留一点呼吸空间，避免棋盘贴边
+  availW*=0.985;
+  availH*=0.985;
+
+  // 棋盘总宽 = 8*CS + 2*0.62CS = 9.24CS；总高 = 9*CS + 2*0.62CS = 10.24CS
+  var byW=availW/9.24, byH=availH/10.24;
+  CS=Math.floor(Math.min(byW,byH));
+  if(!isFinite(CS)||CS<22) CS=22;
+  if(CS>92) CS=92;
+
   OX=Math.round(CS*0.62); OY=Math.round(CS*0.62);
   W=8*CS+OX*2; H=9*CS+OY*2;
+
   var dpr=Math.min(window.devicePixelRatio||1,2);
   cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
   cv.style.width=W+'px'; cv.style.height=H+'px';
@@ -778,7 +809,7 @@ function draw(){
     g.font=Math.round(CS*0.26)+'px sans-serif'; g.globalAlpha=.72;
     for(var cc=0;cc<9;cc++){
       g.fillText(String(S.flipped?(cc+1):(9-cc)),cx(cc),cy(0)-OY*0.5);
-      g.fillText(String(S.flipped?('一二三四五六七八九'.charAt(cc)):('一二三四五六七八九'.charAt(cc))),cx(cc),cy(9)+OY*0.5);
+      g.fillText(String('一二三四五六七八九'.charAt(cc)),cx(cc),cy(9)+OY*0.5);
     }
     g.globalAlpha=1;
   }
@@ -855,18 +886,17 @@ function piece(p,x,y,sc,P){
   g.fillStyle=red?'#c1272d':'#262626';
   g.font='700 '+Math.round(R*1.06)+'px "Songti SC","STSong","SimSun","Kaiti SC",serif';
   g.textAlign='center'; g.textBaseline='middle';
-  g.fillText(XQ.NAME_RED[XQ.typeOf(p)],x,y+R*.04);
+  var arr = red ? XQ.NAME_RED : XQ.NAME_BLACK;
+  g.fillText(arr[XQ.typeOf(p)],x,y+R*.04);
 }
 
 /* ---------- 开局 ---------- */
 function newGame(mode){
   S.mode=mode; S.over=false; S.hist=[]; S.sel=-1; S.legal=[]; S.last=null; S.thinking=false;
-  S.board=XQ.initBoard(); S.side=RED;
-  S.human=(mode==='pve')?LAST.color:RED;
+  S.board=XQ.initBoard(); S.side=RED; S.human=RED;
   S.t0=Date.now();
   LAST.mode=mode; save('xq_last',LAST);
   render();
-  if(mode==='pve'&&S.human!==RED) aiGo();
 }
 function restart(){ newGame(S.mode); toast('已重新开局'); }
 
@@ -931,8 +961,9 @@ function aiGo(){
   if(S.mode!=='pve') return;
   S.thinking=true; render();
   var d=DIFF[S.diff];
+  /* 把等待时间从 70ms 缩短到 15ms，电脑几乎立即出手 */
   setTimeout(function(){
-    var mv=XQ.bestMove(S.board,S.side,{depth:d.d,time:CFG.aiFast?Math.min(220,d.t):d.t,randomness:d.r});
+    var mv=XQ.bestMove(S.board,S.side,{depth:d.d,time:d.t,randomness:d.r});
     S.thinking=false;
     if(!mv){ checkEnd(); render(); return; }
     var from=(mv.move/90)|0, to=mv.move%90;
@@ -945,7 +976,7 @@ function aiGo(){
     if(XQ.inCheck(S.board,-S.side)) setTimeout(function(){beep('check');},90);
     S.side=-S.side;
     render(); checkEnd();
-  },70);
+  },15);
 }
 function undo(){
   if(S.thinking) return;
@@ -985,7 +1016,7 @@ function hint(){
   if(S.over){ toast('本局已结束'); return; }
   if(S.mode==='pve'&&S.side!==S.human){ toast('等电脑走完再看'); return; }
   var d=DIFF[S.diff];
-  var mv=XQ.bestMove(S.board,S.side,{depth:d.d,time:CFG.aiFast?400:1500,randomness:0});
+  var mv=XQ.bestMove(S.board,S.side,{depth:d.d,time:Math.min(800,d.t+200),randomness:0});
   if(!mv){ toast('无棋可走'); return; }
   var from=(mv.move/90)|0;
   var cn=XQ.moveToChinese(S.board,mv.move);
@@ -997,27 +1028,16 @@ function hint(){
 /* ---------- UI ---------- */
 function render(){
   if(CFG.dark) document.body.className='dark'; else document.body.className='';
+
   var mr=$('modeRow'); mr.innerHTML='';
-  mr.appendChild(chip('人机对战','pve',S.mode==='pve'));
-  mr.appendChild(chip('双人对战','pvp',S.mode==='pvp'));
+  mr.appendChild(seg(['人机对战','双人对战'], S.mode==='pve'?0:1, 'mode'));
 
   var dr=$('diffRow'); dr.innerHTML='';
-  var or_=$('optRow'); or_.innerHTML='';
   if(S.mode==='pve'){
-    dr.appendChild(seg(DIFF.map(function(d){return d.n;}),S.diff,'diff'));
-    or_.appendChild(seg(['我执红','我执黑'],(S.human===RED?0:1),'color'));
-    or_.appendChild(seg([CFG.aiFast?'⚡ 快速':'🧠 深度'],0,'fast'));
-  }else{
-    var t=document.createElement('div');
-    t.className='chip'; t.style.opacity='.75';
-    t.textContent='双人同机对弈 · 红先';
-    dr.appendChild(t);
-    var f=document.createElement('button');
-    f.className='chip'; f.setAttribute('data-sw','flip');
-    f.textContent='换边 ⇅';
-    or_.appendChild(f);
+    dr.appendChild(seg(DIFF.map(function(d){return d.n;}), S.diff, 'diff'));
   }
-  $('badge').textContent=(S.mode==='pve'?('人机 · '+DIFF[S.diff].n+' · 我执'+(S.human===RED?'红':'黑')):'双人对战');
+
+  $('badge').textContent=(S.mode==='pve'?('人机 · '+DIFF[S.diff].n):'双人对战');
   var dot=$('turnDot'); dot.className='turn '+(S.side===RED?'r':'b');
   var txt=$('stTxt'), who=(S.side===RED?'红方':'黑方');
   if(S.over) txt.innerHTML='<b>本局结束</b>';
@@ -1028,16 +1048,9 @@ function render(){
     else txt.innerHTML='<b>'+who+'</b>走棋'+ex;
   }
   $('stMini').textContent='第 '+(Math.floor(S.hist.length/2)+1)+' 回合 · '+fmt(Date.now()-S.t0);
-  $('btnUndo').disabled=S.thinking;
   $('btnUndo').disabled=S.thinking||!S.hist.length;
   draw();
-}
-function chip(text,mode,on){
-  var b=document.createElement('button');
-  b.className='chip'+(on?' on':'');
-  b.setAttribute('data-mode',mode);
-  b.textContent=text;
-  return b;
+  scheduleLayout();
 }
 function seg(labels,idx,act){
   var g=document.createElement('div'); g.className='seg';
@@ -1083,8 +1096,7 @@ document.addEventListener('click',function(e){
   if(sg){
     var a=sg.getAttribute('data-seg'), i=parseInt(sg.getAttribute('data-i'),10);
     if(a==='diff'){ S.diff=i; LAST.diff=i; save('xq_last',LAST); render(); }
-    else if(a==='color'){ LAST.color=(i===0?RED:BLACK); newGame('pve'); }
-    else if(a==='fast'){ CFG.aiFast=!CFG.aiFast; save('xq_cfg2',CFG); render(); }
+    else if(a==='mode'){ newGame(i===0?'pve':'pvp'); }
     return;
   }
   var md=near(e,'data-mode');
@@ -1096,7 +1108,6 @@ document.addEventListener('click',function(e){
   if(v==='restart') restart();
   else if(v==='newpve') newGame('pve');
   else if(v==='newpvp') newGame('pvp');
-  else if(v==='diff') openSet();
 },false);
 
 function openSet(){
@@ -1109,7 +1120,7 @@ function openSet(){
   h+='</div></div>';
   h+='<div class="grp"><div class="lb">显示与操作</div>';
   h+=sw('sound','音效')+sw('anim','落子动画')+sw('showMoves','显示可走点')+sw('coords','显示坐标')
-    +sw('dark','深色主题')+sw('aiFast','AI 快速模式（思考更快）');
+    +sw('dark','深色主题');
   h+='</div>';
   h+='<div class="tip">提示会调用引擎搜索当前局面的推荐着法；难度越高搜索越深、耗时越长。</div>';
   h+='<button class="ghost" data-act="close">关闭</button>';
@@ -1135,12 +1146,21 @@ $('btnReset').onclick=function(){
     +'<button class="big" data-act="restart">重新开始</button>'
     +'<button class="ghost" data-act="close">取消</button>');
 };
-window.addEventListener('resize',function(){ layout(); },false);
-window.addEventListener('orientationchange',function(){ setTimeout(layout,250); },false);
+
+/* ---------- 尺寸监听 ---------- */
+window.addEventListener('resize',scheduleLayout,false);
+window.addEventListener('orientationchange',function(){ setTimeout(scheduleLayout,260); },false);
+if(window.ResizeObserver){
+  try{
+    var _ro=new ResizeObserver(function(){ scheduleLayout(); });
+    _ro.observe(document.querySelector('.boardbox'));
+  }catch(e){}
+}
 
 /* ---------- 启动：直接进入对局界面 ---------- */
 S.diff=LAST.diff;
 layout();
+RAF(function(){ layout(); });        // 二次修正：等待字体/滚动条稳定
 newGame(LAST.mode);
 setInterval(function(){
   if(!S.over&&S.hist.length) $('stMini').textContent='第 '+(Math.floor(S.hist.length/2)+1)+' 回合 · '+fmt(Date.now()-S.t0);
