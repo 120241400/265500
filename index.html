@@ -1,0 +1,1692 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no,email=no,address=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>白象导航</title>
+<meta name="description" content="永久免费，线路超多，资源超全">
+<link rel="shortcut icon" href="https://i0.wp.com/baixiangys.vercel.app/shouye/logo.png">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* ================= 壁纸 ================= */
+  .wallpaper-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background-color: #1a1a1a;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+
+  .wallpaper-layer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: -webkit-linear-gradient(top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.85) 100%);
+    background: linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.85) 100%);
+  }
+
+  /* ================= 状态栏 ================= */
+  .status-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 36px;
+    z-index: 30;
+    line-height: 36px;
+    text-align: center;
+    padding: 0 16px;
+    background: rgba(0, 0, 0, 0.55);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .status-center {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ================= 桌面滚动容器 ================= */
+  .desktop-container {
+    position: fixed;
+    top: 36px;
+    left: 0;
+    right: 0;
+    bottom: 85px;
+    z-index: 10;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .desktop-container::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  /* ================= 桌面单页（手机端保持原样） ================= */
+  .desktop-page {
+    width: 100%;
+    padding: 10px 0 24px;
+    text-align: center;
+    font-size: 0;
+    line-height: 0;
+  }
+
+  /* ================= 应用图标（手机端原始尺寸/间距） ================= */
+  .app-icon {
+    display: inline-block;
+    vertical-align: top;
+    width: 20%;
+    min-width: 60px;
+    max-width: 80px;
+    margin: 0 8px 16px;
+    padding: 0;
+    font-size: 12px;
+    line-height: normal;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .icon-box {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+    border-radius: 22%;
+    background-color: rgba(255, 255, 255, 0.08);
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    -webkit-box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+    -webkit-transition: -webkit-transform 0.15s ease-out;
+    transition: transform 0.15s ease-out;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  .app-icon:active .icon-box {
+    -webkit-transform: scale(0.92);
+    transform: scale(0.92);
+  }
+
+  .app-icon .name {
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.25;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+  }
+
+  /* ================= 手机端 Dock ================= */
+  .dock {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 85px;
+    z-index: 20;
+    padding: 6px 8px 0;
+    text-align: center;
+    font-size: 0;
+    line-height: 0;
+    background: -webkit-linear-gradient(bottom, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.62) 55%, rgba(0,0,0,0.05) 100%);
+    background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.62) 55%, rgba(0,0,0,0.05) 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+
+  .dock .app-icon {
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+    padding: 0 12px;
+    vertical-align: top;
+  }
+
+  .dock .icon-box {
+    width: 48px;
+    height: 48px;
+    padding-bottom: 0;
+    border-radius: 14px;
+  }
+
+  .dock .app-icon .name {
+    margin-top: 3px;
+    font-size: 10px;
+  }
+
+  /* ================= 手机端全屏应用窗口 ================= */
+  .app-window {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 999;
+    display: none;
+  }
+
+  .app-window.show {
+    display: block;
+  }
+
+  .app-window .title-bar {
+    position: relative;
+    height: 42px;
+    background: #111;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+
+  .app-window .title {
+    height: 42px;
+    line-height: 42px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    padding: 0 78px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-window .title-btn {
+    position: absolute;
+    top: 50%;
+    margin-top: -14px;
+  }
+
+  .app-window .title-btn.left { left: 8px; }
+  .app-window .title-btn.right { right: 8px; }
+
+  .app-window .btn {
+    -webkit-appearance: none;
+    appearance: none;
+    border: 0;
+    outline: 0;
+    background: #ff4757;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 0 12px;
+    border-radius: 6px;
+    min-width: 56px;
+    height: 28px;
+    line-height: 28px;
+    cursor: pointer;
+  }
+
+  .app-window .btn:active {
+    opacity: 0.85;
+  }
+
+  .app-window .btn.fullscreen-btn {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .app-window .content {
+    position: absolute;
+    top: 42px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    overflow: hidden;
+  }
+
+  .app-window .content iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #000;
+  }
+
+  .app-window.fullscreen .title-bar { display: none; }
+  .app-window.fullscreen .content { top: 0; }
+
+  /* ================= 加载遮罩（共用） ================= */
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    z-index: 5;
+    display: table;
+    width: 100%;
+    height: 100%;
+  }
+
+  .loading-inner {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    padding: 0 24px;
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    -webkit-animation: spin 0.8s linear infinite;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @-webkit-keyframes spin {
+    to { -webkit-transform: rotate(360deg); }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .loading-text {
+    margin-top: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.3px;
+  }
+
+  .load-emoji {
+    font-size: 36px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .retry-btn {
+    margin-top: 18px;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 0;
+    outline: 0;
+    background: #ff4757;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 0 26px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+
+  .retry-btn:active {
+    opacity: 0.85;
+  }
+
+  /* ================= 电脑端元素默认隐藏 ================= */
+  .taskbar,
+  .start-menu,
+  #windowLayer {
+    display: none;
+  }
+
+  /* ================= 电脑端 Win10 风格 ================= */
+  @media (min-width: 768px) {
+    .status-bar { display: none; }
+    .dock { display: none; }
+    .app-window { display: none !important; }
+
+    /* 桌面容器：竖向溢出隐藏，横向可滚动 */
+    .desktop-container {
+      top: 0;
+      bottom: 48px;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    /* 电脑端桌面：竖向 flex 列，满一列换到右侧新列 */
+    .desktop-page {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+      -webkit-flex-direction: column;
+      flex-direction: column;
+      -webkit-box-lines: multiple;
+      -webkit-flex-wrap: wrap;
+      flex-wrap: wrap;
+      -webkit-box-align: start;
+      -webkit-align-items: flex-start;
+      align-items: flex-start;
+      -webkit-align-content: flex-start;
+      align-content: flex-start;
+      -webkit-box-pack: start;
+      -webkit-justify-content: flex-start;
+      justify-content: flex-start;
+      height: 100%;
+      width: auto;
+      min-width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 14px 10px;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      text-align: left;
+    }
+
+    /* 电脑端桌面图标：竖向排列，高度自适应，上下间距一致 */
+    .desktop-page .app-icon {
+      -webkit-box-flex: 0;
+      -webkit-flex: 0 0 auto;
+      flex: 0 0 auto;
+      width: 96px;
+      height: auto;
+      min-width: 0;
+      max-width: none;
+      margin: 4px;
+      padding: 8px 4px;
+      border-radius: 6px;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      -webkit-transition: background 0.15s ease;
+      transition: background 0.15s ease;
+    }
+
+    .desktop-page .app-icon:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .desktop-page .app-icon:active .icon-box {
+      -webkit-transform: none;
+      transform: none;
+    }
+
+    .desktop-page .app-icon .icon-box {
+      width: 52px;
+      height: 52px;
+      padding-bottom: 0;
+      margin: 0 auto;
+      border-radius: 8px;
+    }
+
+    .desktop-page .app-icon .name {
+      margin-top: 6px;
+      font-size: 12px;
+    }
+
+    /* 任务栏 */
+    .taskbar {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 48px;
+      z-index: 9000;
+      background: rgba(20, 20, 20, 0.94);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      -webkit-box-align: center;
+      -webkit-align-items: center;
+      align-items: center;
+      padding: 0 4px;
+    }
+
+    .start-btn {
+      width: 48px;
+      height: 40px;
+      border: 0;
+      outline: none;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 3px;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-box-align: center;
+      -webkit-align-items: center;
+      align-items: center;
+      -webkit-box-pack: center;
+      -webkit-justify-content: center;
+      justify-content: center;
+    }
+
+    .start-btn:hover { background: rgba(255, 255, 255, 0.12); }
+    .start-btn svg { width: 22px; height: 22px; display: block; }
+
+    .taskbar-apps {
+      -webkit-box-flex: 1;
+      -webkit-flex: 1;
+      flex: 1;
+      height: 100%;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-box-align: center;
+      -webkit-align-items: center;
+      align-items: center;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0 4px;
+    }
+
+    .taskbar-item {
+      height: 38px;
+      margin-right: 4px;
+      padding: 0 10px;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-box-align: center;
+      -webkit-align-items: center;
+      align-items: center;
+      border-radius: 3px;
+      white-space: nowrap;
+      max-width: 190px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .taskbar-item:hover { background: rgba(255, 255, 255, 0.12); }
+    .taskbar-item.active {
+      background: rgba(255, 255, 255, 0.18);
+      border-bottom-color: #4cc2ff;
+    }
+
+    .taskbar-item img {
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      margin-right: 6px;
+      -webkit-flex: 0 0 auto;
+      flex: 0 0 auto;
+    }
+
+    .taskbar-item .t-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .taskbar-right {
+      height: 100%;
+      padding: 0 12px 0 8px;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-box-align: center;
+      -webkit-align-items: center;
+      align-items: center;
+    }
+
+    .taskbar-clock {
+      color: #fff;
+      font-size: 12px;
+      line-height: 1.35;
+      text-align: right;
+      cursor: default;
+    }
+
+    .taskbar-clock #taskbarTime { font-size: 12px; }
+    .taskbar-clock #taskbarDate { font-size: 11px; opacity: 0.85; }
+
+    /* 开始菜单 */
+    .start-menu {
+      position: fixed;
+      left: 8px;
+      bottom: 54px;
+      width: 400px;
+      max-width: -webkit-calc(100vw - 16px);
+      max-width: calc(100vw - 16px);
+      max-height: 64vh;
+      z-index: 9500;
+      background: rgba(32, 32, 32, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      -webkit-box-shadow: 0 12px 40px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.65);
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+      -webkit-flex-direction: column;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .start-menu.show {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+    }
+
+    .start-menu-title {
+      padding: 14px 18px 8px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+      -webkit-flex: 0 0 auto;
+      flex: 0 0 auto;
+    }
+
+    .start-menu-apps {
+      padding: 4px 10px 18px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      font-size: 0;
+      line-height: 0;
+      text-align: left;
+    }
+
+    .start-menu-apps .app-icon {
+      width: 82px;
+      min-width: 0;
+      max-width: none;
+      margin: 4px;
+      padding: 6px 2px;
+      vertical-align: top;
+    }
+
+    .start-menu-apps .app-icon .icon-box {
+      width: 40px;
+      height: 40px;
+      padding-bottom: 0;
+      margin: 0 auto;
+      border-radius: 8px;
+    }
+
+    .start-menu-apps .app-icon .name {
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    /* 窗口层 */
+    #windowLayer {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 48px;
+      z-index: 5000;
+      pointer-events: none;
+    }
+
+    .win-window {
+      position: absolute;
+      min-width: 320px;
+      min-height: 220px;
+      background: #1f1f1f;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 10px;
+      overflow: hidden;
+      pointer-events: auto;
+      -webkit-box-shadow: 0 10px 36px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.65);
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+      -webkit-flex-direction: column;
+      flex-direction: column;
+    }
+
+    .win-window.active {
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    /* 最大化：直角无边框无阴影 */
+    .win-window.maximized {
+      border-radius: 0;
+      border: none;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+    }
+
+    .win-titlebar {
+      height: 34px;
+      -webkit-box-flex: 0;
+      -webkit-flex: 0 0 auto;
+      flex: 0 0 auto;
+      background: #2d2d2d;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-box-align: center;
+      -webkit-align-items: center;
+      align-items: center;
+      cursor: move;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    .win-window.active .win-titlebar { background: #363636; }
+
+    .win-title-icon {
+      width: 18px;
+      height: 18px;
+      margin: 0 8px 0 10px;
+      border-radius: 3px;
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      -webkit-flex: 0 0 auto;
+      flex: 0 0 auto;
+    }
+
+    .win-title-text {
+      -webkit-box-flex: 1;
+      -webkit-flex: 1;
+      flex: 1;
+      font-size: 13px;
+      color: #eee;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 8px;
+    }
+
+    .win-controls {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      height: 100%;
+      -webkit-flex: 0 0 auto;
+      flex: 0 0 auto;
+    }
+
+    /* 窗口控制按钮：恢复文本符号样式 */
+    .win-btn {
+      width: 44px;
+      height: 34px;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: #ddd;
+      font-size: 13px;
+      line-height: 34px;
+      text-align: center;
+      cursor: pointer;
+      padding: 0;
+      font-family: inherit;
+    }
+
+    .win-btn:hover { background: rgba(255, 255, 255, 0.12); }
+    .win-btn.win-close:hover { background: #e81123; color: #fff; }
+
+    .win-body {
+      -webkit-box-flex: 1;
+      -webkit-flex: 1;
+      flex: 1;
+      position: relative;
+      background: #000;
+    }
+
+    .win-body iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #000;
+    }
+
+    .win-resizer {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 18px;
+      height: 18px;
+      cursor: nwse-resize;
+      z-index: 4;
+    }
+
+    .win-resizer::before {
+      content: "";
+      position: absolute;
+      right: 3px;
+      bottom: 3px;
+      width: 9px;
+      height: 9px;
+      border-right: 2px solid rgba(255, 255, 255, 0.4);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .win-window.maximized .win-resizer { display: none; }
+
+    body.win-dragging iframe,
+    body.win-dragging .win-resizer {
+      pointer-events: none !important;
+    }
+  }
+
+  /* ================= 横屏矮屏适配（手机端） ================= */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .desktop-container { bottom: 65px; }
+    .dock { height: 65px; padding-top: 2px; }
+    .dock .icon-box { width: 40px; height: 40px; }
+    .dock .app-icon .name { font-size: 9px; }
+    .app-icon { padding-top: 5px; }
+  }
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<div class="wallpaper-layer" id="wallpaper"></div>
+
+<div class="status-bar">
+  <div class="status-center" id="fullTime">加载中...</div>
+</div>
+
+<div class="desktop-container" id="desktopContainer">
+  <div class="desktop-page" id="desktopPage"></div>
+</div>
+
+<div class="dock" id="dock"></div>
+
+<!-- 手机端全屏应用窗口 -->
+<div class="app-window" id="appWindow">
+  <div class="title-bar">
+    <div class="title-btn left">
+      <button class="btn fullscreen-btn" id="fullscreenBtn">全屏</button>
+    </div>
+    <div class="title" id="appTitle"></div>
+    <div class="title-btn right">
+      <button class="btn close-btn" id="closeAppBtn">关闭</button>
+    </div>
+  </div>
+  <div class="content" id="appContent"></div>
+</div>
+
+<!-- 电脑端窗口层 -->
+<div id="windowLayer"></div>
+
+<!-- 电脑端任务栏 -->
+<div class="taskbar" id="taskbar">
+  <button class="start-btn" id="startBtn" type="button" title="开始">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff">
+      <rect x="2" y="2" width="9" height="9"></rect>
+      <rect x="13" y="2" width="9" height="9"></rect>
+      <rect x="2" y="13" width="9" height="9"></rect>
+      <rect x="13" y="13" width="9" height="9"></rect>
+    </svg>
+  </button>
+  <div class="taskbar-apps" id="taskbarApps"></div>
+  <div class="taskbar-right">
+    <div class="taskbar-clock">
+      <div id="taskbarTime">--:--</div>
+      <div id="taskbarDate">----/--/--</div>
+    </div>
+  </div>
+</div>
+
+<!-- 电脑端开始菜单 -->
+<div class="start-menu" id="startMenu">
+  <div class="start-menu-title">所有应用</div>
+  <div class="start-menu-apps" id="startMenuApps"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ===================== 工具 ===================== */
+  function $(id) { return document.getElementById(id); }
+
+  function hasClass(el, cls) {
+    return (' ' + el.className + ' ').indexOf(' ' + cls + ' ') > -1;
+  }
+
+  function addClass(el, cls) {
+    if (!hasClass(el, cls)) {
+      el.className = el.className ? (el.className + ' ' + cls) : cls;
+    }
+  }
+
+  function removeClass(el, cls) {
+    var reg = new RegExp('(^|\\s)' + cls + '(\\s|$)');
+    el.className = el.className.replace(reg, ' ').replace(/^\s+|\s+$/g, '');
+  }
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function isDesktop() { return window.innerWidth >= 768; }
+
+  function stopEvt(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+  }
+
+  /* ===================== 壁纸 ===================== */
+  var wallpapers = [
+    "https://wp.upx8.com/api.php?category=nature"
+  ];
+
+  function initWallpaper() {
+    var el = $('wallpaper');
+    if (!el) return;
+    var idx = Math.floor(Math.random() * wallpapers.length);
+    if (idx >= wallpapers.length) idx = 0;
+    el.style.backgroundImage = 'url("' + wallpapers[idx] + '")';
+  }
+
+  /* ===================== 应用数据 ===================== */
+  var allApps = [
+    { name: "影视一站", icon: "https://pp.myapp.com/ma_icon/0/icon_54371801_1750403551/256", url: "https://saas.bk-cdn01.com/t/eb5cddea-8710-4a43-af44-e9ceb4c9befe/u/76c8d21d-0c4b-45b4-93e9-aee594231a1b/1793204675886/jusou1029.html" },
+    { name: "影视二站", icon: "https://pp.myapp.com/ma_icon/0/icon_11213962_1755480427/256", url: "https://saas.bk-cdn01.com/t/eb5cddea-8710-4a43-af44-e9ceb4c9befe/u/76c8d21d-0c4b-45b4-93e9-aee594231a1b/1792999641463/yingku1026.html" },
+    { name: "备用一站", icon: "https://pp.myapp.com/ma_icon/0/icon_54371801_1750403551/256", url: "https://saas.bk-cdn01.com/t/eb5cddea-8710-4a43-af44-e9ceb4c9befe/u/76c8d21d-0c4b-45b4-93e9-aee594231a1b/1792908612877/111.html", openType: "newTab" },
+    { name: "备用二站", icon: "https://pp.myapp.com/ma_icon/0/icon_11213962_1755480427/256", url: "https://saas.bk-cdn01.com/t/eb5cddea-8710-4a43-af44-e9ceb4c9befe/u/76c8d21d-0c4b-45b4-93e9-aee594231a1b/1792908655659/222.html", openType: "newTab" },
+    { name: "影视网站", icon: "https://pp.myapp.com/ma_icon/0/icon_54424584_1740629583/256", url: "https://yingshi.wasmer.app/yingshi/1" },
+    { name: "影视网站", icon: "https://pp.myapp.com/ma_icon/0/icon_54488491_1743411338/256", url: "https://yingshi.wasmer.app/yingshi/2" },
+    { name: "影视网站", icon: "https://pp.myapp.com/ma_icon/0/icon_54664562_1781241043/256", url: "https://yingshi.wasmer.app/yingshi/3" },
+    { name: "淘宝领券", icon: "https://pp.myapp.com/ma_icon/0/icon_54508324_1769481196/256", url: "./bfq/lingquan.html" },
+    { name: "二维码生成", icon: "https://pp.myapp.com/ma_icon/0/icon_54328693_1705943040/256", url: "https://cli.im/" },
+    { name: "天气预报", icon: "https://pp.myapp.com/ma_icon/0/icon_54211715_1773305647/256", url: "https://tianqi.qq.com/" },
+    { name: "台风路径", icon: "https://pp.myapp.com/ma_icon/0/icon_10434676_1779951489/256", url: "https://tf02.istrongcloud.com/release/weathermap/index-vivo.html" },
+    { name: "音乐电台", icon: "https://pp.myapp.com/ma_icon/0/icon_54054652_1726106842/256", url: "https://www.265500.vip/888/yinyue.html" },
+    { name: "纸牌游戏", icon: "https://i0.wp.com/265500.vercel.app/tupian/zhipai.png", url: "https://www.265500.vip/888/zhipai.html" },
+    { name: "倒水游戏", icon: "https://pp.myapp.com/ma_icon/0/icon_54654430_1779344231/256", url: "https://www.265500.vip/888/daoshui.html" },
+    { name: "2048游戏", icon: "https://i0.wp.com/265500.vercel.app/tupian/2048.png", url: "https://www.265500.vip/888/2048.html" },
+    { name: "斗地主", icon: "https://i0.wp.com/265500.vercel.app/tupian/doudizhu.png", url: "https://www.265500.vip/888/doudizhu.html" },
+    { name: "五子棋", icon: "https://pp.myapp.com/ma_icon/0/icon_54083919_1769043612/256", url: "https://www.265500.vip/888/wuziqi.html" },
+    { name: "象棋", icon: "https://pp.myapp.com/ma_icon/0/icon_54388105_1784771937/256", url: "https://www.265500.vip/888/xiangqi.html" },
+    { name: "俄罗斯方块", icon: "https://pp.myapp.com/ma_icon/0/icon_54230668_1694057025/256", url: "https://www.265500.vip/888/eluosifangkuai.html" },
+    { name: "数字华容道", icon: "https://i0.wp.com/265500.vercel.app/tupian/huarongdao.png", url: "https://www.265500.vip/888/huarongdao.html" },
+    { name: "消消乐", icon: "http://pp.myapp.com/ma_icon/0/icon_54333852_1753337953/256", url: "https://www.265500.vip/888/xiaoxiaole.html" },
+    { name: "数独游戏", icon: "https://pp.myapp.com/ma_icon/0/icon_54266511_1787934821/256", url: "https://www.265500.vip/888/shudu.html" }
+  ];
+
+  var dockApps = [
+    { name: "备用桌面", icon: "https://pp.myapp.com/ma_icon/0/icon_54263391_1751532545/256", url: "https://lele.bk-free02.com/4d92/7c12", openType: "newTab" },
+    { name: "搜狗搜索", icon: "https://pp.myapp.com/ma_icon/0/icon_6866_1778645092/256", url: "https://sogou.com/" }
+  ];
+
+  /* ===================== 图标渲染 ===================== */
+  function createIcon(app) {
+    var item = document.createElement('div');
+    item.className = 'app-icon';
+
+    var box = document.createElement('div');
+    box.className = 'icon-box';
+    box.style.backgroundImage = 'url("' + app.icon + '")';
+
+    var nameEl = document.createElement('div');
+    nameEl.className = 'name';
+    nameEl.innerHTML = app.name;
+
+    item.appendChild(box);
+    item.appendChild(nameEl);
+
+    item.onclick = function () {
+      if (isDesktop()) {
+        openWin(app);
+      } else if (app.openType === 'newTab') {
+        window.open(app.url, '_blank');
+      } else {
+        openApp(app.name, app.url);
+      }
+    };
+
+    return item;
+  }
+
+  function renderDesktop() {
+    var pageEl = $('desktopPage');
+    if (!pageEl) return;
+    var list = isDesktop() ? allApps.concat(dockApps) : allApps;
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < list.length; i++) {
+      frag.appendChild(createIcon(list[i]));
+    }
+    pageEl.innerHTML = '';
+    pageEl.appendChild(frag);
+  }
+
+  function renderDock() {
+    var dockEl = $('dock');
+    if (!dockEl) return;
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < dockApps.length; i++) {
+      frag.appendChild(createIcon(dockApps[i]));
+    }
+    dockEl.innerHTML = '';
+    dockEl.appendChild(frag);
+  }
+
+  /* ===================== 手机端全屏窗口 ===================== */
+  var appWindow, appTitleEl, appContentEl;
+  var currentIframe = null;
+  var currentOverlay = null;
+  var loadTimer = null;
+  var isFullscreen = false;
+  var LOAD_TIMEOUT = 30000;
+
+  function clearLoadTimer() {
+    if (loadTimer) {
+      clearTimeout(loadTimer);
+      loadTimer = null;
+    }
+  }
+
+  function cleanApp() {
+    clearLoadTimer();
+
+    if (currentIframe) {
+      currentIframe.onload = null;
+      currentIframe.onerror = null;
+      try { currentIframe.src = 'about:blank'; } catch (e) {}
+      if (currentIframe.parentNode) {
+        currentIframe.parentNode.removeChild(currentIframe);
+      }
+      currentIframe = null;
+    }
+
+    if (currentOverlay && currentOverlay.parentNode) {
+      currentOverlay.parentNode.removeChild(currentOverlay);
+    }
+    currentOverlay = null;
+
+    if (appContentEl) {
+      while (appContentEl.firstChild) {
+        appContentEl.removeChild(appContentEl.firstChild);
+      }
+    }
+  }
+
+  function showLoading(overlay) {
+    overlay.innerHTML =
+      '<div class="loading-inner">' +
+        '<div class="loading-spinner"></div>' +
+        '<div class="loading-text">精彩即将呈现，请稍候...</div>' +
+      '</div>';
+  }
+
+  function showError(msg, name, url) {
+    clearLoadTimer();
+
+    if (!currentOverlay || !currentOverlay.parentNode) {
+      var ov = document.createElement('div');
+      ov.className = 'loading-overlay';
+      appContentEl.appendChild(ov);
+      currentOverlay = ov;
+    }
+
+    currentOverlay.innerHTML =
+      '<div class="loading-inner">' +
+        '<div class="load-emoji">⚠️</div>' +
+        '<div class="loading-text">' + msg + '</div>' +
+        '<button class="retry-btn" id="retryBtn" type="button">重新加载</button>' +
+      '</div>';
+
+    var btn = $('retryBtn');
+    if (btn) {
+      btn.onclick = function (e) {
+        stopEvt(e);
+        openApp(name, url);
+      };
+    }
+  }
+
+  function openApp(name, url) {
+    if (!url) return;
+
+    cleanApp();
+
+    if (isFullscreen) {
+      isFullscreen = false;
+      removeClass(appWindow, 'fullscreen');
+    }
+
+    appTitleEl.innerHTML = name;
+    addClass(appWindow, 'show');
+
+    var iframe = document.createElement('iframe');
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('allowfullscreen', 'true');
+    iframe.setAttribute('allow', 'fullscreen; autoplay; encrypted-media');
+    iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-modals');
+    iframe.src = url;
+    currentIframe = iframe;
+
+    var overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    showLoading(overlay);
+    currentOverlay = overlay;
+
+    appContentEl.appendChild(iframe);
+    appContentEl.appendChild(overlay);
+
+    iframe.onload = function () {
+      clearLoadTimer();
+      if (currentOverlay && currentOverlay.parentNode) {
+        currentOverlay.parentNode.removeChild(currentOverlay);
+      }
+      currentOverlay = null;
+    };
+
+    iframe.onerror = function () {
+      showError('连接失败，请检查网络后重试', name, url);
+    };
+
+    loadTimer = setTimeout(function () {
+      loadTimer = null;
+      showError('网络较慢，加载超时，请重试', name, url);
+    }, LOAD_TIMEOUT);
+  }
+
+  function closeApp() {
+    if (!appWindow || !hasClass(appWindow, 'show')) return;
+    removeClass(appWindow, 'show');
+    cleanApp();
+    if (isFullscreen) {
+      isFullscreen = false;
+      removeClass(appWindow, 'fullscreen');
+    }
+  }
+
+  function toggleFullscreen() {
+    isFullscreen = !isFullscreen;
+    if (isFullscreen) addClass(appWindow, 'fullscreen');
+    else removeClass(appWindow, 'fullscreen');
+  }
+
+  /* ===================== 电脑端多窗口系统 ===================== */
+  var winLayer = null;
+  var windows = [];
+  var winSeq = 0;
+  var zTop = 5000;
+  var dragState = null;
+
+  function openWin(app) {
+    if (!winLayer) return;
+
+    winSeq++;
+
+    var vh = window.innerHeight - 48;
+    var w = Math.min(1000, Math.max(480, Math.round(window.innerWidth * 0.72)));
+    var h = Math.min(680, Math.max(300, Math.round(vh * 0.72)));
+    var offset = (windows.length % 6) * 28;
+
+    var left = Math.round((window.innerWidth - w) / 2) + offset;
+    var top = Math.round((vh - h) / 2) + offset;
+
+    if (left < 8) left = 8;
+    if (top < 8) top = 8;
+    if (left + w > window.innerWidth - 8) left = Math.max(8, window.innerWidth - w - 8);
+    if (top + h > vh - 8) top = Math.max(8, vh - h - 8);
+
+    var el = document.createElement('div');
+    el.className = 'win-window';
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+    el.style.width = w + 'px';
+    el.style.height = h + 'px';
+    el.style.zIndex = (++zTop);
+
+    el.innerHTML =
+      '<div class="win-titlebar">' +
+        '<div class="win-title-icon" style="background-image:url(\'' + app.icon + '\')"></div>' +
+        '<div class="win-title-text">' + app.name + '</div>' +
+        '<div class="win-controls">' +
+          '<button class="win-btn win-min" type="button" title="最小化">─</button>' +
+          '<button class="win-btn win-max" type="button" title="最大化">□</button>' +
+          '<button class="win-btn win-close" type="button" title="关闭">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="win-body">' +
+        '<iframe frameborder="0" allowfullscreen allow="fullscreen; autoplay; encrypted-media" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-modals"></iframe>' +
+        '<div class="loading-overlay"><div class="loading-inner"><div class="loading-spinner"></div><div class="loading-text">精彩即将呈现，请稍候...</div></div></div>' +
+      '</div>' +
+      '<div class="win-resizer"></div>';
+
+    var win = {
+      id: 'w' + winSeq,
+      app: app,
+      el: el,
+      iframe: el.querySelector('iframe'),
+      overlay: el.querySelector('.loading-overlay'),
+      left: left,
+      top: top,
+      w: w,
+      h: h,
+      minimized: false,
+      maximized: false,
+      timer: null,
+      prev: null
+    };
+
+    bindWinLoad(win);
+    win.iframe.src = app.url;
+
+    el.querySelector('.win-min').onclick = function (e) { stopEvt(e); minimizeWin(win); };
+    el.querySelector('.win-max').onclick = function (e) { stopEvt(e); toggleMaxWin(win); };
+    el.querySelector('.win-close').onclick = function (e) { stopEvt(e); closeWin(win); };
+
+    var titlebar = el.querySelector('.win-titlebar');
+    titlebar.onmousedown = function (e) {
+      e = e || window.event;
+      if (isInControls(e.target || e.srcElement)) return;
+      activateWin(win);
+      if (win.maximized) return;
+      startDrag(win, e, false);
+      return false;
+    };
+
+    titlebar.ondblclick = function (e) {
+      e = e || window.event;
+      if (isInControls(e.target || e.srcElement)) return;
+      toggleMaxWin(win);
+      return false;
+    };
+
+    var resizer = el.querySelector('.win-resizer');
+    resizer.onmousedown = function (e) {
+      e = e || window.event;
+      activateWin(win);
+      if (win.maximized) return;
+      startDrag(win, e, true);
+      return false;
+    };
+
+    el.onmousedown = function () { activateWin(win); };
+
+    winLayer.appendChild(el);
+    windows.push(win);
+    activateWin(win);
+  }
+
+  function isInControls(node) {
+    while (node && node !== document) {
+      var cn = ' ' + (node.className || '') + ' ';
+      if (cn.indexOf(' win-btn ') > -1 || cn.indexOf(' win-controls ') > -1) return true;
+      node = node.parentNode;
+    }
+    return false;
+  }
+
+  function bindWinLoad(win) {
+    if (win.timer) {
+      clearTimeout(win.timer);
+      win.timer = null;
+    }
+
+    win.overlay.style.display = 'table';
+    win.overlay.innerHTML =
+      '<div class="loading-inner">' +
+        '<div class="loading-spinner"></div>' +
+        '<div class="loading-text">精彩即将呈现，请稍候...</div>' +
+      '</div>';
+
+    win.iframe.onload = function () {
+      if (win.timer) {
+        clearTimeout(win.timer);
+        win.timer = null;
+      }
+      win.overlay.style.display = 'none';
+    };
+
+    win.iframe.onerror = function () {
+      winShowError(win, '连接失败，请检查网络后重试');
+    };
+
+    win.timer = setTimeout(function () {
+      win.timer = null;
+      winShowError(win, '网络较慢，加载超时，请重试');
+    }, 30000);
+  }
+
+  function winShowError(win, msg) {
+    if (win.timer) {
+      clearTimeout(win.timer);
+      win.timer = null;
+    }
+
+    win.overlay.style.display = 'table';
+    win.overlay.innerHTML =
+      '<div class="loading-inner">' +
+        '<div class="load-emoji">⚠️</div>' +
+        '<div class="loading-text">' + msg + '</div>' +
+        '<button class="retry-btn" type="button">重新加载</button>' +
+      '</div>';
+
+    var btn = win.overlay.querySelector('.retry-btn');
+    if (btn) {
+      btn.onclick = function (e) {
+        stopEvt(e);
+        reloadWin(win);
+      };
+    }
+  }
+
+  function reloadWin(win) {
+    bindWinLoad(win);
+    try { win.iframe.src = 'about:blank'; } catch (e) {}
+    win.iframe.src = win.app.url;
+  }
+
+  function startDrag(win, e, resize) {
+    dragState = {
+      win: win,
+      x: e.clientX,
+      y: e.clientY,
+      left: win.left,
+      top: win.top,
+      w: win.w,
+      h: win.h,
+      resize: resize
+    };
+    addClass(document.body, 'win-dragging');
+    if (e.preventDefault) e.preventDefault();
+  }
+
+  document.addEventListener('mousemove', function (e) {
+    if (!dragState) return;
+    var win = dragState.win;
+    var dx = e.clientX - dragState.x;
+    var dy = e.clientY - dragState.y;
+
+    if (dragState.resize) {
+      var nw = Math.max(320, dragState.w + dx);
+      var nh = Math.max(220, dragState.h + dy);
+      win.w = nw;
+      win.h = nh;
+      win.el.style.width = nw + 'px';
+      win.el.style.height = nh + 'px';
+    } else {
+      var vh = window.innerHeight - 48;
+      var left = dragState.left + dx;
+      var top = dragState.top + dy;
+
+      if (left > window.innerWidth - 120) left = window.innerWidth - 120;
+      if (left < -win.w + 120) left = -win.w + 120;
+      if (top < 0) top = 0;
+      if (top > vh - 40) top = vh - 40;
+
+      win.left = left;
+      win.top = top;
+      win.el.style.left = left + 'px';
+      win.el.style.top = top + 'px';
+    }
+  });
+
+  document.addEventListener('mouseup', function () {
+    if (dragState) {
+      dragState = null;
+      removeClass(document.body, 'win-dragging');
+    }
+  });
+
+  function activateWin(win) {
+    if (win.minimized) {
+      win.minimized = false;
+      win.el.style.display = '';
+    }
+
+    zTop++;
+    win.el.style.zIndex = zTop;
+
+    for (var i = 0; i < windows.length; i++) {
+      var w = windows[i];
+      if (w === win) addClass(w.el, 'active');
+      else removeClass(w.el, 'active');
+    }
+
+    updateTaskbar();
+  }
+
+  function minimizeWin(win) {
+    win.minimized = true;
+    win.el.style.display = 'none';
+    removeClass(win.el, 'active');
+    updateTaskbar();
+
+    var top = null;
+    for (var i = 0; i < windows.length; i++) {
+      if (!windows[i].minimized) top = windows[i];
+    }
+    if (top) activateWin(top);
+  }
+
+  function closeWin(win) {
+    if (win.timer) clearTimeout(win.timer);
+
+    if (win.iframe) {
+      win.iframe.onload = null;
+      win.iframe.onerror = null;
+      try { win.iframe.src = 'about:blank'; } catch (e) {}
+    }
+
+    if (win.el.parentNode) win.el.parentNode.removeChild(win.el);
+
+    var arr = [];
+    for (var i = 0; i < windows.length; i++) {
+      if (windows[i] !== win) arr.push(windows[i]);
+    }
+    windows = arr;
+
+    updateTaskbar();
+
+    var top = null;
+    for (var j = 0; j < windows.length; j++) {
+      if (!windows[j].minimized) top = windows[j];
+    }
+    if (top) activateWin(top);
+  }
+
+  function toggleMaxWin(win) {
+    var maxBtn = win.el.querySelector('.win-max');
+    if (win.maximized) {
+      win.maximized = false;
+      win.left = win.prev.left;
+      win.top = win.prev.top;
+      win.w = win.prev.w;
+      win.h = win.prev.h;
+      win.el.style.left = win.left + 'px';
+      win.el.style.top = win.top + 'px';
+      win.el.style.width = win.w + 'px';
+      win.el.style.height = win.h + 'px';
+      removeClass(win.el, 'maximized');
+      if (maxBtn) {
+        maxBtn.innerHTML = '□';
+        maxBtn.title = '最大化';
+      }
+    } else {
+      win.prev = { left: win.left, top: win.top, w: win.w, h: win.h };
+      win.maximized = true;
+      win.el.style.left = '0px';
+      win.el.style.top = '0px';
+      win.el.style.width = '100%';
+      win.el.style.height = '100%';
+      addClass(win.el, 'maximized');
+      if (maxBtn) {
+        maxBtn.innerHTML = '❐';
+        maxBtn.title = '还原';
+      }
+    }
+    activateWin(win);
+  }
+
+  function getActiveWin() {
+    for (var i = 0; i < windows.length; i++) {
+      if (!windows[i].minimized && hasClass(windows[i].el, 'active')) return windows[i];
+    }
+    return null;
+  }
+
+  function updateTaskbar() {
+    var box = $('taskbarApps');
+    if (!box) return;
+
+    box.innerHTML = '';
+
+    for (var i = 0; i < windows.length; i++) {
+      (function (win) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'taskbar-item';
+        if (!win.minimized && hasClass(win.el, 'active')) btn.className += ' active';
+
+        btn.innerHTML =
+          '<img src="' + win.app.icon + '" alt="">' +
+          '<span class="t-name">' + win.app.name + '</span>';
+
+        btn.onclick = function () {
+          if (win.minimized) {
+            activateWin(win);
+          } else if (hasClass(win.el, 'active')) {
+            minimizeWin(win);
+          } else {
+            activateWin(win);
+          }
+        };
+
+        box.appendChild(btn);
+      })(windows[i]);
+    }
+  }
+
+  /* ===================== 开始菜单 ===================== */
+  var startMenu = null;
+  var startBtn = null;
+
+  function renderStartMenu() {
+    var box = $('startMenuApps');
+    if (!box) return;
+
+    var list = allApps.concat(dockApps);
+    var frag = document.createDocumentFragment();
+
+    for (var i = 0; i < list.length; i++) {
+      (function (app) {
+        var item = document.createElement('div');
+        item.className = 'app-icon';
+
+        var b = document.createElement('div');
+        b.className = 'icon-box';
+        b.style.backgroundImage = 'url("' + app.icon + '")';
+
+        var n = document.createElement('div');
+        n.className = 'name';
+        n.innerHTML = app.name;
+
+        item.appendChild(b);
+        item.appendChild(n);
+
+        item.onclick = function () {
+          removeClass(startMenu, 'show');
+          openWin(app);
+        };
+
+        frag.appendChild(item);
+      })(list[i]);
+    }
+
+    box.innerHTML = '';
+    box.appendChild(frag);
+  }
+
+  /* ===================== 时间 ===================== */
+  function updateTime() {
+    var now = new Date();
+    var months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+    var days = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+
+    var str = months[now.getMonth()] + now.getDate() + '日 ' +
+              days[now.getDay()] + ' ' +
+              pad(now.getHours()) + ':' + pad(now.getMinutes());
+
+    var el = $('fullTime');
+    if (el) el.innerHTML = str;
+
+    var tEl = $('taskbarTime');
+    if (tEl) tEl.innerHTML = pad(now.getHours()) + ':' + pad(now.getMinutes());
+
+    var dEl = $('taskbarDate');
+    if (dEl) dEl.innerHTML = now.getFullYear() + '/' + pad(now.getMonth() + 1) + '/' + pad(now.getDate());
+  }
+
+  /* ===================== 布局切换 ===================== */
+  var lastDesktop = null;
+  var resizeTimer = null;
+
+  function checkLayout() {
+    var d = isDesktop();
+    if (d !== lastDesktop) {
+      lastDesktop = d;
+      renderDesktop();
+      if (!d && startMenu) removeClass(startMenu, 'show');
+    }
+  }
+
+  /* ===================== 滚轮横向滚动（电脑端） ===================== */
+  function bindDesktopWheel() {
+    var dc = $('desktopContainer');
+    if (!dc) return;
+
+    var handler = function (e) {
+      if (!isDesktop()) return;
+      if (dc.scrollWidth <= dc.clientWidth + 1) return;
+      var delta = e.deltaY || e.deltaX;
+      if (!delta) return;
+      dc.scrollLeft += delta;
+      if (e.preventDefault) e.preventDefault();
+    };
+
+    try {
+      dc.addEventListener('wheel', handler, { passive: false });
+    } catch (err) {
+      dc.addEventListener('wheel', handler, false);
+    }
+  }
+
+  /* ===================== 初始化 ===================== */
+  function init() {
+    appWindow = $('appWindow');
+    appTitleEl = $('appTitle');
+    appContentEl = $('appContent');
+
+    winLayer = $('windowLayer');
+    startMenu = $('startMenu');
+    startBtn = $('startBtn');
+
+    var closeBtn = $('closeAppBtn');
+    var fullBtn = $('fullscreenBtn');
+
+    if (closeBtn) closeBtn.onclick = closeApp;
+    if (fullBtn) fullBtn.onclick = toggleFullscreen;
+
+    if (startBtn) {
+      startBtn.onclick = function (e) {
+        stopEvt(e);
+        if (!startMenu) return;
+        if (hasClass(startMenu, 'show')) {
+          removeClass(startMenu, 'show');
+        } else {
+          renderStartMenu();
+          addClass(startMenu, 'show');
+        }
+      };
+    }
+
+    document.addEventListener('mousedown', function (e) {
+      if (!startMenu || !hasClass(startMenu, 'show')) return;
+
+      var t = e.target || e.srcElement;
+      var node = t;
+      while (node) {
+        if (node === startMenu) return;
+        node = node.parentNode;
+      }
+
+      node = t;
+      while (node) {
+        if (node === startBtn) return;
+        node = node.parentNode;
+      }
+
+      removeClass(startMenu, 'show');
+    });
+
+    initWallpaper();
+    renderDesktop();
+    renderDock();
+    updateTime();
+    setInterval(updateTime, 5000);
+    bindDesktopWheel();
+
+    lastDesktop = isDesktop();
+
+    window.addEventListener('resize', function () {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(checkLayout, 200);
+    });
+
+    document.onkeydown = function (e) {
+      var k = e.keyCode || e.which;
+
+      if (k === 27) {
+        if (isDesktop()) {
+          if (startMenu && hasClass(startMenu, 'show')) {
+            removeClass(startMenu, 'show');
+            return;
+          }
+          var aw = getActiveWin();
+          if (aw) closeWin(aw);
+          return;
+        }
+
+        if (appWindow && hasClass(appWindow, 'show')) {
+          if (isFullscreen) toggleFullscreen();
+          else closeApp();
+        }
+        return;
+      }
+
+      if (!isDesktop() && appWindow && hasClass(appWindow, 'show')) {
+        if (k === 70 || k === 102) toggleFullscreen();
+      }
+    };
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, false);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
