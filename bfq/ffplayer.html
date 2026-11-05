@@ -1,5 +1,3 @@
-
-
 <!doctype html>
 <html>
 
@@ -49,7 +47,7 @@
         .resolution-display.show {
             opacity: 1;
         }
-        
+
         .iframe-container {
             width: 100%;
             height: 100%;
@@ -71,6 +69,7 @@
             pointer-events: none;
             transition: opacity 0.2s ease;
         }
+
         .gesture-hint.show {
             opacity: 1;
         }
@@ -86,7 +85,7 @@
             }
             return rawUrl;
         }
-        
+
         function isVideoUrl(url) {
             if (!url) return false;
             const videoExtensions = ['.m3u8', '.mp4', '.avi', '.flv'];
@@ -103,7 +102,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", (event) => {
             const videoUrl = extractVideoUrl();
-            
+
             if (!videoUrl) {
                 const container = document.getElementById('container');
                 container.style.cssText = `
@@ -117,10 +116,9 @@
                 container.textContent = '使用方式 ?url=视频地址';
                 return;
             }
-            
+
             if (!isVideoUrl(videoUrl)) {
                 const container = document.getElementById('container');
-                // ✅ 已修复 XSS 漏洞
                 const iframe = document.createElement('iframe');
                 iframe.className = 'iframe-container';
                 iframe.allowFullscreen = true;
@@ -128,7 +126,7 @@
                 container.appendChild(iframe);
                 return;
             }
-            
+
             const hlsJsSources = [
                 'https://gcore.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js',
                 'https://cdn.jsdmirror.cn/npm/hls.js@latest/dist/hls.min.js',
@@ -143,6 +141,7 @@
             function loadScript(srcArray) {
                 return new Promise((resolve, reject) => {
                     let currentIndex = 0;
+
                     function tryLoad() {
                         if (currentIndex >= srcArray.length) {
                             reject(new Error(`All sources failed: ${srcArray.join(', ')}`));
@@ -188,18 +187,28 @@
                 const resolutionDisplay = document.getElementById('resolutionDisplay');
                 const gestureHint = document.getElementById('gestureHint');
                 let hlsInstance = null;
-                let startY = 0;
-                let isLeftSide = false;
-                let isDragging = false;
                 let currentBrightness = 100;
                 let hintTimeout = null;
+                let resolutionTimer = null;
+                let lastResolutionKey = '';
 
-                function showResolution(width, height) {
+                function showResolution(width, height, force = false) {
+                    if (!width || !height) return;
+                    const key = `${width}x${height}`;
+                    if (!force && key === lastResolutionKey) return;
+                    lastResolutionKey = key;
+
                     resolutionDisplay.textContent = `${width}×${height}`;
                     resolutionDisplay.classList.add('show');
-                    setTimeout(() => {
+
+                    if (resolutionTimer) {
+                        clearTimeout(resolutionTimer);
+                        resolutionTimer = null;
+                    }
+                    resolutionTimer = setTimeout(() => {
                         resolutionDisplay.classList.remove('show');
-                    }, 9000);
+                        resolutionTimer = null;
+                    }, 3000);
                 }
 
                 function showGestureHint(text) {
@@ -265,14 +274,14 @@
                                     console.log('HLS清单解析完成, 可用级别:', data.levels.length);
                                     const maxLevel = data.levels.length - 1;
                                     hls.currentLevel = maxLevel;
-                                    
+
                                     setTimeout(() => {
                                         const resolution = getVideoResolution(video);
-                                        if (resolution) showResolution(resolution.width, resolution.height);
+                                        if (resolution) showResolution(resolution.width, resolution.height, true);
                                     }, 1500);
                                 });
 
-                                hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+                                hls.on(Hls.Events.LEVEL_SWITCHED, function () {
                                     setTimeout(() => {
                                         const resolution = getVideoResolution(video);
                                         if (resolution) showResolution(resolution.width, resolution.height);
@@ -293,7 +302,7 @@
                                 video.src = m3u8Url;
                                 video.addEventListener('loadedmetadata', function () {
                                     const resolution = getVideoResolution(video);
-                                    if (resolution) showResolution(resolution.width, resolution.height);
+                                    if (resolution) showResolution(resolution.width, resolution.height, true);
                                 });
                             } else {
                                 console.error('Unsupported playback format: m3u8');
@@ -306,39 +315,88 @@
                     const container = document.getElementById('container');
                     const video = window.player.video;
 
+                    let touchStartX = 0;
+                    let touchStartY = 0;
+                    let lastY = 0;
+                    let isLeftSide = false;
+                    let isDragging = false;
+                    let moved = false;
+
+                    // 触摸是否落在控制栏/设置面板等 Artplayer 自己的 UI 上
+                    function isOnControls(target) {
+                        if (!target || typeof target.closest !== 'function') return false;
+                        return !!(target.closest('.art-bottom') ||
+                                  target.closest('.art-controls') ||
+                                  target.closest('.art-settings') ||
+                                  target.closest('.art-contextmenus') ||
+                                  target.closest('.art-info') ||
+                                  target.closest('.art-layer'));
+                    }
+
                     container.addEventListener('touchstart', (e) => {
                         if (e.touches.length !== 1) return;
+                        if (isOnControls(e.target)) {
+                            isDragging = false;
+                            return;
+                        }
                         const touch = e.touches[0];
-                        startY = touch.clientY;
-                        const x = touch.clientX;
-                        const width = container.offsetWidth;
-                        isLeftSide = x < width / 2;
+                        touchStartX = touch.clientX;
+                        touchStartY = touch.clientY;
+                        lastY = touch.clientY;
+                        isLeftSide = touch.clientX < container.offsetWidth / 2;
                         isDragging = true;
-                    });
+                        moved = false;
+                    }, { passive: true });
 
                     container.addEventListener('touchmove', (e) => {
                         if (!isDragging || e.touches.length !== 1) return;
-                        e.preventDefault();
                         const touch = e.touches[0];
-                        const deltaY = startY - touch.clientY;
-                        startY = touch.clientY;
+                        const dx = Math.abs(touch.clientX - touchStartX);
+                        const dy = Math.abs(touch.clientY - touchStartY);
 
-                        if (isLeftSide) {
-                            currentBrightness += deltaY * 0.8;
-                            currentBrightness = Math.max(20, Math.min(100, currentBrightness));
-                            video.style.filter = `brightness(${currentBrightness}%)`;
-                            showGestureHint(`亮度: ${Math.round(currentBrightness)}%`);
-                        } else {
-                            let volume = video.volume * 100;
-                            volume += deltaY * 0.8;
-                            volume = Math.max(0, Math.min(100, volume));
-                            video.volume = volume / 100;
-                            showGestureHint(`音量: ${Math.round(volume)}%`);
+                        // 只有明显的垂直滑动才认定为亮度/音量手势
+                        if (dy > 10 && dy > dx) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            moved = true;
+
+                            const deltaY = lastY - touch.clientY;
+                            lastY = touch.clientY;
+
+                            if (isLeftSide) {
+                                currentBrightness += deltaY * 0.8;
+                                currentBrightness = Math.max(20, Math.min(100, currentBrightness));
+                                video.style.filter = `brightness(${currentBrightness}%)`;
+                                showGestureHint(`亮度: ${Math.round(currentBrightness)}%`);
+                            } else {
+                                let volume = video.volume * 100;
+                                volume += deltaY * 0.8;
+                                volume = Math.max(0, Math.min(100, volume));
+                                video.volume = volume / 100;
+                                showGestureHint(`音量: ${Math.round(volume)}%`);
+                            }
                         }
+                    }, { passive: false });
+
+                    container.addEventListener('touchend', (e) => {
+                        if (moved) {
+                            // 手势滑动结束时阻止事件继续传播给 Artplayer，
+                            // 避免它把这次滑动当成"点击"而重新显示控制栏
+                            e.stopPropagation();
+
+                            // 如果正在播放，主动隐藏控制栏，避免控制栏被手势"唤醒"后一直挂着
+                            if (window.player && window.player.playing && window.player.controls) {
+                                try { window.player.controls.hide(); } catch (err) { /* ignore */ }
+                            }
+                        }
+                        isDragging = false;
+                        moved = false;
                     });
 
-                    container.addEventListener('touchend', () => { isDragging = false; });
-                    container.addEventListener('touchcancel', () => { isDragging = false; });
+                    container.addEventListener('touchcancel', () => {
+                        isDragging = false;
+                        moved = false;
+                    });
                 }
 
                 window.player.notice = { show: () => {}, hide: () => {} };
@@ -349,18 +407,26 @@
                         const resolution = getVideoResolution(videoElement);
                         if (resolution) {
                             setTimeout(() => {
-                                showResolution(resolution.width, resolution.height);
+                                showResolution(resolution.width, resolution.height, true);
                             }, 1000);
                         }
                     }
                 });
 
-                window.player.on('ready', () => { 
+                window.player.on('ready', () => {
                     initTouchGestures();
                     window.player.video.style.filter = `brightness(${currentBrightness}%)`;
                 });
 
                 window.player.on('destroy', () => {
+                    if (resolutionTimer) {
+                        clearTimeout(resolutionTimer);
+                        resolutionTimer = null;
+                    }
+                    if (hintTimeout) {
+                        clearTimeout(hintTimeout);
+                        hintTimeout = null;
+                    }
                     if (hlsInstance) {
                         try { hlsInstance.destroy(); } catch (e) { console.warn('销毁HLS实例:', e); }
                         hlsInstance = null;
@@ -374,4 +440,5 @@
         });
     </script>
 </body>
+
 </html>
