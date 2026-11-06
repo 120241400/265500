@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -784,6 +786,23 @@
       background: #000;
     }
 
+    /* 非激活窗口的点击穿透遮罩：点击后使窗口置顶 */
+    .win-mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 6;
+      display: none;
+      background: transparent;
+      cursor: default;
+    }
+
+    .win-window:not(.active) .win-mask {
+      display: block;
+    }
+
     /* ================= 八方向缩放手柄 ================= */
     .win-handle {
       position: absolute;
@@ -946,17 +965,17 @@
     { name: "天气预报", icon: "https://pp.myapp.com/ma_icon/0/icon_54211715_1773305647/256", url: "https://tianqi.qq.com/" },
     { name: "台风路径", icon: "https://pp.myapp.com/ma_icon/0/icon_10434676_1779951489/256", url: "https://tf02.istrongcloud.com/release/weathermap/index-vivo.html" },
     { name: "音乐电台", icon: "https://pp.myapp.com/ma_icon/0/icon_54054652_1726106842/256", url: "https://www.265500.vip/888/yinyue.html" },
-    { name: "彩票开奖", icon: "https://i0.wp.com/cdn.jsdelivr.net.cn/gh/120241400/120241400/app/lele/tupian/caipiao.png", url: "https://www.265500.vip/888/kaijiang.html" , portrait: true},
+    { name: "彩票开奖", icon: "https://i0.wp.com/cdn.jsdelivr.net.cn/gh/120241400/120241400/app/lele/tupian/caipiao.png", url: "https://www.265500.vip/888/kaijiang.html" },
     { name: "纸牌游戏", icon: "https://i0.wp.com/265500.vercel.app/tupian/zhipai.png", url: "https://www.265500.vip/888/zhipai.html" },
-    { name: "倒水游戏", icon: "https://pp.myapp.com/ma_icon/0/icon_54654430_1779344231/256", url: "https://www.265500.vip/888/daoshui.html" , portrait: true},
+    { name: "倒水游戏", icon: "https://pp.myapp.com/ma_icon/0/icon_54654430_1779344231/256", url: "https://www.265500.vip/888/daoshui.html" },
     { name: "2048游戏", icon: "https://i0.wp.com/265500.vercel.app/tupian/2048.png", url: "https://www.265500.vip/888/2048.html" },
     { name: "斗地主", icon: "https://i0.wp.com/265500.vercel.app/tupian/doudizhu.png", url: "https://www.265500.vip/888/doudizhu.html" },
     { name: "五子棋", icon: "https://pp.myapp.com/ma_icon/0/icon_54083919_1769043612/256", url: "https://www.265500.vip/888/wuziqi.html" },
     { name: "象棋", icon: "https://pp.myapp.com/ma_icon/0/icon_54388105_1784771937/256", url: "https://www.265500.vip/888/xiangqi.html" },
     { name: "俄罗斯方块", icon: "https://pp.myapp.com/ma_icon/0/icon_54230668_1694057025/256", url: "https://www.265500.vip/888/eluosifangkuai.html", portrait: true },
-    { name: "数字华容道", icon: "https://i0.wp.com/265500.vercel.app/tupian/huarongdao.png", url: "https://www.265500.vip/888/huarongdao.html", portrait: true },
+    { name: "数字华容道", icon: "https://i0.wp.com/265500.vercel.app/tupian/huarongdao.png", url: "https://www.265500.vip/888/huarongdao.html" },
     { name: "消消乐", icon: "http://pp.myapp.com/ma_icon/0/icon_54333852_1753337953/256", url: "https://www.265500.vip/888/xiaoxiaole.html", portrait: true },
-    { name: "数独游戏", icon: "https://pp.myapp.com/ma_icon/0/icon_54266511_1787934821/256", url: "https://www.265500.vip/888/shudu.html", portrait: true }
+    { name: "数独游戏", icon: "https://pp.myapp.com/ma_icon/0/icon_54266511_1787934821/256", url: "https://www.265500.vip/888/shudu.html" }
   ];
 
   var dockApps = [
@@ -981,10 +1000,11 @@
     item.appendChild(nameEl);
 
     item.onclick = function () {
-      if (isDesktop()) {
-        openWin(app);
-      } else if (app.openType === 'newTab') {
+      /* openType 为 newTab 的应用，无论手机端还是电脑端，一律新标签页打开 */
+      if (app.openType === 'newTab') {
         window.open(app.url, '_blank');
+      } else if (isDesktop()) {
+        openWin(app);
       } else {
         openApp(app.name, app.url);
       }
@@ -1215,6 +1235,7 @@
       '<div class="win-body">' +
         '<iframe frameborder="0" allowfullscreen allow="fullscreen; autoplay; encrypted-media" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-modals"></iframe>' +
         '<div class="loading-overlay"><div class="loading-inner"><div class="loading-spinner"></div><div class="loading-text">精彩即将呈现，请稍候...</div></div></div>' +
+        '<div class="win-mask"></div>' +
       '</div>' +
       '<div class="win-handle h-n" data-dir="n"></div>' +
       '<div class="win-handle h-s" data-dir="s"></div>' +
@@ -1279,6 +1300,8 @@
       })(handleEls[hi]);
     }
 
+    /* 窗口内任意位置的 mousedown 都会冒泡到这里，使窗口置顶
+       （iframe 内部点击不会冒泡，由 win-mask 遮罩接管） */
     el.onmousedown = function () { activateWin(win); };
 
     winLayer.appendChild(el);
@@ -1421,7 +1444,6 @@
       nTop = dragState.top + (dragState.h - tmpH);
       nH = tmpH;
 
-      /* 上边界不超出可视区顶部 */
       if (nTop < 0) {
         nH = Math.max(MIN_H, nH + nTop);
         nTop = 0;
@@ -1604,7 +1626,11 @@
 
         item.onclick = function () {
           removeClass(startMenu, 'show');
-          openWin(app);
+          if (app.openType === 'newTab') {
+            window.open(app.url, '_blank');
+          } else {
+            openWin(app);
+          }
         };
 
         frag.appendChild(item);
