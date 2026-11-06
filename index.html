@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -749,7 +749,7 @@
       flex: 0 0 auto;
     }
 
-    /* 窗口控制按钮：恢复文本符号样式 */
+    /* 窗口控制按钮 */
     .win-btn {
       width: 44px;
       height: 34px;
@@ -784,31 +784,40 @@
       background: #000;
     }
 
-    .win-resizer {
+    /* ================= 八方向缩放手柄 ================= */
+    .win-handle {
       position: absolute;
-      right: 0;
-      bottom: 0;
-      width: 18px;
-      height: 18px;
-      cursor: nwse-resize;
-      z-index: 4;
+      z-index: 6;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
     }
 
-    .win-resizer::before {
+    .win-handle.h-n { top: 0; left: 0; right: 0; height: 5px; cursor: n-resize; }
+    .win-handle.h-s { bottom: 0; left: 0; right: 0; height: 6px; cursor: s-resize; }
+    .win-handle.h-w { left: 0; top: 0; bottom: 0; width: 5px; cursor: w-resize; }
+    .win-handle.h-e { right: 0; top: 0; bottom: 0; width: 5px; cursor: e-resize; }
+
+    .win-handle.h-nw { top: 0; left: 0; width: 12px; height: 12px; cursor: nw-resize; z-index: 7; }
+    .win-handle.h-ne { top: 0; right: 0; width: 12px; height: 12px; cursor: ne-resize; z-index: 7; }
+    .win-handle.h-sw { bottom: 0; left: 0; width: 12px; height: 12px; cursor: sw-resize; z-index: 7; }
+    .win-handle.h-se { bottom: 0; right: 0; width: 12px; height: 12px; cursor: se-resize; z-index: 7; }
+
+    .win-handle.h-se::before {
       content: "";
       position: absolute;
       right: 3px;
       bottom: 3px;
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       border-right: 2px solid rgba(255, 255, 255, 0.4);
       border-bottom: 2px solid rgba(255, 255, 255, 0.4);
     }
 
-    .win-window.maximized .win-resizer { display: none; }
+    .win-window.maximized .win-handle { display: none; }
 
     body.win-dragging iframe,
-    body.win-dragging .win-resizer {
+    body.win-dragging .win-handle {
       pointer-events: none !important;
     }
   }
@@ -937,17 +946,17 @@
     { name: "天气预报", icon: "https://pp.myapp.com/ma_icon/0/icon_54211715_1773305647/256", url: "https://tianqi.qq.com/" },
     { name: "台风路径", icon: "https://pp.myapp.com/ma_icon/0/icon_10434676_1779951489/256", url: "https://tf02.istrongcloud.com/release/weathermap/index-vivo.html" },
     { name: "音乐电台", icon: "https://pp.myapp.com/ma_icon/0/icon_54054652_1726106842/256", url: "https://www.265500.vip/888/yinyue.html" },
-    { name: "彩票开奖", icon: "https://i0.wp.com/cdn.jsdelivr.net.cn/gh/120241400/120241400/app/lele/tupian/caipiao.png", url: "https://www.265500.vip/888/kaijiang.html" },
+    { name: "彩票开奖", icon: "https://i0.wp.com/cdn.jsdelivr.net.cn/gh/120241400/120241400/app/lele/tupian/caipiao.png", url: "https://www.265500.vip/888/kaijiang.html" , portrait: true},
     { name: "纸牌游戏", icon: "https://i0.wp.com/265500.vercel.app/tupian/zhipai.png", url: "https://www.265500.vip/888/zhipai.html" },
-    { name: "倒水游戏", icon: "https://pp.myapp.com/ma_icon/0/icon_54654430_1779344231/256", url: "https://www.265500.vip/888/daoshui.html" },
+    { name: "倒水游戏", icon: "https://pp.myapp.com/ma_icon/0/icon_54654430_1779344231/256", url: "https://www.265500.vip/888/daoshui.html" , portrait: true},
     { name: "2048游戏", icon: "https://i0.wp.com/265500.vercel.app/tupian/2048.png", url: "https://www.265500.vip/888/2048.html" },
     { name: "斗地主", icon: "https://i0.wp.com/265500.vercel.app/tupian/doudizhu.png", url: "https://www.265500.vip/888/doudizhu.html" },
     { name: "五子棋", icon: "https://pp.myapp.com/ma_icon/0/icon_54083919_1769043612/256", url: "https://www.265500.vip/888/wuziqi.html" },
     { name: "象棋", icon: "https://pp.myapp.com/ma_icon/0/icon_54388105_1784771937/256", url: "https://www.265500.vip/888/xiangqi.html" },
-    { name: "俄罗斯方块", icon: "https://pp.myapp.com/ma_icon/0/icon_54230668_1694057025/256", url: "https://www.265500.vip/888/eluosifangkuai.html" },
-    { name: "数字华容道", icon: "https://i0.wp.com/265500.vercel.app/tupian/huarongdao.png", url: "https://www.265500.vip/888/huarongdao.html" },
-    { name: "消消乐", icon: "http://pp.myapp.com/ma_icon/0/icon_54333852_1753337953/256", url: "https://www.265500.vip/888/xiaoxiaole.html" },
-    { name: "数独游戏", icon: "https://pp.myapp.com/ma_icon/0/icon_54266511_1787934821/256", url: "https://www.265500.vip/888/shudu.html" }
+    { name: "俄罗斯方块", icon: "https://pp.myapp.com/ma_icon/0/icon_54230668_1694057025/256", url: "https://www.265500.vip/888/eluosifangkuai.html", portrait: true },
+    { name: "数字华容道", icon: "https://i0.wp.com/265500.vercel.app/tupian/huarongdao.png", url: "https://www.265500.vip/888/huarongdao.html", portrait: true },
+    { name: "消消乐", icon: "http://pp.myapp.com/ma_icon/0/icon_54333852_1753337953/256", url: "https://www.265500.vip/888/xiaoxiaole.html", portrait: true },
+    { name: "数独游戏", icon: "https://pp.myapp.com/ma_icon/0/icon_54266511_1787934821/256", url: "https://www.265500.vip/888/shudu.html", portrait: true }
   ];
 
   var dockApps = [
@@ -1151,14 +1160,30 @@
   var zTop = 5000;
   var dragState = null;
 
+  var MIN_W = 320;
+  var MIN_H = 220;
+
   function openWin(app) {
     if (!winLayer) return;
 
     winSeq++;
 
     var vh = window.innerHeight - 48;
-    var w = Math.min(1000, Math.max(480, Math.round(window.innerWidth * 0.72)));
-    var h = Math.min(680, Math.max(300, Math.round(vh * 0.72)));
+    var w, h;
+
+    if (app.portrait) {
+      /* 竖屏应用（俄罗斯方块 / 消消乐）：打开即为竖向窗口 */
+      h = Math.round(vh * 0.9);
+      if (h > 900) h = 900;
+      if (h < 300) h = Math.max(MIN_H, vh - 16);
+      w = Math.round(h * 0.58);
+      if (w > 560) w = 560;
+      if (w < MIN_W) w = MIN_W;
+    } else {
+      w = Math.min(1000, Math.max(480, Math.round(window.innerWidth * 0.72)));
+      h = Math.min(680, Math.max(300, Math.round(vh * 0.72)));
+    }
+
     var offset = (windows.length % 6) * 28;
 
     var left = Math.round((window.innerWidth - w) / 2) + offset;
@@ -1191,7 +1216,14 @@
         '<iframe frameborder="0" allowfullscreen allow="fullscreen; autoplay; encrypted-media" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-modals"></iframe>' +
         '<div class="loading-overlay"><div class="loading-inner"><div class="loading-spinner"></div><div class="loading-text">精彩即将呈现，请稍候...</div></div></div>' +
       '</div>' +
-      '<div class="win-resizer"></div>';
+      '<div class="win-handle h-n" data-dir="n"></div>' +
+      '<div class="win-handle h-s" data-dir="s"></div>' +
+      '<div class="win-handle h-w" data-dir="w"></div>' +
+      '<div class="win-handle h-e" data-dir="e"></div>' +
+      '<div class="win-handle h-nw" data-dir="nw"></div>' +
+      '<div class="win-handle h-ne" data-dir="ne"></div>' +
+      '<div class="win-handle h-sw" data-dir="sw"></div>' +
+      '<div class="win-handle h-se" data-dir="se"></div>';
 
     var win = {
       id: 'w' + winSeq,
@@ -1222,7 +1254,7 @@
       if (isInControls(e.target || e.srcElement)) return;
       activateWin(win);
       if (win.maximized) return;
-      startDrag(win, e, false);
+      startDrag(win, e, 'move');
       return false;
     };
 
@@ -1233,14 +1265,19 @@
       return false;
     };
 
-    var resizer = el.querySelector('.win-resizer');
-    resizer.onmousedown = function (e) {
-      e = e || window.event;
-      activateWin(win);
-      if (win.maximized) return;
-      startDrag(win, e, true);
-      return false;
-    };
+    /* 四边 + 四角拉伸手柄 */
+    var handleEls = el.querySelectorAll('.win-handle');
+    for (var hi = 0; hi < handleEls.length; hi++) {
+      (function (hEl) {
+        hEl.onmousedown = function (e) {
+          e = e || window.event;
+          activateWin(win);
+          if (win.maximized) return false;
+          startDrag(win, e, hEl.getAttribute('data-dir'));
+          return false;
+        };
+      })(handleEls[hi]);
+    }
 
     el.onmousedown = function () { activateWin(win); };
 
@@ -1318,16 +1355,16 @@
     win.iframe.src = win.app.url;
   }
 
-  function startDrag(win, e, resize) {
+  function startDrag(win, e, dir) {
     dragState = {
       win: win,
+      dir: dir,
       x: e.clientX,
       y: e.clientY,
       left: win.left,
       top: win.top,
       w: win.w,
-      h: win.h,
-      resize: resize
+      h: win.h
     };
     addClass(document.body, 'win-dragging');
     if (e.preventDefault) e.preventDefault();
@@ -1335,18 +1372,14 @@
 
   document.addEventListener('mousemove', function (e) {
     if (!dragState) return;
+
     var win = dragState.win;
+    var dir = dragState.dir;
     var dx = e.clientX - dragState.x;
     var dy = e.clientY - dragState.y;
 
-    if (dragState.resize) {
-      var nw = Math.max(320, dragState.w + dx);
-      var nh = Math.max(220, dragState.h + dy);
-      win.w = nw;
-      win.h = nh;
-      win.el.style.width = nw + 'px';
-      win.el.style.height = nh + 'px';
-    } else {
+    /* ---- 移动窗口 ---- */
+    if (dir === 'move') {
       var vh = window.innerHeight - 48;
       var left = dragState.left + dx;
       var top = dragState.top + dy;
@@ -1360,7 +1393,50 @@
       win.top = top;
       win.el.style.left = left + 'px';
       win.el.style.top = top + 'px';
+      return;
     }
+
+    /* ---- 四边 / 四角缩放 ---- */
+    var nLeft = dragState.left;
+    var nTop = dragState.top;
+    var nW = dragState.w;
+    var nH = dragState.h;
+
+    if (dir.indexOf('e') > -1) {
+      nW = Math.max(MIN_W, dragState.w + dx);
+    }
+
+    if (dir.indexOf('s') > -1) {
+      nH = Math.max(MIN_H, dragState.h + dy);
+    }
+
+    if (dir.indexOf('w') > -1) {
+      var tmpW = Math.max(MIN_W, dragState.w - dx);
+      nLeft = dragState.left + (dragState.w - tmpW);
+      nW = tmpW;
+    }
+
+    if (dir.indexOf('n') > -1) {
+      var tmpH = Math.max(MIN_H, dragState.h - dy);
+      nTop = dragState.top + (dragState.h - tmpH);
+      nH = tmpH;
+
+      /* 上边界不超出可视区顶部 */
+      if (nTop < 0) {
+        nH = Math.max(MIN_H, nH + nTop);
+        nTop = 0;
+      }
+    }
+
+    win.left = nLeft;
+    win.top = nTop;
+    win.w = nW;
+    win.h = nH;
+
+    win.el.style.left = nLeft + 'px';
+    win.el.style.top = nTop + 'px';
+    win.el.style.width = nW + 'px';
+    win.el.style.height = nH + 'px';
   });
 
   document.addEventListener('mouseup', function () {
