@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -380,8 +378,11 @@
     display: none;
   }
 
-  /* ================= 电脑端 Win10 风格 ================= */
-  @media (min-width: 768px) {
+  /* ================= 电脑端 Win10 风格 =================
+     ★ 修复点 1：桌面端断点增加最小高度限制（501px）。
+     手机横屏 / 播放器全屏横屏时视口高度通常只有 360~450px，
+     不会再被误判成电脑端，保持手机端布局。 */
+  @media (min-width: 768px) and (min-height: 501px) {
     .status-bar { display: none; }
     .dock { display: none; }
     .app-window { display: none !important; }
@@ -932,10 +933,54 @@
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-  function isDesktop() { return window.innerWidth >= 768; }
-
   function stopEvt(e) {
     if (e && e.stopPropagation) e.stopPropagation();
+  }
+
+  /* ===================== 电脑端 / 全屏判断 =====================
+     ★ 修复点 2：电脑端判断同时要求宽度与高度达标。
+     手机横屏、播放器全屏横屏时高度不足 501px，仍判定为手机端，
+     不会再切换成电脑端布局，也不会触发重新渲染。 */
+  var mqDesktop = null;
+  if (window.matchMedia) {
+    try {
+      mqDesktop = window.matchMedia('(min-width: 768px) and (min-height: 501px)');
+    } catch (e) {
+      mqDesktop = null;
+    }
+  }
+
+  function isDesktop() {
+    if (mqDesktop) return mqDesktop.matches;
+    return window.innerWidth >= 768 && window.innerHeight > 500;
+  }
+
+  /* 当前是否处于浏览器原生全屏（含 iframe 内部全屏） */
+  function isFullscreenNow() {
+    return !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.webkitCurrentFullScreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+  }
+
+  /* 主动退出全屏（切换应用 / 关闭应用时调用） */
+  function exitAnyFullscreen() {
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.webkitCurrentFullScreenElement && document.webkitCancelFullScreen) {
+        document.webkitCancelFullScreen();
+      } else if (document.mozFullScreenElement && document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+      } else if (document.msFullscreenElement && document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    } catch (e) {}
   }
 
   /* ===================== 壁纸 ===================== */
@@ -1113,6 +1158,8 @@
   function openApp(name, url) {
     if (!url) return;
 
+    /* 打开新应用前，先退出可能存在的播放器全屏 */
+    exitAnyFullscreen();
     cleanApp();
 
     if (isFullscreen) {
@@ -1126,8 +1173,10 @@
     var iframe = document.createElement('iframe');
     iframe.setAttribute('frameborder', '0');
     iframe.setAttribute('allowfullscreen', 'true');
-    iframe.setAttribute('allow', 'fullscreen; autoplay; encrypted-media');
-    iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-modals');
+    iframe.setAttribute('webkitallowfullscreen', 'true');
+    iframe.setAttribute('mozallowfullscreen', 'true');
+    iframe.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture');
+    iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-modals allow-orientation-lock');
     iframe.src = url;
     currentIframe = iframe;
 
@@ -1159,6 +1208,7 @@
 
   function closeApp() {
     if (!appWindow || !hasClass(appWindow, 'show')) return;
+    exitAnyFullscreen();
     removeClass(appWindow, 'show');
     cleanApp();
     if (isFullscreen) {
@@ -1233,7 +1283,7 @@
         '</div>' +
       '</div>' +
       '<div class="win-body">' +
-        '<iframe frameborder="0" allowfullscreen allow="fullscreen; autoplay; encrypted-media" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-modals"></iframe>' +
+        '<iframe frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen allow="fullscreen; autoplay; encrypted-media; picture-in-picture" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-modals allow-orientation-lock"></iframe>' +
         '<div class="loading-overlay"><div class="loading-inner"><div class="loading-spinner"></div><div class="loading-text">精彩即将呈现，请稍候...</div></div></div>' +
         '<div class="win-mask"></div>' +
       '</div>' +
@@ -1666,12 +1716,32 @@
   var resizeTimer = null;
 
   function checkLayout() {
+    /* ★ 修复点 3：全屏（播放器 / 视频全屏）期间锁定布局，
+       不因视口尺寸变化而切换成电脑端，等退出全屏后再重新判断。 */
+    if (isFullscreenNow()) return;
+
     var d = isDesktop();
     if (d !== lastDesktop) {
       lastDesktop = d;
       renderDesktop();
       if (!d && startMenu) removeClass(startMenu, 'show');
+      /* 切到电脑端时，关闭手机端全屏应用窗口，避免残留 */
+      if (d && appWindow && hasClass(appWindow, 'show')) closeApp();
     }
+  }
+
+  /* 全屏状态变化：退出全屏后延时重新判断布局（等视口尺寸恢复） */
+  function handleFullscreenChange() {
+    if (isFullscreenNow()) return;
+
+    if (resizeTimer) {
+      clearTimeout(resizeTimer);
+      resizeTimer = null;
+    }
+    resizeTimer = setTimeout(function () {
+      resizeTimer = null;
+      checkLayout();
+    }, 400);
   }
 
   /* ===================== 滚轮横向滚动（电脑端） ===================== */
@@ -1743,6 +1813,12 @@
       removeClass(startMenu, 'show');
     });
 
+    /* 监听全屏状态变化（含 iframe 内播放器全屏） */
+    var fsEvents = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
+    for (var fi = 0; fi < fsEvents.length; fi++) {
+      document.addEventListener(fsEvents[fi], handleFullscreenChange, false);
+    }
+
     initWallpaper();
     renderDesktop();
     renderDock();
@@ -1754,8 +1830,19 @@
 
     window.addEventListener('resize', function () {
       if (resizeTimer) clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(checkLayout, 200);
-    });
+      resizeTimer = setTimeout(function () {
+        resizeTimer = null;
+        checkLayout();
+      }, 200);
+    }, false);
+
+    window.addEventListener('orientationchange', function () {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        resizeTimer = null;
+        checkLayout();
+      }, 400);
+    }, false);
 
     document.onkeydown = function (e) {
       var k = e.keyCode || e.which;
