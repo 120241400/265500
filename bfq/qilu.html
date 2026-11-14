@@ -1,17 +1,18 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>随心播</title>
+<title>齐鲁播放器</title>
 <script src="https://file.iqilu.com/custom/v/zhibo/js/hls.min.js"></script>
 <style>
   :root{
-    --c-accent-1:#00d4ff;
-    --c-accent-2:#7c5cff;
-    --grad-accent:linear-gradient(135deg,#00d4ff 0%,#7c5cff 100%);
+    /* ★ 主题色：根据图片提取的紫粉渐变 */
+    --c-accent-1:#b34dff;
+    --c-accent-2:#f352a5;
+    --grad-accent:linear-gradient(135deg,#b34dff 0%,#f352a5 100%);
     --tx-1:#eef1f8;
     --tx-2:#98a2b8;
     --tx-3:#5c6579;
@@ -21,7 +22,7 @@
     --r-m:12px;
     --r-full:999px;
     --sh-2:0 8px 24px rgba(0,0,0,.45);
-    --sh-accent:0 4px 20px rgba(0,212,255,.28);
+    --sh-accent:0 4px 20px rgba(179,77,255,.28);
   }
 
   *{ -webkit-tap-highlight-color:transparent; box-sizing:border-box; }
@@ -68,7 +69,7 @@
     border-right-color:var(--c-accent-2);
     border-radius:50%;
     animation:spin .9s linear infinite;
-    box-shadow:0 0 24px rgba(0,212,255,.35);
+    box-shadow:0 0 24px rgba(179,77,255,.35);
   }
   @keyframes spin{ to{ transform:rotate(360deg); } }
 
@@ -98,12 +99,35 @@
     background:#fff;
     border-color:rgba(255,255,255,.6);
     box-shadow:0 0 0 1px rgba(255,255,255,.35),
-               0 12px 48px rgba(0,212,255,.4),
+               0 12px 48px rgba(179,77,255,.4),
                var(--sh-2);
   }
   #centerIndicator.clickable svg{ fill:#0b0d14; }
   #centerIndicator.clickable:hover{ transform:translate(-50%,-50%) scale(1.06); }
   #centerIndicator.clickable:active{ transform:translate(-50%,-50%) scale(.98); }
+
+  /* ★ 右上角倍速状态显示 */
+  #topRightRate{
+    position:fixed;
+    top:calc(20px + env(safe-area-inset-top));
+    right:20px;
+    background:rgba(11,13,20,.82);
+    border:1px solid var(--line-2);
+    color:#fff;
+    padding:6px 12px;
+    border-radius:var(--r-s);
+    font-size:14px;
+    font-weight:800;
+    font-variant-numeric:tabular-nums;
+    z-index:15;
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    box-shadow:var(--sh-2);
+    opacity:0; transform:translateY(-8px); pointer-events:none;
+    transition:opacity .28s ease, transform .28s cubic-bezier(.34,1.56,.64,1);
+  }
+  #topRightRate.show{
+    opacity:1; transform:translateY(0);
+  }
 
   /* ══════════ 手势指示器 ══════════ */
   #gestureIndicator{
@@ -134,7 +158,7 @@
     width:0%;
     border-radius:var(--r-full);
     transition:width .1s;
-    box-shadow:0 0 8px rgba(0,212,255,.6);
+    box-shadow:0 0 8px rgba(179,77,255,.6);
   }
 
   /* ══════════ 错误提示 ══════════ */
@@ -189,14 +213,14 @@
     position:absolute; left:0; top:0; height:100%;
     background:var(--grad-accent);
     width:0%; border-radius:var(--r-full);
-    box-shadow:0 0 12px rgba(0,212,255,.5);
+    box-shadow:0 0 12px rgba(179,77,255,.5);
   }
   #progressThumb{
     position:absolute; right:-7px; top:50%;
     transform:translateY(-50%) scale(0);
     width:14px; height:14px; border-radius:50%;
     background:#fff;
-    box-shadow:0 0 0 3px rgba(0,212,255,.35), 0 2px 10px rgba(0,0,0,.7);
+    box-shadow:0 0 0 3px rgba(179,77,255,.35), 0 2px 10px rgba(0,0,0,.7);
     transition:transform .18s cubic-bezier(.34,1.56,.64,1);
   }
   #progressWrap:hover #progressThumb,
@@ -294,6 +318,7 @@
     #timeDisplay{ font-size:12px; margin:0 2px; }
     #centerIndicator{ width:76px; height:76px; }
     #centerIndicator svg{ width:34px; height:34px; }
+    #topRightRate{ top:calc(16px + env(safe-area-inset-top)); right:16px; padding:5px 10px; font-size:13px; }
   }
   @media (max-width:400px){
     #timeDisplay{ font-size:11px; }
@@ -314,6 +339,9 @@
   <svg id="ciPause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
   <span id="ciRate" class="rate-text" style="display:none;">1.0x</span>
 </div>
+
+<!-- ★ 右上角倍速显示 -->
+<div id="topRightRate">2x</div>
 
 <div id="gestureIndicator">
   <span id="gestureIcon">☀</span>
@@ -398,6 +426,7 @@ const centerIndicator  = document.getElementById('centerIndicator');
 const ciPlay           = document.getElementById('ciPlay');
 const ciPause          = document.getElementById('ciPause');
 const ciRate           = document.getElementById('ciRate');
+const topRightRate     = document.getElementById('topRightRate'); // ★ 新增
 const gestureIndicator = document.getElementById('gestureIndicator');
 const gestureIcon      = document.getElementById('gestureIcon');
 const gestureText      = document.getElementById('gestureText');
@@ -423,7 +452,7 @@ let hideTimer       = null;
 let centerTimer     = null;
 let isSeekingByDrag = false;
 let isCenterPersistent = false;   // 中央常驻播放按钮
-let isPointerOverControls = false; // ★ 鼠标是否停在控制栏上
+let isPointerOverControls = false; // 鼠标是否停在控制栏上
 
 /* ═══════════════════════════════════════════
    工具
@@ -439,6 +468,10 @@ function formatTime(seconds){
 }
 function formatRate(r){
   return (Number.isInteger(r) ? r.toFixed(1) : String(r)) + 'x';
+}
+// ★ 用于右上角的格式化：整数不带 .0
+function formatTopRightRate(r){
+  return (Number.isInteger(r) ? String(r) : String(r)) + 'x';
 }
 function escapeHtml(s){
   return String(s == null ? '' : s)
@@ -469,6 +502,14 @@ function applyRate(r){
   rateBtn.textContent = formatRate(currentRate);
   rateBtn.classList.toggle('active', Math.abs(currentRate - 1.0) > 0.001);
   rateBtn.title = '播放速度：' + formatRate(currentRate);
+
+  // ★ 右上角倍速状态更新
+  if (Math.abs(currentRate - 1.0) < 0.001) {
+    topRightRate.classList.remove('show');
+  } else {
+    topRightRate.textContent = formatTopRightRate(currentRate);
+    topRightRate.classList.add('show');
+  }
 }
 
 function cycleRate(){
@@ -497,7 +538,6 @@ function showControls(){
   resetHideTimer();
 }
 function hideControls(){
-  // ★ 鼠标悬停在控制栏（含倍速 / 画中画等按钮）上时不隐藏
   if (isPointerOverControls) return;
   if (!video.paused && !video.ended) {
     controls.classList.add('hidden');
@@ -507,13 +547,11 @@ function hideControls(){
 function resetHideTimer(){
   clearTimeout(hideTimer);
   hideTimer = null;
-  // ★ 指针在控制栏上，保持常显，不再启动隐藏计时
   if (isPointerOverControls) return;
   hideTimer = setTimeout(hideControls, 3000);
 }
 
-/* ★ 桌面端：指针进入 / 离开控制栏
-   （mouseenter / mouseleave 会覆盖所有子按钮） */
+/* 桌面端：指针进入 / 离开控制栏 */
 if (!isTouch) {
   controls.addEventListener('mouseenter', function(){
     isPointerOverControls = true;
@@ -982,15 +1020,13 @@ function showLoading(v){
 }
 
 /* ═══════════════════════════════════════════
-   ★ 卡顿检测与自动续播
-   —— 卡住时记住原时间点，定时尝试跳回该时间点并继续播放；
-      多次失败则重建播放器，仍然从原时间点续播。
+   卡顿检测与自动续播
    ═══════════════════════════════════════════ */
-const STALL_CHECK_INTERVAL = 5000;  // 卡顿超过 5 秒开始尝试恢复
-const MAX_STALL_RETRIES    = 3;     // 连续尝试次数上限
+const STALL_CHECK_INTERVAL = 5000;
+const MAX_STALL_RETRIES    = 3;
 
 let stallTimer   = null;
-let stallAnchor  = 0;      // 卡顿发生时的原播放时间点
+let stallAnchor  = 0;
 let stallRetries = 0;
 let stallActive  = false;
 
@@ -998,17 +1034,16 @@ function clearStallTimer(){
   if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
 }
 
-/* 卡顿开始（waiting / stalled） */
 function onStallBegin(){
-  if (!isVideoReady) return;          // 首次加载由 play() 负责
-  if (video.paused || video.ended) return;  // 用户主动暂停，不干预
+  if (!isVideoReady) return;
+  if (video.paused || video.ended) return;
 
   if (!stallActive) {
     stallActive  = true;
     stallRetries = 0;
-    stallAnchor  = video.currentTime; // 记住原时间点
+    stallAnchor  = video.currentTime;
   } else if (video.currentTime > stallAnchor) {
-    stallAnchor = video.currentTime;  // 有推进则更新锚点
+    stallAnchor = video.currentTime;
   }
 
   showLoading(true);
@@ -1016,7 +1051,6 @@ function onStallBegin(){
   stallTimer = setTimeout(recoverStall, STALL_CHECK_INTERVAL);
 }
 
-/* 卡顿结束（playing / canplay / pause / ended） */
 function onStallEnd(){
   clearStallTimer();
   stallActive  = false;
@@ -1024,7 +1058,6 @@ function onStallEnd(){
   showLoading(false);
 }
 
-/* 尝试恢复：先跳回原时间点续播 */
 function recoverStall(){
   if (!stallActive) return;
   if (video.paused || video.ended) { onStallEnd(); return; }
@@ -1032,7 +1065,6 @@ function recoverStall(){
   stallRetries++;
   const target = stallAnchor;
 
-  // 1) 回到原时间点并尝试继续播放
   try {
     if (Math.abs(video.currentTime - target) > 0.5) {
       video.currentTime = target;
@@ -1040,24 +1072,20 @@ function recoverStall(){
     video.play().catch(function(){});
   } catch(e){}
 
-  // 2) HLS 流：重启分片加载，从锚点继续
   if (hls) {
     try { hls.stopLoad(); } catch(e){}
     try { hls.startLoad(target); } catch(e){}
   }
 
-  // 3) 多次无效 → 重建播放器后仍续播原时间点
   if (stallRetries > MAX_STALL_RETRIES) {
     rebuildAtTime(target);
     return;
   }
 
-  // 继续观察
   clearStallTimer();
   stallTimer = setTimeout(recoverStall, STALL_CHECK_INTERVAL);
 }
 
-/* 重建 HLS 实例（恢复专用） */
 function createRecoveryHls(){
   const inst = new Hls({
     maxBufferLength: 60,
@@ -1085,7 +1113,6 @@ function createRecoveryHls(){
   return inst;
 }
 
-/* 重建播放器，并跳回指定时间点续播 */
 function rebuildAtTime(target){
   clearStallTimer();
   stallRetries = 0;
@@ -1097,7 +1124,6 @@ function rebuildAtTime(target){
 
   if (hls) { try { hls.destroy(); } catch(e){} hls = null; }
 
-  // 兜底：元数据就绪后跳回原时间点
   function resumeAtTarget(){
     try { video.currentTime = targetTime; } catch(e){}
     try { video.playbackRate = rate; } catch(e){}
@@ -1122,7 +1148,6 @@ function rebuildAtTime(target){
     hls.loadSource(videoSrc);
     hls.attachMedia(video);
 
-    // 二次兜底
     setTimeout(function(){
       if (Math.abs(video.currentTime - targetTime) > 1) {
         try { video.currentTime = targetTime; } catch(e){}
@@ -1137,7 +1162,6 @@ function rebuildAtTime(target){
   }
 }
 
-/* 绑定卡顿相关事件 */
 video.addEventListener('waiting', onStallBegin);
 video.addEventListener('stalled', onStallBegin);
 video.addEventListener('playing', onStallEnd);
@@ -1188,7 +1212,6 @@ function play(url){
       const p = video.play();
       if (p && typeof p.catch === 'function') {
         p.catch(() => {
-          // 自动播放被阻止 → 中央显示常驻播放按钮
           updateCenterState();
         });
       }
