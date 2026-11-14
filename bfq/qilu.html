@@ -9,7 +9,7 @@
 <script src="https://file.iqilu.com/custom/v/zhibo/js/hls.min.js"></script>
 <style>
   :root{
-    /* ★ 主题色：根据图片提取的紫粉渐变 */
+    /* 主题色：紫粉渐变 */
     --c-accent-1:#b34dff;
     --c-accent-2:#f352a5;
     --grad-accent:linear-gradient(135deg,#b34dff 0%,#f352a5 100%);
@@ -106,7 +106,7 @@
   #centerIndicator.clickable:hover{ transform:translate(-50%,-50%) scale(1.06); }
   #centerIndicator.clickable:active{ transform:translate(-50%,-50%) scale(.98); }
 
-  /* ★ 右上角倍速状态显示 */
+  /* ══════════ 右上角倍速状态 ══════════ */
   #topRightRate{
     position:fixed;
     top:calc(20px + env(safe-area-inset-top));
@@ -187,6 +187,32 @@
     opacity:1; z-index:20;
   }
   #controls.hidden{ opacity:0; pointer-events:none; transform:translateY(10px); }
+
+  /* ★ 底部极简细线进度条（仅控制栏隐藏时显示） */
+  #miniProgressBar{
+    position:fixed; left:0; right:0; bottom:0;
+    height:3px;
+    background:rgba(255,255,255,.12);
+    z-index:19;
+    pointer-events:none; /* 不拦截点击事件，点击穿透至播放器呼出状态栏 */
+    opacity:1;
+    transition:opacity .3s ease;
+  }
+  #miniProgressBar.hidden{
+    opacity:0;
+  }
+  #miniProgressBuffered{
+    position:absolute; left:0; top:0; height:100%;
+    background:rgba(255,255,255,.25);
+    width:0%;
+    transition:width .25s ease;
+  }
+  #miniProgressPlayed{
+    position:absolute; left:0; top:0; height:100%;
+    background:var(--grad-accent);
+    width:0%;
+    box-shadow:0 0 8px rgba(179,77,255,.5);
+  }
 
   /* ── 进度条 ── */
   #progressWrap{
@@ -340,7 +366,6 @@
   <span id="ciRate" class="rate-text" style="display:none;">1.0x</span>
 </div>
 
-<!-- ★ 右上角倍速显示 -->
 <div id="topRightRate">2x</div>
 
 <div id="gestureIndicator">
@@ -356,6 +381,12 @@
     <div class="err-icon">⚠</div>
     <div class="err-text" id="errText">缺少播放地址</div>
   </div>
+</div>
+
+<!-- ★ 底部极简细线进度条 -->
+<div id="miniProgressBar" class="hidden">
+  <div id="miniProgressBuffered"></div>
+  <div id="miniProgressPlayed"></div>
 </div>
 
 <div id="controls">
@@ -426,7 +457,13 @@ const centerIndicator  = document.getElementById('centerIndicator');
 const ciPlay           = document.getElementById('ciPlay');
 const ciPause          = document.getElementById('ciPause');
 const ciRate           = document.getElementById('ciRate');
-const topRightRate     = document.getElementById('topRightRate'); // ★ 新增
+const topRightRate     = document.getElementById('topRightRate');
+
+// ★ 底部细线进度条元素
+const miniProgressBar      = document.getElementById('miniProgressBar');
+const miniProgressPlayed   = document.getElementById('miniProgressPlayed');
+const miniProgressBuffered = document.getElementById('miniProgressBuffered');
+
 const gestureIndicator = document.getElementById('gestureIndicator');
 const gestureIcon      = document.getElementById('gestureIcon');
 const gestureText      = document.getElementById('gestureText');
@@ -469,7 +506,6 @@ function formatTime(seconds){
 function formatRate(r){
   return (Number.isInteger(r) ? r.toFixed(1) : String(r)) + 'x';
 }
-// ★ 用于右上角的格式化：整数不带 .0
 function formatTopRightRate(r){
   return (Number.isInteger(r) ? String(r) : String(r)) + 'x';
 }
@@ -503,7 +539,7 @@ function applyRate(r){
   rateBtn.classList.toggle('active', Math.abs(currentRate - 1.0) > 0.001);
   rateBtn.title = '播放速度：' + formatRate(currentRate);
 
-  // ★ 右上角倍速状态更新
+  // 右上角倍速状态更新
   if (Math.abs(currentRate - 1.0) < 0.001) {
     topRightRate.classList.remove('show');
   } else {
@@ -535,12 +571,14 @@ rateBtn.addEventListener('click', e => {
    ═══════════════════════════════════════════ */
 function showControls(){
   controls.classList.remove('hidden');
+  miniProgressBar.classList.add('hidden'); // 控制栏出现，底部细线隐藏
   resetHideTimer();
 }
 function hideControls(){
   if (isPointerOverControls) return;
   if (!video.paused && !video.ended) {
     controls.classList.add('hidden');
+    miniProgressBar.classList.remove('hidden'); // 控制栏隐藏，底部细线显示
     progressTip.style.display = 'none';
   }
 }
@@ -558,6 +596,7 @@ if (!isTouch) {
     clearTimeout(hideTimer);
     hideTimer = null;
     controls.classList.remove('hidden');
+    miniProgressBar.classList.add('hidden'); // 防止悬停时底部线露出来
   });
   controls.addEventListener('mouseleave', function(){
     isPointerOverControls = false;
@@ -569,7 +608,7 @@ if (!isTouch) {
    中央指示器
    ═══════════════════════════════════════════ */
 function showCenterIndicator(type, rate){
-  if (isCenterPersistent) return;   // 常驻状态下不覆盖
+  if (isCenterPersistent) return;
 
   ciPlay.style.display  = type === 'play'  ? 'block' : 'none';
   ciPause.style.display = type === 'pause' ? 'block' : 'none';
@@ -582,7 +621,6 @@ function showCenterIndicator(type, rate){
   centerTimer = setTimeout(() => centerIndicator.classList.remove('show'), 700);
 }
 
-/* 常驻播放按钮（未播放时显示在中间，可点击播放） */
 function showCenterPersistent(){
   if (isCenterPersistent) return;
   isCenterPersistent = true;
@@ -599,7 +637,6 @@ function hideCenterPersistent(){
   ciPlay.style.display = 'none';
 }
 
-/* 依据当前状态自动切换 */
 function updateCenterState(){
   if (isVideoReady && (video.paused || video.ended)) {
     showCenterPersistent();
@@ -635,7 +672,6 @@ playBtn.addEventListener('click', e => {
   showControls();
 });
 
-/* 点击中央常驻播放按钮 */
 centerIndicator.addEventListener('click', e => {
   e.stopPropagation();
   if (video.paused || video.ended) {
@@ -655,14 +691,16 @@ video.addEventListener('play', () => {
 video.addEventListener('pause', () => {
   updatePlayIcons();
   updateCenterState();
+  showControls(); // 暂停必定显示控制栏，并隐藏底部细线
 });
 video.addEventListener('ended', () => {
   updatePlayIcons();
   updateCenterState();
+  showControls();
 });
 
 /* ═══════════════════════════════════════════
-   进度
+   进度条更新（同步粗细两条进度线）
    ═══════════════════════════════════════════ */
 function updateProgressUI(){
   if (!isFinite(video.duration) || video.duration <= 0) {
@@ -671,6 +709,7 @@ function updateProgressUI(){
   }
   const playedPct = (video.currentTime / video.duration) * 100;
   progressPlayed.style.width = playedPct + '%';
+  miniProgressPlayed.style.width = playedPct + '%'; // 更新细线播放进度
 
   let bufferEnd = video.currentTime;
   try {
@@ -681,7 +720,9 @@ function updateProgressUI(){
       }
     }
   } catch(e){}
-  progressBuffered.style.width = Math.min((bufferEnd / video.duration) * 100, 100) + '%';
+  const bufferedPct = Math.min((bufferEnd / video.duration) * 100, 100);
+  progressBuffered.style.width = bufferedPct + '%';
+  miniProgressBuffered.style.width = bufferedPct + '%'; // 更新细线缓冲进度
 
   curTimeEl.textContent = formatTime(video.currentTime);
   durTimeEl.textContent = formatTime(video.duration);
@@ -749,7 +790,7 @@ progressWrap.addEventListener('pointercancel', function(){
 });
 
 /* ═══════════════════════════════════════════
-   全屏
+   全屏 & 画中画
    ═══════════════════════════════════════════ */
 function isFullscreen(){
   return !!(document.fullscreenElement || document.webkitFullscreenElement);
@@ -778,9 +819,6 @@ fullscreenBtn.addEventListener('click', e => {
 document.addEventListener('fullscreenchange', updateFullscreenIcon);
 document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
 
-/* ═══════════════════════════════════════════
-   画中画
-   ═══════════════════════════════════════════ */
 const pipSupported = ('pictureInPictureEnabled' in document) && document.pictureInPictureEnabled;
 if (!pipSupported) {
   pipBtn.style.display = 'none';
@@ -800,7 +838,7 @@ if (!pipSupported) {
 }
 
 /* ═══════════════════════════════════════════
-   桌面端：单击显控 / 双击播放暂停
+   桌面端与移动端交互
    ═══════════════════════════════════════════ */
 if (!isTouch) {
   let clickCount = 0;
@@ -825,9 +863,6 @@ if (!isTouch) {
   });
 }
 
-/* ═══════════════════════════════════════════
-   移动端手势
-   ═══════════════════════════════════════════ */
 if (isTouch) {
   let touchStartX = 0, touchStartY = 0;
   let startBrightness = 50, startVolume = 100, startTime = 0;
@@ -954,7 +989,7 @@ if (isTouch) {
 }
 
 /* ═══════════════════════════════════════════
-   键盘
+   键盘控制
    ═══════════════════════════════════════════ */
 document.addEventListener('keydown', function(e){
   const active = document.activeElement;
@@ -967,13 +1002,11 @@ document.addEventListener('keydown', function(e){
       togglePlay();
       showControls();
       break;
-
     case 'ArrowLeft':
       e.preventDefault();
       video.currentTime = Math.max(0, video.currentTime - (e.shiftKey ? 30 : 10));
       showControls();
       break;
-
     case 'ArrowRight':
       e.preventDefault();
       if (video.duration) {
@@ -981,7 +1014,6 @@ document.addEventListener('keydown', function(e){
       }
       showControls();
       break;
-
     case 'ArrowUp':
       e.preventDefault();
       video.volume = Math.min(1, video.volume + 0.1);
@@ -989,7 +1021,6 @@ document.addEventListener('keydown', function(e){
       video.muted = false;
       showControls();
       break;
-
     case 'ArrowDown':
       e.preventDefault();
       video.volume = Math.max(0, video.volume - 0.1);
@@ -997,7 +1028,6 @@ document.addEventListener('keydown', function(e){
       if (video.volume === 0) video.muted = true;
       showControls();
       break;
-
     case 'f':
     case 'F':
       e.preventDefault();
@@ -1007,7 +1037,7 @@ document.addEventListener('keydown', function(e){
 });
 
 /* ═══════════════════════════════════════════
-   错误提示
+   错误提示与加载
    ═══════════════════════════════════════════ */
 function showError(msg){
   errText.innerHTML = escapeHtml(msg || '播放失败');
@@ -1170,7 +1200,7 @@ video.addEventListener('pause',     onStallEnd);
 video.addEventListener('ended',     onStallEnd);
 
 /* ═══════════════════════════════════════════
-   HLS / 原生播放
+   HLS / 原生播放初始化
    ═══════════════════════════════════════════ */
 function destroyHls(){
   if (hls) { try { hls.destroy(); } catch(e){} hls = null; }
@@ -1268,11 +1298,9 @@ function play(url){
             hls = null;
             fail('网络错误：无法加载视频流');
             break;
-
           case Hls.ErrorTypes.MEDIA_ERROR:
             try { hls.recoverMediaError(); } catch(e){ fail('媒体解码错误'); }
             break;
-
           default:
             try { hls.destroy(); } catch(e){}
             hls = null;
@@ -1285,7 +1313,6 @@ function play(url){
 
     } else if (isM3u8 && !nativeHls) {
       fail('当前环境不支持 HLS 播放');
-
     } else {
       try { video.removeAttribute('src'); } catch(e){}
       video.src = url;
@@ -1295,7 +1322,7 @@ function play(url){
 }
 
 /* ═══════════════════════════════════════════
-   启动
+   启动流程
    ═══════════════════════════════════════════ */
 video.addEventListener('contextmenu', e => e.preventDefault());
 
