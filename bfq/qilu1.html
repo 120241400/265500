@@ -109,7 +109,7 @@
 <div id="gestureIndicator">
   <span id="gestureIcon">☀</span>
   <div>
-    <div id="gestureText">亮度 100%（正常）</div>
+    <div id="gestureText">亮度 100%</div>
     <div id="gestureBar"><div id="gestureBarFill"></div></div>
   </div>
 </div>
@@ -271,7 +271,7 @@ if(isTouch){
   function showGesture(t,v,tx){gestureIcon.textContent=t==='brightness'?'☀':t==='volume'?'🔊':t==='rate'?'⏩':'⏱';gestureText.textContent=tx;gestureBarFill.style.width=Math.max(0,Math.min(100,v))+'%';gestureIndicator.classList.add('show')}
   function hideGesture(){gestureIndicator.classList.remove('show')}
   video.addEventListener('touchstart',function(e){const t=e.touches[0];tsx=t.clientX;tsy=t.clientY;sb=brightnessVal;sv=volumeVal;st=video.currentTime;gm=null;mv=false;clearTimeout(lpt);lpt=setTimeout(function(){if(mv)return;ilf=true;srf=video.playbackRate;video.playbackRate=3;showGesture('rate',0,'3.0x 快进中…');showControls()},500)},{passive:true});
-  video.addEventListener('touchmove',function(e){const t=e.touches[0];const dx=t.clientX-tsx,dy=t.clientY-tsy;if(!mv&&Math.abs(dx)<12&&Math.abs(dy)<12)return;if(!mv){mv=true;clearTimeout(lpt);gm=Math.abs(dy)>Math.abs(dx)?(tsx<window.innerWidth/2?'brightness':'volume'):'seek'}e.preventDefault();if(ilf)return;if(gm==='brightness'){const nv=Math.max(0,Math.min(100,sb+(-dy/(window.innerHeight/2))*100));setBrightness(nv);showGesture('brightness',nv,nv>=99.5?'亮度 100%（正常）':`亮度 ${Math.round(nv)}%`)}else if(gm==='volume'){const nv=Math.max(0,Math.min(100,sv+(-dy/(window.innerHeight/2))*100));setVolume(nv);showGesture('volume',nv,`音量 ${Math.round(nv)}%`)}else if(gm==='seek'&&isFinite(video.duration)&&video.duration>0){const sr=video.duration*.5,dt=(dx/window.innerWidth)*sr,nt=Math.max(0,Math.min(video.duration,st+dt));video.currentTime=nt;showGesture('seek',(nt/video.duration)*100,`${formatTime(nt)} / ${formatTime(video.duration)}`);updateProgressUI()}showControls()},{passive:false});
+  video.addEventListener('touchmove',function(e){const t=e.touches[0];const dx=t.clientX-tsx,dy=t.clientY-tsy;if(!mv&&Math.abs(dx)<12&&Math.abs(dy)<12)return;if(!mv){mv=true;clearTimeout(lpt);gm=Math.abs(dy)>Math.abs(dx)?(tsx<window.innerWidth/2?'brightness':'volume'):'seek'}e.preventDefault();if(ilf)return;if(gm==='brightness'){const nv=Math.max(0,Math.min(100,sb+(-dy/(window.innerHeight/2))*100));setBrightness(nv);showGesture('brightness',nv,nv>=99.5?'亮度 100%':`亮度 ${Math.round(nv)}%`)}else if(gm==='volume'){const nv=Math.max(0,Math.min(100,sv+(-dy/(window.innerHeight/2))*100));setVolume(nv);showGesture('volume',nv,`音量 ${Math.round(nv)}%`)}else if(gm==='seek'&&isFinite(video.duration)&&video.duration>0){const sr=video.duration*.5,dt=(dx/window.innerWidth)*sr,nt=Math.max(0,Math.min(video.duration,st+dt));video.currentTime=nt;showGesture('seek',(nt/video.duration)*100,`${formatTime(nt)} / ${formatTime(video.duration)}`);updateProgressUI()}showControls()},{passive:false});
   video.addEventListener('touchend',function(){clearTimeout(lpt);if(ilf){ilf=false;video.playbackRate=srf;hideGesture();showCenterIndicator('rate',srf);showControls();return}hideGesture();if(!mv){const n=Date.now();if(n-lt<300){lt=0;togglePlay();showControls()}else{lt=n;showControls()}}});
   video.addEventListener('touchcancel',function(){clearTimeout(lpt);if(ilf){ilf=false;video.playbackRate=srf}hideGesture()},{passive:true});
 }
